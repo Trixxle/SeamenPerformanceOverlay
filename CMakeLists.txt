@@ -10,16 +10,34 @@ set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
 
 add_executable(PerformanceVR
         src/main.cpp
+        src/userinterface/dashboardui.cpp
+        src/userinterface/dashboardui.h
+        src/userinterface/dashboardui.ui
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
 # Configuring Qt6 path
 set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOUIC ON)
 find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
-        REQUIRED)
+        REQUIRED
+)
+
+set_target_properties(PerformanceVR PROPERTIES
+        WIN32_EXECUTABLE TRUE
+        MACOSX_BUNDLE TRUE
+)
+
+# Set CMake to run moc automatically has needed.
+set(CMAKE_AUTOMOC ON)
+# Set CMake to handle *.ui generation to avoid using QT5_WRAP_UI() macro.
+set(CMAKE_AUTOUIC ON)
+# Add the build dir to include paths to find UI's headers.
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Configuring OpenVR location
 set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/OpenVR)
@@ -29,17 +47,20 @@ target_include_directories(PerformanceVR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_features(PerformanceVR PUBLIC cxx_std_23)
 
 target_link_libraries(PerformanceVR
+        PRIVATE
         Qt::Core
         Qt::Gui
         Qt::Widgets
         OpenVR::API
 )
 
+# Make all warnings errors etc.
 target_compile_options(PerformanceVR PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
         $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>
 )
 
+# Find Qt6 platforms specific DLLs to build with
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     set(DEBUG_SUFFIX)
     if (MSVC AND CMAKE_BUILD_TYPE MATCHES "Debug")
