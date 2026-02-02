@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 
 project(PerformanceVR)
+set(TARGET_NAME PerformanceVR)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,13 +14,29 @@ add_executable(PerformanceVR
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
         src/userinterface/dashboardui.ui
+        src/userinterface/ui_dashboardui.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
 # Configuring Qt6 path
 set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
+# Set CMake to run moc automatically has needed.
 set(CMAKE_AUTOMOC ON)
+# Set CMake to handle *.ui generation to avoid using QT5_WRAP_UI() macro.
 set(CMAKE_AUTOUIC ON)
+# Add the build dir to include paths to find UI's headers.
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+#foreach(module Core Gui Widgets)
+#    find_package(Qt6 REQUIRED COMPONENTS ${module})
+#    list(APPEND QT_INCLUDE_DIRS "${Qt5${module}_INCLUDE_DIRS}")
+#    list(APPEND QT_LIBRARIES    "${Qt5${module}_LIBRARIES}")
+#    list(APPEND QT_FLAGS        "${Qt5${module}_EXECUTABLE_COMPILE_FLAGS}")
+#    list(APPEND QT_DEFINITIONS  "${Qt5${module}_DEFINITIONS}")
+#endforeach()
+# Correct QT_FLAGS having semicolons, which break the compile step on POSIX
+#list(REMOVE_DUPLICATES QT_FLAGS)
+
 find_package(Qt6 COMPONENTS
         Core
         Gui
@@ -30,14 +47,8 @@ find_package(Qt6 COMPONENTS
 set_target_properties(PerformanceVR PROPERTIES
         WIN32_EXECUTABLE TRUE
         MACOSX_BUNDLE TRUE
+        COMPILE_FLAGS "${QT_FLAGS}"
 )
-
-# Set CMake to run moc automatically has needed.
-set(CMAKE_AUTOMOC ON)
-# Set CMake to handle *.ui generation to avoid using QT5_WRAP_UI() macro.
-set(CMAKE_AUTOUIC ON)
-# Add the build dir to include paths to find UI's headers.
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Configuring OpenVR location
 set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/OpenVR)
@@ -89,3 +100,11 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
 endif ()
+
+add_custom_command(
+        TARGET PerformanceVR POST_BUILD
+        COMMENT "Copying Executable and DLLs"
+        COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_FILE:PerformanceVR>
+        COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_RUNTIME_DLLS:PerformanceVR>
+        COMMAND_EXPAND_LISTS
+)

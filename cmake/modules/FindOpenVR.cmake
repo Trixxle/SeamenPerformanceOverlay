@@ -27,11 +27,7 @@ find_path(OpenVR_INCLUDE_DIR
         openvr.h
         openvr_driver.h
         PATH_SUFFIXES
-        openvr
         headers
-        public/headers
-        steam
-        public/steam
         DOC "OpenVR include directory")
 mark_as_advanced(OpenVR_INCLUDE_DIR)
 
@@ -39,7 +35,6 @@ find_library(OpenVR_LIBRARY
         NAMES openvr_api
         PATHS ${OpenVR_ROOT}
         PATH_SUFFIXES
-        "${OpenVR_PLATFORM}"
         "lib/${OpenVR_PLATFORM}"
         DOC "OpenVR API library")
 mark_as_advanced(OpenVR_LIBRARY)

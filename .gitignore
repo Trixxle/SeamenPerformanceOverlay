@@ -3,5 +3,9 @@
 *.out
 *.app
 
+#Qt Files
+src/userinterface/build
+src/userinterface/.qtcreator
+
 # IDE Files
 .idea
