@@ -1,17 +1,31 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 4.0)
 
 project(PerformanceVR)
+
+# Set CMake to run moc automatically has needed.
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+# Set CMake to handle *.ui generation to avoid using QT6_WRAP_UI() macro.
+set(CMAKE_AUTOUIC ON)
+# Add the build dir to include paths to find UI's headers.
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+# Where CMake searches for .ui files
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR})
+
 set(TARGET_NAME PerformanceVR)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
 set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
 
 add_executable(PerformanceVR
         src/main.cpp
         src/userinterface/ui_dashboardui.h
+        src/userinterface/dashboardui.cpp
+        src/userinterface/dashboardui.h
+        src/userinterface/dashboardui.ui
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
         src/userinterface/dashboardui.ui
@@ -31,20 +45,11 @@ set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
 # Correct QT_FLAGS having semicolons, which break the compile step on POSIX
 #list(REMOVE_DUPLICATES QT_FLAGS)
 
-find_package(Qt6 REQUIRED COMPONENTS
+find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
-)
-
-# Set CMake to run moc automatically has needed.
-set(CMAKE_AUTOMOC ON)
-# Set CMake to handle *.ui generation to avoid using QT5_WRAP_UI() macro.
-set(CMAKE_AUTOUIC ON)
-# Add the build dir to include paths to find UI's headers.
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-# Where CMake searches for .ui files
-set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR})
+        REQUIRED)
 
 set_target_properties(PerformanceVR PROPERTIES
         WIN32_EXECUTABLE TRUE
