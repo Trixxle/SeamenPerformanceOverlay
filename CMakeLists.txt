@@ -22,10 +22,6 @@ set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
 
 add_executable(PerformanceVR
         src/main.cpp
-        src/userinterface/ui_dashboardui.h
-        src/userinterface/dashboardui.cpp
-        src/userinterface/dashboardui.h
-        src/userinterface/dashboardui.ui
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
         src/userinterface/dashboardui.ui
@@ -108,28 +104,10 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     endforeach (QT_LIB)
 endif ()
 
-include_directories(
-        .
-        ${QT_INCLUDE_DIRS}
-)
-
 add_custom_command(
         TARGET PerformanceVR POST_BUILD
         COMMENT "Copying Executable and DLLs"
         COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_FILE:PerformanceVR>
         COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_RUNTIME_DLLS:PerformanceVR>
         COMMAND_EXPAND_LISTS
-)
-# I HAVE NO FUCKING CLUE WHAT I AM DOING UNDERNEATH HERE I JUST WANT THE FUCKING QT FRAMEWORK TO WORK
-
-# Shared files so that MOC and AUTOUIC can find all the headers (I guess not cause it doesnt fucking work)
-set(HEADERS
-        src/userinterface/ui_dashboardui.h
-        src/userinterface/dashboardui.h
-)
-
-set(SHARED_SRC_DIR ${CMAKE_SOURCE_DIR})
-file(GLOB SHARED_SRC_FILES
-        ${SHARED_SRC_DIR}/*.cpp
-        ${SHARED_SRC_DIR}/*.h
 )
