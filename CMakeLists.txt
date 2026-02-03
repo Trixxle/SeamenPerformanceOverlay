@@ -11,38 +11,40 @@ set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
 
 add_executable(PerformanceVR
         src/main.cpp
+        src/userinterface/ui_dashboardui.h
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
         src/userinterface/dashboardui.ui
-        src/userinterface/ui_dashboardui.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
 # Configuring Qt6 path
 set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
+
+#foreach(module Core Gui Widgets)
+#    find_package(Qt6 REQUIRED COMPONENTS ${module})
+#    list(APPEND QT_INCLUDE_DIRS "${Qt6${module}_INCLUDE_DIRS}")
+#    list(APPEND QT_LIBRARIES    "${Qt6${module}_LIBRARIES}")
+#    list(APPEND QT_FLAGS        "${Qt6${module}_EXECUTABLE_COMPILE_FLAGS}")
+#    list(APPEND QT_DEFINITIONS  "${Qt6${module}_DEFINITIONS}")
+#endforeach()
+# Correct QT_FLAGS having semicolons, which break the compile step on POSIX
+#list(REMOVE_DUPLICATES QT_FLAGS)
+
+find_package(Qt6 REQUIRED COMPONENTS
+        Core
+        Gui
+        Widgets
+)
+
 # Set CMake to run moc automatically has needed.
 set(CMAKE_AUTOMOC ON)
 # Set CMake to handle *.ui generation to avoid using QT5_WRAP_UI() macro.
 set(CMAKE_AUTOUIC ON)
 # Add the build dir to include paths to find UI's headers.
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-#foreach(module Core Gui Widgets)
-#    find_package(Qt6 REQUIRED COMPONENTS ${module})
-#    list(APPEND QT_INCLUDE_DIRS "${Qt5${module}_INCLUDE_DIRS}")
-#    list(APPEND QT_LIBRARIES    "${Qt5${module}_LIBRARIES}")
-#    list(APPEND QT_FLAGS        "${Qt5${module}_EXECUTABLE_COMPILE_FLAGS}")
-#    list(APPEND QT_DEFINITIONS  "${Qt5${module}_DEFINITIONS}")
-#endforeach()
-# Correct QT_FLAGS having semicolons, which break the compile step on POSIX
-#list(REMOVE_DUPLICATES QT_FLAGS)
-
-find_package(Qt6 COMPONENTS
-        Core
-        Gui
-        Widgets
-        REQUIRED
-)
+# Where CMake searches for .ui files
+set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR})
 
 set_target_properties(PerformanceVR PROPERTIES
         WIN32_EXECUTABLE TRUE
@@ -101,10 +103,28 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     endforeach (QT_LIB)
 endif ()
 
+include_directories(
+        .
+        ${QT_INCLUDE_DIRS}
+)
+
 add_custom_command(
         TARGET PerformanceVR POST_BUILD
         COMMENT "Copying Executable and DLLs"
         COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_FILE:PerformanceVR>
         COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_RUNTIME_DLLS:PerformanceVR>
         COMMAND_EXPAND_LISTS
+)
+# I HAVE NO FUCKING CLUE WHAT I AM DOING UNDERNEATH HERE I JUST WANT THE FUCKING QT FRAMEWORK TO WORK
+
+# Shared files so that MOC and AUTOUIC can find all the headers (I guess not cause it doesnt fucking work)
+set(HEADERS
+        src/userinterface/ui_dashboardui.h
+        src/userinterface/dashboardui.h
+)
+
+set(SHARED_SRC_DIR ${CMAKE_SOURCE_DIR})
+file(GLOB SHARED_SRC_FILES
+        ${SHARED_SRC_DIR}/*.cpp
+        ${SHARED_SRC_DIR}/*.h
 )

@@ -1,23 +1,32 @@
-#ifndef DASHBOARDUI_H
-#define DASHBOARDUI_H
+//
+// Created by jornt on 03/02/2026.
+//
+
+#ifndef PERFORMANCEVR_DASHBOARDUI_H
+#define PERFORMANCEVR_DASHBOARDUI_H
 
 #include <QWidget>
 
+
 QT_BEGIN_NAMESPACE
+
 namespace Ui {
-class dashboardui;
+    class dashboardui;
 }
+
 QT_END_NAMESPACE
 
-class dashboardui : public QWidget
-{
+class dashboardui : public QWidget {
     Q_OBJECT
 
 public:
-    dashboardui(QWidget *parent = nullptr);
-    ~dashboardui();
+    explicit dashboardui(QWidget *parent = nullptr);
+
+    ~dashboardui() override;
 
 private:
     Ui::dashboardui *ui;
 };
-#endif // DASHBOARDUI_H
+
+
+#endif //PERFORMANCEVR_DASHBOARDUI_H

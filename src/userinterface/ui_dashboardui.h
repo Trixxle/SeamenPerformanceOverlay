@@ -23,7 +23,7 @@ public:
     {
         if (dashboardui->objectName().isEmpty())
             dashboardui->setObjectName("dashboardui");
-        dashboardui->resize(800, 600);
+        dashboardui->resize(400, 300);
 
         retranslateUi(dashboardui);
 
