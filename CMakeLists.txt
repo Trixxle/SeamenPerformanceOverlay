@@ -31,16 +31,6 @@ add_executable(PerformanceVR
 # Configuring Qt6 path
 set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
 
-#foreach(module Core Gui Widgets)
-#    find_package(Qt6 REQUIRED COMPONENTS ${module})
-#    list(APPEND QT_INCLUDE_DIRS "${Qt6${module}_INCLUDE_DIRS}")
-#    list(APPEND QT_LIBRARIES    "${Qt6${module}_LIBRARIES}")
-#    list(APPEND QT_FLAGS        "${Qt6${module}_EXECUTABLE_COMPILE_FLAGS}")
-#    list(APPEND QT_DEFINITIONS  "${Qt6${module}_DEFINITIONS}")
-#endforeach()
-# Correct QT_FLAGS having semicolons, which break the compile step on POSIX
-#list(REMOVE_DUPLICATES QT_FLAGS)
-
 find_package(Qt6 COMPONENTS
         Core
         Gui
