@@ -18,12 +18,49 @@
     <rect>
      <x>50</x>
      <y>20</y>
-     <width>104</width>
+     <width>151</width>
      <height>64</height>
     </rect>
    </property>
    <property name="plainText">
-    <string>HELLO!</string>
+    <string>HELLO! You can edit me!
+And below me is a dial!</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>220</y>
+     <width>81</width>
+     <height>26</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Push me!</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>220</y>
+     <width>231</width>
+     <height>24</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>You can turn me on! (or off)</string>
+   </property>
+  </widget>
+  <widget class="QDial" name="dial">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>110</y>
+     <width>50</width>
+     <height>64</height>
+    </rect>
    </property>
   </widget>
  </widget>
