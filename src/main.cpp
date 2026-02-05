@@ -20,7 +20,7 @@ QString GetTrackedDeviceString( vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t un
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    /*QApplication a(argc, argv);
 
     vr::HmdError m_eLastHmdError = vr::VRInitError_None;
     QString m_strVRDriver;
@@ -39,8 +39,10 @@ int main(int argc, char *argv[])
 
 
     return 0;
-    //QApplication a(argc, argv);
-    //dashboardui w;
-    //w.show();
-    //return a.exec();
+*/
+
+    QApplication a(argc, argv);
+    dashboardui w;
+    w.show();
+    return a.exec();
 }

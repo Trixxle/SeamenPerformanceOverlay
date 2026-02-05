@@ -23,6 +23,8 @@ add_executable(PerformanceVR
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
         src/userinterface/dashboardui.ui
+        src/steamvrcontrol/steamvrlogic.cpp
+        src/steamvrcontrol/steamvrlogic.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
