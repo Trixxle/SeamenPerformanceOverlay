@@ -44,7 +44,7 @@ set_target_properties(PerformanceVR PROPERTIES
 )
 
 # Configuring OpenVR location
-set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/OpenVR)
+set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/openvr)
 find_package(OpenVR REQUIRED)
 
 target_include_directories(PerformanceVR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
