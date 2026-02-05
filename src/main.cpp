@@ -1,22 +1,8 @@
 #include "userinterface/dashboardui.h"
+#include "steamvrcontrol/steamvrlogic.h"
 #include "openvr.h"
 
 #include <QApplication>
-
-QString GetTrackedDeviceString( vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop )
-{
-    char buf[128];
-    vr::TrackedPropertyError err;
-    pHmd->GetStringTrackedDeviceProperty( unDevice, prop, buf, sizeof( buf ), &err );
-    if( err != vr::TrackedProp_Success )
-    {
-        return QString( "Error Getting String: " ) + pHmd->GetPropErrorNameFromEnum( err );
-    }
-    else
-    {
-        return buf;
-    }
-}
 
 int main(int argc, char *argv[])
 {
@@ -40,9 +26,17 @@ int main(int argc, char *argv[])
 
     return 0;
 */
-
+    /*
     QApplication a(argc, argv);
     dashboardui w;
     w.show();
     return a.exec();
+    */
+
+    QApplication a(argc, argv);
+
+    SteamVRLogic testInit = SteamVRLogic();
+    testInit.Init();
+
+    return 0;
 }

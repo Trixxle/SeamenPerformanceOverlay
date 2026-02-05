@@ -11,21 +11,21 @@
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
-    class dashboardui;
+    class DashboardUI;
 }
 
 QT_END_NAMESPACE
 
-class dashboardui : public QWidget {
+class DashboardUI : public QWidget {
     Q_OBJECT
 
 public:
-    explicit dashboardui(QWidget *parent = nullptr);
+    explicit DashboardUI(QWidget *parent = nullptr);
 
-    ~dashboardui() override;
+    ~DashboardUI() override;
 
 private:
-    Ui::dashboardui *ui;
+    Ui::DashboardUI *ui;
 };
 
 

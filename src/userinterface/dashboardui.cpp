@@ -6,10 +6,10 @@
 #include "ui_dashboardui.h"
 
 
-dashboardui::dashboardui(QWidget *parent) : QWidget(parent), ui(new Ui::dashboardui) {
+DashboardUI::DashboardUI(QWidget *parent) : QWidget(parent), ui(new Ui::DashboardUI) {
     ui->setupUi(this);
 }
 
-dashboardui::~dashboardui() {
+DashboardUI::~DashboardUI() {
     delete ui;
 }
