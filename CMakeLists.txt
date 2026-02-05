@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 4.0)
 
 project(PerformanceVR)
+set(TARGET_NAME PerformanceVR)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
+set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
 
 # Set CMake to run moc automatically has needed.
 set(CMAKE_AUTOMOC ON)
@@ -12,14 +18,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Where CMake searches for .ui files
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR})
 
-set(TARGET_NAME PerformanceVR)
-
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
-set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
-
 add_executable(PerformanceVR
         src/main.cpp
         src/userinterface/dashboardui.cpp
@@ -30,39 +28,6 @@ add_executable(PerformanceVR
 # IMPORTANT: Change this path to where you have your Qt libraries installed
 # Configuring Qt6 path
 set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
-
-find_package(Qt6 COMPONENTS
-        Core
-        Gui
-        Widgets
-        REQUIRED)
-
-set_target_properties(PerformanceVR PROPERTIES
-        WIN32_EXECUTABLE TRUE
-        MACOSX_BUNDLE TRUE
-        COMPILE_FLAGS "${QT_FLAGS}"
-)
-
-# Configuring OpenVR location
-set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/openvr)
-find_package(OpenVR REQUIRED)
-
-target_include_directories(PerformanceVR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_compile_features(PerformanceVR PUBLIC cxx_std_23)
-
-target_link_libraries(PerformanceVR
-        PRIVATE
-        Qt::Core
-        Qt::Gui
-        Qt::Widgets
-        OpenVR::API
-)
-
-# Make all warnings errors etc.
-target_compile_options(PerformanceVR PRIVATE
-        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-        $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>
-)
 
 # Find Qt6 platforms specific DLLs to build with
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -93,6 +58,41 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
                 "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
     endforeach (QT_LIB)
 endif ()
+
+find_package(Qt6 COMPONENTS
+        Core
+        Gui
+        Widgets
+        REQUIRED)
+
+# Configuring OpenVR location
+set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/openvr)
+find_package(OpenVR REQUIRED)
+
+target_include_directories(PerformanceVR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_features(PerformanceVR PUBLIC cxx_std_23)
+
+target_link_libraries(PerformanceVR
+        PRIVATE
+        Qt::Core
+        Qt::Gui
+        Qt::Widgets
+        OpenVR::API
+)
+
+# Make all warnings errors etc.
+target_compile_options(PerformanceVR PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+        $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>
+)
+
+set_target_properties(PerformanceVR PROPERTIES
+        WIN32_EXECUTABLE TRUE
+        MACOSX_BUNDLE TRUE
+        COMPILE_FLAGS "${QT_FLAGS}"
+)
+
+file(COPY ${OpenVR_BINARY} DESTINATION ${CMAKE_BINARY_DIR})
 
 add_custom_command(
         TARGET PerformanceVR POST_BUILD
