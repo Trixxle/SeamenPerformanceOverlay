@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules/")
 set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/bin")
 
-# Set CMake to run moc automatically has needed.
+# Set CMake to run moc automatically as needed.
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 # Set CMake to handle *.ui generation to avoid using QT6_WRAP_UI() macro.
