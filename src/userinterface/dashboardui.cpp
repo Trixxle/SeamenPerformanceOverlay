@@ -5,7 +5,6 @@
 #include "dashboardui.h"
 #include "ui_dashboardui.h"
 
-
 DashboardUI::DashboardUI(QWidget *parent):
     QWidget(parent),
     ui(new Ui::DashboardUI)

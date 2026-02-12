@@ -4,7 +4,7 @@
 
 #ifndef PERFORMANCEVR_STEAMVRLOGIC_H
 #define PERFORMANCEVR_STEAMVRLOGIC_H
-
+/*
 #include <QOpenGLContext>
 #include <QtCore>
 #include <QOffscreenSurface>
@@ -16,6 +16,21 @@
 #include <QtWidgets/QApplication>
 #include <QPainter>
 #include <QBrush>
+#include <iostream>*/
+
+#include <QtCore/QtCore>
+// because of incompatibilities with QtOpenGL and GLEW we need to cherry pick includes
+#include <QtGui/QVector2D>
+#include <QtGui/QMatrix4x4>
+#include <QtCore/QVector>
+#include <QtGui/QVector2D>
+#include <QtGui/QVector3D>
+#include <QtGui/QOpenGLContext>
+#include <QOpenGLFramebufferObject>
+#include <QtWidgets/QGraphicsScene>
+#include <QtGui/QOffscreenSurface>
+#include <QOpenGLPaintDevice>
+#include <QPainter>
 #include <iostream>
 
 #include "openvr.h"
@@ -45,6 +60,7 @@ private:
 
     bool ConnectToVRRuntime();
     void DisconnectFromVRRuntime();
+    void OnSceneChanged(const QList<QRectF>&);
 
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 

@@ -4,6 +4,8 @@
 
 #include "steamvrlogic.h"
 
+#include <QWidget>
+
 SteamVRLogic *s_pSharedSteamVRLogic= NULL;
 
 SteamVRLogic *SteamVRLogic::SharedInstance()
@@ -93,6 +95,30 @@ void SteamVRLogic::Shutdown() {
     vr::VR_Shutdown();
 }
 
+void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
+    // Don't render if the overlay isn't visible
+    if ((m_ulOverlayHandle == vr::k_ulOverlayHandleInvalid ) || !vr::VROverlay() ||
+        (!vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && !vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle)))
+        return;
+
+    m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
+    m_pFbo->bind();
+
+    QOpenGLPaintDevice device(m_pFbo->size());
+    QPainter painter (&device);
+
+    m_pScene ->render(&painter);
+
+    m_pFbo->release();
+
+    GLuint unTexture = m_pFbo->texture();
+    if (unTexture != 0)
+    {
+        vr::Texture_t texure = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+        vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texure);
+    }
+}
+
 bool SteamVRLogic::ConnectToVRRuntime() {
     vr::IVRSystem *pVRSystem = vr::VR_Init(&m_eLastHmdError, vr::VRApplication_Overlay);
 
@@ -138,7 +164,7 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
     if( m_pScene )
     {
         // all of the mouse handling stuff requires that the widget be at 0,0
-        pWidget->move( 0, 0 );
+        pWidget->move(0,0);
         m_pScene->addWidget( pWidget );
     }
     m_Widget = pWidget;
