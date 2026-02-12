@@ -13,6 +13,6 @@ int main(int argc, char *argv[])
 
     SteamVRLogic::SharedInstance()->Init();
     SteamVRLogic::SharedInstance()->SetWidget(pDashboardUI);
-
-    return 0;
+    
+    return a.exec();
 }

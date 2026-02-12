@@ -29,7 +29,7 @@ add_executable(PerformanceVR
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
 # Configuring Qt6 path
-set(CMAKE_PREFIX_PATH "C:/Qt/6.10.1/mingw_64/")
+set(CMAKE_PREFIX_PATH "C:/Qt/6.10.2/mingw_64/")
 
 # Find Qt6 platforms specific DLLs to build with
 if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
@@ -65,6 +65,7 @@ find_package(Qt6 COMPONENTS
         Core
         Gui
         Widgets
+        OpenGL
         REQUIRED)
 
 # Configuring OpenVR location
@@ -79,6 +80,7 @@ target_link_libraries(PerformanceVR
         Qt::Core
         Qt::Gui
         Qt::Widgets
+        Qt::OpenGL
         OpenVR::API
 )
 

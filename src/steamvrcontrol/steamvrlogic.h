@@ -8,13 +8,14 @@
 #include <QOpenGLContext>
 #include <QtCore>
 #include <QOffscreenSurface>
-#include <QtOpenGL/QOpenGLFramebufferObject>
-#include <QtOpenGL/QOpenGLFramebufferObjectFormat>
+#include <QOpenGLFramebufferObject>
+#include <QOpenGLFramebufferObjectFormat>
 #include <QWidget>
 #include <QGraphicsScene>
 #include <QOpenGLFunctions>
 #include <QtWidgets/QApplication>
 #include <QPainter>
+#include <QBrush>
 #include <iostream>
 
 #include "openvr.h"
