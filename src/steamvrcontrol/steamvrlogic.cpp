@@ -4,8 +4,6 @@
 
 #include "steamvrlogic.h"
 
-#include <QWidget>
-
 SteamVRLogic *s_pSharedSteamVRLogic= NULL;
 
 SteamVRLogic *SteamVRLogic::SharedInstance()
@@ -20,6 +18,9 @@ SteamVRLogic *SteamVRLogic::SharedInstance()
 SteamVRLogic::SteamVRLogic():
 BaseClass(),
 m_eLastHmdError(vr::VRInitError_None),
+m_eCompositorError( vr::VRInitError_None ),
+m_eOverlayError( vr::VRInitError_None ),
+m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid ),
 m_Widget(NULL),
 m_strVRDriver("No Driver"),
 m_strVRDisplay("No Display"),
@@ -28,7 +29,8 @@ m_pPumpEventsTimer(NULL),
 m_pOpenGLContext(NULL),
 m_pOffscreenSurface(NULL),
 m_pScene(NULL),
-m_pFbo(NULL)
+m_pFbo(NULL),
+m_lastMouseButtons( 0 )
 {}
 
 SteamVRLogic::~SteamVRLogic() {
@@ -37,6 +39,8 @@ SteamVRLogic::~SteamVRLogic() {
 
 bool SteamVRLogic::Init() {
     bool bSuccess = true;
+
+	m_strOverlayName = "Seamen Performance Overlay";
 
     QStringList arguments = qApp->arguments();
 
@@ -84,7 +88,6 @@ bool SteamVRLogic::Init() {
         connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
         m_pPumpEventsTimer->setInterval( 20 );
         m_pPumpEventsTimer->start();
-
     }
 
     std::cout << bSuccess << std::endl;
@@ -92,13 +95,23 @@ bool SteamVRLogic::Init() {
 }
 
 void SteamVRLogic::Shutdown() {
-    vr::VR_Shutdown();
-}
+	DisconnectFromVRRuntime();
+
+	delete m_pScene;
+	delete m_pFbo;
+	delete m_pOffscreenSurface;
+
+	if( m_pOpenGLContext )
+	{
+		//		m_pOpenGLContext->destroy();
+		delete m_pOpenGLContext;
+		m_pOpenGLContext = NULL;
+	}}
 
 void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
     // Don't render if the overlay isn't visible
     if ((m_ulOverlayHandle == vr::k_ulOverlayHandleInvalid ) || !vr::VROverlay() ||
-        (!vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && !vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle)))
+        (!vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && !vr::VROverlay()->IsOverlayVisible(m_ulOverlayThumbnailHandle)))
         return;
 
     m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
@@ -119,7 +132,121 @@ void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
     }
 }
 
+void SteamVRLogic::OnTimeoutPumpEvents()
+{
+    if( !vr::VRSystem() )
+		return;
+
+	vr::VREvent_t vrEvent;
+    while( vr::VROverlay()->PollNextOverlayEvent( m_ulOverlayHandle, &vrEvent, sizeof( vrEvent )  ) )
+	{
+		switch( vrEvent.eventType )
+		{
+		case vr::VREvent_MouseMove:
+			{
+				QPointF ptNewMouse( vrEvent.data.mouse.x, vrEvent.data.mouse.y );
+				QPoint ptGlobal = ptNewMouse.toPoint();
+				QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseMove );
+				mouseEvent.setWidget( NULL );
+				mouseEvent.setPos( ptNewMouse );
+				mouseEvent.setScenePos( ptGlobal );
+				mouseEvent.setScreenPos( ptGlobal );
+				mouseEvent.setLastPos( m_tLastMouse );
+				mouseEvent.setLastScenePos( m_Widget->mapToGlobal( m_tLastMouse.toPoint() ) );
+				mouseEvent.setLastScreenPos( m_Widget->mapToGlobal( m_tLastMouse.toPoint() ) );
+				mouseEvent.setButtons( m_lastMouseButtons );
+				mouseEvent.setButton( Qt::NoButton );
+				mouseEvent.setModifiers( ( Qt::KeyboardModifiers)0 );
+				mouseEvent.setAccepted( false );
+
+				m_tLastMouse = ptNewMouse;
+				QApplication::sendEvent( m_pScene, &mouseEvent );
+
+				OnSceneChanged( QList<QRectF>() );
+			}
+			break;
+
+		case vr::VREvent_MouseButtonDown:
+			{
+				Qt::MouseButton button = vrEvent.data.mouse.button == vr::VRMouseButton_Right ? Qt::RightButton : Qt::LeftButton;
+
+				m_lastMouseButtons |= button;
+
+				QPoint ptGlobal = m_tLastMouse.toPoint();
+				QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMousePress );
+				mouseEvent.setWidget( NULL );
+				mouseEvent.setPos( m_tLastMouse );
+				mouseEvent.setButtonDownPos( button, m_tLastMouse );
+				mouseEvent.setButtonDownScenePos( button, ptGlobal);
+				mouseEvent.setButtonDownScreenPos( button, ptGlobal );
+				mouseEvent.setScenePos( ptGlobal );
+				mouseEvent.setScreenPos( ptGlobal );
+				mouseEvent.setLastPos( m_tLastMouse );
+				mouseEvent.setLastScenePos( ptGlobal );
+				mouseEvent.setLastScreenPos( ptGlobal );
+				mouseEvent.setButtons( m_lastMouseButtons );
+				mouseEvent.setButton( button );
+				mouseEvent.setModifiers( ( Qt::KeyboardModifiers ) 0 );
+				mouseEvent.setAccepted( false );
+
+				QApplication::sendEvent( m_pScene, &mouseEvent );
+			}
+			break;
+
+		case vr::VREvent_MouseButtonUp:
+			{
+				Qt::MouseButton button = vrEvent.data.mouse.button == vr::VRMouseButton_Right ? Qt::RightButton : Qt::LeftButton;
+				m_lastMouseButtons &= ~button;
+
+				QPoint ptGlobal = m_tLastMouse.toPoint();
+				QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseRelease );
+				mouseEvent.setWidget( NULL );
+				mouseEvent.setPos( m_tLastMouse );
+				mouseEvent.setScenePos( ptGlobal );
+				mouseEvent.setScreenPos( ptGlobal );
+				mouseEvent.setLastPos( m_tLastMouse );
+				mouseEvent.setLastScenePos( ptGlobal );
+				mouseEvent.setLastScreenPos( ptGlobal );
+				mouseEvent.setButtons( m_lastMouseButtons );
+				mouseEvent.setButton( button );
+				mouseEvent.setModifiers( ( Qt::KeyboardModifiers )0 );
+				mouseEvent.setAccepted( false );
+
+				QApplication::sendEvent(  m_pScene, &mouseEvent );
+			}
+			break;
+
+		case vr::VREvent_OverlayShown:
+			{
+				m_Widget->repaint();
+			}
+			break;
+
+        case vr::VREvent_Quit:
+            QApplication::exit();
+            break;
+		}
+	}
+
+    if( m_ulOverlayThumbnailHandle != vr::k_ulOverlayHandleInvalid )
+    {
+        while( vr::VROverlay()->PollNextOverlayEvent( m_ulOverlayThumbnailHandle, &vrEvent, sizeof( vrEvent)  ) )
+        {
+            switch( vrEvent.eventType )
+            {
+            case vr::VREvent_OverlayShown:
+                {
+                    m_Widget->repaint();
+                }
+                break;
+            }
+        }
+    }
+
+}
+
 bool SteamVRLogic::ConnectToVRRuntime() {
+	m_eLastHmdError = vr::VRInitError_None;
     vr::IVRSystem *pVRSystem = vr::VR_Init(&m_eLastHmdError, vr::VRApplication_Overlay);
 
     // Underneath this line is testing code. This should print the Display and Driver name to the console... But it does not.
@@ -182,6 +309,22 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
     }
 }
 
+vr::HmdError SteamVRLogic::GetLastHmdError()
+{
+	return m_eLastHmdError;
+}
 
+bool SteamVRLogic::BHMDAvailable()
+{
+	return vr::VRSystem() != NULL;
+}
 
+QString SteamVRLogic::GetVRDriverString()
+{
+	return m_strVRDriver;
+}
 
+QString SteamVRLogic::GetVRDisplayString()
+{
+	return m_strVRDisplay;
+}

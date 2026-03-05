@@ -5,7 +5,6 @@
 
 int main(int argc, char *argv[])
 {
-    // TODO: Currently printing to console doesn't seem to work. This will make debugging a nightmare. Must fix in the future.
     std::cout << "Can I even print anything wtf?" << std::endl;
 
     QApplication a(argc, argv);

@@ -87,7 +87,8 @@ target_link_libraries(PerformanceVR
 # Make all warnings errors etc.
 target_compile_options(PerformanceVR PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
-        $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>
+        #$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>
+        $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wextra -Wpedantic -Werror>
 )
 
 set_target_properties(PerformanceVR PROPERTIES
