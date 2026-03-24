@@ -15,3 +15,12 @@ DashboardUI::DashboardUI(QWidget *parent):
 DashboardUI::~DashboardUI() {
     delete ui;
 }
+
+void DashboardUI::setGpuFrameRate(float frametime) {
+    ui->frameRateLabel->setText(QString::number(frametime));
+}
+
+// TODO: Delete this but check if it is used anywhere first
+Ui::DashboardUI *DashboardUI::getUi() const {
+    return ui;
+}

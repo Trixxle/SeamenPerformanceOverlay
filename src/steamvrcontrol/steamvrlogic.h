@@ -4,38 +4,6 @@
 
 #ifndef PERFORMANCEVR_STEAMVRLOGIC_H
 #define PERFORMANCEVR_STEAMVRLOGIC_H
-/*
-#include <QOpenGLContext>
-#include <QtCore>
-#include <QOffscreenSurface>
-#include <QOpenGLFramebufferObject>
-#include <QOpenGLFramebufferObjectFormat>
-#include <QWidget>
-#include <QGraphicsScene>
-#include <QOpenGLFunctions>
-#include <QtWidgets/QApplication>
-#include <QPainter>
-#include <QBrush>
-#include <iostream>*/
-
-/*#include <QtCore/QtCore>
-// because of incompatibilities with QtOpenGL and GLEW we need to cherry pick includes
-#include <QtGui/QVector2D>
-#include <QtGui/QMatrix4x4>
-#include <QtCore/QVector>
-#include <QtGui/QVector2D>
-#include <QtGui/QVector3D>
-#include <QtGui/QOpenGLContext>
-#include <QOpenGLFramebufferObject>
-#include <QtWidgets/QGraphicsScene>
-#include <QtGui/QOffscreenSurface>
-#include <QOpenGLPaintDevice>
-#include <QPainter>
-#include <iostream>
-#include <QWidget>
-#include <QApplication>
-#include <QMouseEvent>
-#include <QtWidgets/QGraphicsSceneMouseEvent>*/
 
 #include <QtCore/QtCore>
 // because of incompatibilities with QtOpenGL and GLEW we need to cherry pick includes
@@ -58,8 +26,6 @@
 #include <QtWidgets/QGraphicsEllipseItem>
 #include <QCursor>
 #include <iostream>
-
-
 #include "openvr.h"
 
 class SteamVRLogic: public QObject {
@@ -67,7 +33,6 @@ class SteamVRLogic: public QObject {
     typedef QObject BaseClass;
 
 public:
-    // The instance must be shared with Qt, otherwise it gets killed after main.cpp is ran
     static SteamVRLogic *SharedInstance();
 
     SteamVRLogic();
@@ -77,7 +42,9 @@ public:
     void Shutdown();
     bool BHMDAvailable();
     void SetWidget( QWidget *pWidget);
-    vr::IVRSystem *GetVRSystem();
+    float GetHeadsetRefreshRate();
+    float GetHeadsetMaxFrameRate();
+    //vr::IVRSystem *GetVRSystem();
     vr::HmdError GetLastHmdError();
     QString GetVRDriverString();
     QString GetVRDisplayString();
@@ -96,6 +63,7 @@ private:
     vr::EVRInitError m_eOverlayError;
     vr::VROverlayHandle_t m_ulOverlayHandle;
     vr::VROverlayHandle_t m_ulOverlayThumbnailHandle;
+    vr::IVRSystem *m_pVRSystem;
 
     bool ConnectToVRRuntime();
     void DisconnectFromVRRuntime();

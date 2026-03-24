@@ -7,7 +7,6 @@
 
 #include <QWidget>
 
-
 QT_BEGIN_NAMESPACE
 
 namespace Ui {
@@ -23,6 +22,10 @@ public:
     explicit DashboardUI(QWidget *parent = nullptr);
 
     ~DashboardUI() override;
+
+    void setGpuFrameRate(float frametime);
+
+    Ui::DashboardUI *getUi() const;
 
 private:
     Ui::DashboardUI *ui;

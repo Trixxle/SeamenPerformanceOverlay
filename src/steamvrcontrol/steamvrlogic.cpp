@@ -90,7 +90,7 @@ bool SteamVRLogic::Init() {
         m_pPumpEventsTimer->start();
     }
 
-    std::cout << bSuccess << std::endl;
+    std::cout << "bSucces: " << bSuccess << std::endl;
     return bSuccess;
 }
 
@@ -131,6 +131,8 @@ void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
         vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texure);
     }
 }
+
+
 
 void SteamVRLogic::OnTimeoutPumpEvents()
 {
@@ -247,13 +249,13 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 bool SteamVRLogic::ConnectToVRRuntime() {
 	m_eLastHmdError = vr::VRInitError_None;
-    vr::IVRSystem *pVRSystem = vr::VR_Init(&m_eLastHmdError, vr::VRApplication_Overlay);
+    m_pVRSystem = vr::VR_Init(&m_eLastHmdError, vr::VRApplication_Overlay);
 
     // Underneath this line is testing code. This should print the Display and Driver name to the console... But it does not.
     char buf[128]; // Should be big enough (famous last words)
     vr::ETrackedPropertyError err;
-    std::cout << pVRSystem->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String, buf,sizeof(buf), &err) << std::endl;
-    std::cout << pVRSystem->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String, buf,sizeof(buf), &err) << std::endl;
+    std::cout << "SerialNumber: " << m_pVRSystem->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String, buf,sizeof(buf), &err) << std::endl;
+    std::cout << "TrackingSystemName: " << m_pVRSystem->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String, buf,sizeof(buf), &err) << std::endl;
     // End of testing code
 
     if (m_eLastHmdError != vr::VRInitError_None) {
@@ -262,8 +264,8 @@ bool SteamVRLogic::ConnectToVRRuntime() {
         return false;
     }
 
-    m_strVRDisplay = GetTrackedDeviceString(pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-    m_strVRDriver = GetTrackedDeviceString(pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
+    m_strVRDisplay = GetTrackedDeviceString(m_pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
+    m_strVRDriver = GetTrackedDeviceString(m_pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
 
     return true;
 }
@@ -327,4 +329,16 @@ QString SteamVRLogic::GetVRDriverString()
 QString SteamVRLogic::GetVRDisplayString()
 {
 	return m_strVRDisplay;
+}
+
+float SteamVRLogic::GetHeadsetRefreshRate()
+{
+	vr::ETrackedPropertyError err;
+	return 1000 / m_pVRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float, &err);
+}
+
+float SteamVRLogic::GetHeadsetMaxFrameRate()
+{
+	vr::ETrackedPropertyError err;
+	return m_pVRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float, &err);
 }

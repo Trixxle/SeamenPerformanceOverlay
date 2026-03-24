@@ -25,6 +25,8 @@ add_executable(PerformanceVR
         src/userinterface/dashboardui.ui
         src/steamvrcontrol/steamvrlogic.cpp
         src/steamvrcontrol/steamvrlogic.h
+        src/frameHandler.cpp
+        src/frameHandler.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
@@ -66,6 +68,7 @@ find_package(Qt6 COMPONENTS
         Gui
         Widgets
         OpenGL
+        Graphs
         REQUIRED)
 
 # Configuring OpenVR location
@@ -81,6 +84,7 @@ target_link_libraries(PerformanceVR
         Qt::Gui
         Qt::Widgets
         Qt::OpenGL
+        Qt::Graphs
         OpenVR::API
 )
 
