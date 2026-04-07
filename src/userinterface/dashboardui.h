@@ -60,14 +60,6 @@ private:
     QStringList m_categoriesTotalFrameTime;
     QChartView *m_chartViewTotalFrameTime;
 
-    QChart *m_chartGpuFrameTime;
-    QBarSet *m_barSetGpuFrameTime;
-    QBarSeries *m_seriesGpuFrameTime;
-    QValueAxis *m_axisYGpuFrameTime;
-    QBarCategoryAxis *m_axisXGpuFrameTime;
-    QStringList m_categoriesGpuFrameTime;
-    QChartView *m_chartViewGpuFrameTime;
-
     QChart *m_chartCpuFrameTime;
     QBarSet *m_barSetCpuFrameTime;
     QBarSeries *m_seriesCpuFrameTime;
@@ -75,6 +67,14 @@ private:
     QBarCategoryAxis *m_axisXCpuFrameTime;
     QStringList m_categoriesCpuFrameTime;
     QChartView *m_chartViewCpuFrameTime;
+
+    QChart *m_chartGpuFrameTime;
+    QBarSet *m_barSetGpuFrameTime;
+    QBarSeries *m_seriesGpuFrameTime;
+    QValueAxis *m_axisYGpuFrameTime;
+    QBarCategoryAxis *m_axisXGpuFrameTime;
+    QStringList m_categoriesGpuFrameTime;
+    QChartView *m_chartViewGpuFrameTime;
 };
 
 
