@@ -11,16 +11,13 @@
 #include "userinterface/dashboardui.h"
 #include <iostream>
 #include <QThread>
-#include <QtGraphs/QtGraphs>
+#include <QtCharts/QtCharts>
 
 class FrameHandler: public QObject {
     Q_OBJECT
 public:
     FrameHandler(float newMaxFrameTime, float newMaxFrameRate, DashboardUI *dashboard, QObject *parent = nullptr);
     virtual ~FrameHandler();
-public slots:
-    void run();
-    void calculateFrameData();
 
 public:
     struct frameStats {
@@ -31,6 +28,11 @@ public:
         float MaxFrametime;
         float MaxFramerate;
     };
+
+public slots:
+    void run();
+    void calculateFrameData(vr::Compositor_FrameTiming &currentFrame, vr::Compositor_FrameTiming &previousFrame, frameStats &information);
+
 private:
     uint32_t m_lastFrameSampleIndex;
     float m_targetFrameRate;

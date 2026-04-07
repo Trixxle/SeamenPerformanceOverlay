@@ -7,17 +7,21 @@
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Can I even print anything wtf?" << std::endl;
-
     QApplication a(argc, argv);
-
     DashboardUI *pDashboardUI = new DashboardUI;
     QThread *frameThread = new QThread;
 
-    SteamVRLogic::SharedInstance()->Init();
+    if (!SteamVRLogic::SharedInstance()->Init()) {
+        std::cerr << "Failed to initialize SteamVR Logic. Exiting." << std::endl;
+        return -1;
+    }
+
     SteamVRLogic::SharedInstance()->SetWidget(pDashboardUI);
 
-    FrameHandler *frameHandler = new FrameHandler(SteamVRLogic::SharedInstance()->GetHeadsetRefreshRate(),  SteamVRLogic::SharedInstance()->GetHeadsetMaxFrameRate(), pDashboardUI);
+    FrameHandler *frameHandler = new FrameHandler(SteamVRLogic::SharedInstance()->GetHeadsetRefreshRate(),
+        SteamVRLogic::SharedInstance()->GetHeadsetMaxFrameRate(),
+        pDashboardUI
+        );
     frameHandler->moveToThread(frameThread);
 
     QObject::connect(frameThread, &QThread::started, frameHandler, &FrameHandler::run);

@@ -38,9 +38,14 @@ SteamVRLogic::~SteamVRLogic() {
 }
 
 bool SteamVRLogic::Init() {
+	if (!vr::VR_IsRuntimeInstalled() || !vr::VR_IsHmdPresent()) {
+		std::cerr << "SteamVR is not running or no HMD is present." << std::endl;
+		return false;
+	}
+
     bool bSuccess = true;
 
-	m_strOverlayName = "Seamen Performance Overlay";
+	m_strOverlayName = "seamen_performance_overlay";
 
     QStringList arguments = qApp->arguments();
 
@@ -70,13 +75,41 @@ bool SteamVRLogic::Init() {
 
     bSuccess = ConnectToVRRuntime();
 
+	if (bSuccess && vr::VRApplications()) {
+		QString manifestPath = QApplication::applicationDirPath() + "/manifest.vrmanifest";
+
+		vr::EVRApplicationError appError = vr::VRApplications()->AddApplicationManifest(manifestPath.toStdString().c_str());
+
+		if (appError != vr::VRApplicationError_None) {
+			std::cerr << "Failed to register manifest: "
+					  << vr::VRApplications()->GetApplicationsErrorNameFromEnum(appError) << std::endl;
+		} else {
+			// Automatically set the overlay to launch when SteamVR starts
+			std::string sKey = std::string("com.seamen.overlay.") + m_strOverlayName.toStdString();
+			vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
+			// Identify this process to SteamVR
+			vr::VRApplications()->IdentifyApplication((uint32_t)QCoreApplication::applicationPid(), sKey.c_str());
+		}
+	}
+
     bSuccess = bSuccess && vr::VRCompositor() != NULL;
 
     if( vr::VROverlay() )
     {
-        std::string sKey = std::string( "sample." ) + m_strOverlayName.toStdString();
-        vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(), m_strOverlayName.toStdString().c_str(), &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
-        bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
+        std::string sKey = std::string( "com.seamen.overlay." ) + m_strOverlayName.toStdString();
+		vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(),
+			"Seamen Performance Overlay", &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
+    	bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
+    	if (overlayError != vr::VROverlayError_None) {
+    		// Overlay failed to create
+    		std::cerr << "Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayError);
+    		return false;
+    	}
+		QString iconPath = QApplication::applicationDirPath() + "/icon.png";
+    	vr::VROverlayError textureError = vr::VROverlay()->SetOverlayFromFile( m_ulOverlayThumbnailHandle, iconPath.toStdString().c_str() );
+    	if (textureError != vr::VROverlayError_None) {
+    		std::cerr << "Failed to load thumbnail icon from: " << iconPath.toStdString() << std::endl;
+    	}
     }
 
     if( bSuccess )
@@ -251,7 +284,6 @@ bool SteamVRLogic::ConnectToVRRuntime() {
 	m_eLastHmdError = vr::VRInitError_None;
     m_pVRSystem = vr::VR_Init(&m_eLastHmdError, vr::VRApplication_Overlay);
 
-    // Underneath this line is testing code. This should print the Display and Driver name to the console... But it does not.
     char buf[128]; // Should be big enough (famous last words)
     vr::ETrackedPropertyError err;
     std::cout << "SerialNumber: " << m_pVRSystem->GetStringTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String, buf,sizeof(buf), &err) << std::endl;
