@@ -8,13 +8,16 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    DashboardUI *pDashboardUI = new DashboardUI;
-    QThread *frameThread = new QThread;
+
 
     if (!SteamVRLogic::SharedInstance()->Init()) {
         std::cerr << "Failed to initialize SteamVR Logic. Exiting." << std::endl;
         return -1;
     }
+
+    DashboardUI *pDashboardUI = new DashboardUI(SteamVRLogic::SharedInstance()->GetHeadsetRefreshRate(),
+        SteamVRLogic::SharedInstance()->GetHeadsetMaxFrameRate());
+    QThread *frameThread = new QThread;
 
     SteamVRLogic::SharedInstance()->SetWidget(pDashboardUI);
 
@@ -22,12 +25,23 @@ int main(int argc, char *argv[])
         SteamVRLogic::SharedInstance()->GetHeadsetMaxFrameRate(),
         pDashboardUI
         );
+
     frameHandler->moveToThread(frameThread);
 
     QObject::connect(frameThread, &QThread::started, frameHandler, &FrameHandler::run);
+
     std::cout << "Started the thread (maybe)" << std::endl;
 
     frameThread->start(QThread::NormalPriority);
 
-    return a.exec();
+    int exitCode = a.exec();
+
+    frameThread->quit();
+    frameThread->wait();
+
+    delete frameThread;
+    delete frameHandler;
+    delete pDashboardUI;
+
+    return exitCode;
 }

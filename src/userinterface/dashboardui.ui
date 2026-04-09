@@ -6,202 +6,240 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>719</width>
+    <width>1102</width>
     <height>722</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>dashboardui</string>
   </property>
-  <widget class="QWidget" name="gridLayoutWidget">
+  <property name="windowOpacity">
+   <double>0.800000000000000</double>
+  </property>
+  <widget class="QWidget" name="gridLayoutWidget_2">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>10</y>
-     <width>711</width>
-     <height>501</height>
+     <width>1101</width>
+     <height>441</height>
     </rect>
    </property>
+   <property name="font">
+    <font>
+     <pointsize>20</pointsize>
+    </font>
+   </property>
    <layout class="QGridLayout" name="mainGridLayout">
-    <item row="4" column="0">
-     <widget class="QLabel" name="headsetRefreshRateTitle">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Headset Refresh Rate:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="gpuFrameTimeTitle">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>GPU Frame time:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="1">
-     <widget class="QLabel" name="frameTimeLabel">
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Error</string>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QLabel" name="frameRateLabel">
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Error</string>
-      </property>
-     </widget>
+    <item row="3" column="0">
+     <layout class="QHBoxLayout" name="TargetFrameRate">
+      <item>
+       <widget class="QLabel" name="targetFrameRateTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  Target Frame Rate:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="targetFrameRateLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item row="1" column="0">
-     <widget class="QLabel" name="frameTimeTitle">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Frame time:</string>
-      </property>
-     </widget>
+     <layout class="QHBoxLayout" name="TotalFrameTime">
+      <item>
+       <widget class="QLabel" name="frameTimeTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  Frame time:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="frameTimeLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="2" column="1">
-     <widget class="QLabel" name="gpuFrameTimeLabel">
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Error</string>
-      </property>
-     </widget>
+    <item row="1" column="1">
+     <layout class="QHBoxLayout" name="FrameRate">
+      <item>
+       <widget class="QLabel" name="frameRateTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  Frame rate:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="frameRateLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="3" column="0">
-     <widget class="QLabel" name="cpuFrameTimeTitle">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>CPU Frame time:</string>
-      </property>
-     </widget>
+    <item row="2" column="0">
+     <layout class="QHBoxLayout" name="RefreshRate">
+      <item>
+       <widget class="QLabel" name="headsetRefreshRateTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  Headset Refresh Rate:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="headsetRefreshRateLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
-    <item row="4" column="1">
-     <widget class="QLabel" name="headsetRefreshRateLabel">
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Error</string>
-      </property>
-     </widget>
-    </item>
-    <item row="3" column="1">
-     <widget class="QLabel" name="cpuFrameTimeLabel">
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Error</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="0">
-     <widget class="QLabel" name="targetFrameRateTitle">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Target Frame Rate:</string>
-      </property>
-     </widget>
-    </item>
-    <item row="5" column="1">
-     <widget class="QLabel" name="targetFrameRateLabel">
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
-      </property>
-      <property name="text">
-       <string>Error</string>
-      </property>
-     </widget>
+    <item row="0" column="1">
+     <layout class="QHBoxLayout" name="CPU">
+      <item>
+       <widget class="QLabel" name="cpuFrameTimeTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  CPU Frame time:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="cpuFrameTimeLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
     <item row="0" column="0">
-     <widget class="QLabel" name="frameRateTitle">
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>0</height>
-       </size>
+     <layout class="QHBoxLayout" name="GPU" stretch="0,0">
+      <property name="spacing">
+       <number>6</number>
       </property>
-      <property name="font">
-       <font>
-        <pointsize>15</pointsize>
-       </font>
+      <property name="rightMargin">
+       <number>0</number>
       </property>
-      <property name="text">
-       <string>Frame rate:</string>
-      </property>
-     </widget>
+      <item>
+       <widget class="QLabel" name="gpuFrameTimeTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  GPU Frame time:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="gpuFrameTimeLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
