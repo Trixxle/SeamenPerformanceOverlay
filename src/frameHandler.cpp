@@ -23,7 +23,8 @@ void FrameHandler::run() {
     frameStats information;
 
     // Calculate a sleep interval so to not overload the CPU
-    unsigned long sleepTimeMs = static_cast<unsigned long>(m_targetRefreshRateMs / 2.0f);
+    auto sleepTimeMs = static_cast<unsigned long>(m_targetFrameRate / 2.0f);
+    //auto sleepTimeMs = static_cast<unsigned long>(m_targetRefreshRateMs);
     if (sleepTimeMs == 0) sleepTimeMs = 5; // Fallback to 5ms just in case
 
     while (true) {
@@ -41,7 +42,7 @@ void FrameHandler::calculateFrameData(vr::Compositor_FrameTiming &currentFrame, 
     if (!vr::VRCompositor()->GetFrameTiming(&currentFrame, 0)) return;
 
     uint32_t currentFrameIndex = currentFrame.m_nFrameIndex;
-    uint32_t amountOfFramesSinceLast = currentFrameIndex - m_lastFrameSampleIndex;
+    uint32_t amountOfFramesSinceLast = currentFrameIndex - 1;//m_lastFrameSampleIndex;
 
     // Safety checks
     if (amountOfFramesSinceLast == 0) return;
@@ -58,8 +59,8 @@ void FrameHandler::calculateFrameData(vr::Compositor_FrameTiming &currentFrame, 
 
     for (uint32_t i = 0; i < amountOfFramesSinceLast; i++) {
 
-        bool validCurrent = vr::VRCompositor()->GetFrameTiming(&currentFrame, i);
-        bool validPrev = vr::VRCompositor()->GetFrameTiming(&previousFrame, i + 1);
+        bool validCurrent = vr::VRCompositor()->GetFrameTiming(&currentFrame, 0);
+        bool validPrev = vr::VRCompositor()->GetFrameTiming(&previousFrame, 1);
 
         // Break early if we've exhausted the compositor's frame history
         if (!validCurrent || !validPrev) break;
@@ -92,7 +93,7 @@ void FrameHandler::calculateFrameData(vr::Compositor_FrameTiming &currentFrame, 
     cpuFrametimeMs /= validFramesProcessed;
     totalFrametimeMs /= validFramesProcessed;
 
-    m_lastFrameSampleIndex = currentFrameIndex;
+    //m_lastFrameSampleIndex = currentFrameIndex;
 
     information.GpuFrametime = static_cast<float>(gpuFrametimeMs);
     information.CpuFrametime = static_cast<float>(cpuFrametimeMs);
@@ -103,25 +104,29 @@ void FrameHandler::calculateFrameData(vr::Compositor_FrameTiming &currentFrame, 
 
     information.Framerate = std::max(0.0f, std::min(m_targetFrameRate, calculatedFps));
     information.MaxFrametime = m_targetRefreshRateMs;
-    information.MaxFramerate = (float) m_targetFrameRate;
+    information.MaxFramerate = m_targetFrameRate;
 
-    // Safely execute the UI updates on the main thread
+    // Invoking the method is thread safe
     QMetaObject::invokeMethod(m_dashboard, [this, information]() {
-        m_dashboard->setDashboardFrameRate(information.Framerate);
-        m_dashboard->setDashboardFrameTime(information.TotalFrametime);
-        m_dashboard->setDashboardCpuFrameTime(information.CpuFrametime);
-        m_dashboard->setDashboardGpuFrameTime(information.GpuFrametime);
-        m_dashboard->setDashboardTargetFrameRate(information.MaxFramerate);
-        m_dashboard->setDashboardHeadsetRefreshRate(information.MaxFrametime);
+        m_dashboard->setDashboardFrameRate(roundFloat(information.Framerate));
+        m_dashboard->setDashboardFrameTime(roundFloat(information.TotalFrametime));
+        m_dashboard->setDashboardCpuFrameTime(roundFloat(information.CpuFrametime));
+        m_dashboard->setDashboardGpuFrameTime(roundFloat(information.GpuFrametime));
+        m_dashboard->setDashboardTargetFrameRate(roundFloat(information.MaxFramerate));
+        m_dashboard->setDashboardHeadsetRefreshRate(roundFloat(information.MaxFrametime));
 
-        m_dashboard->updateTotalFrameTimeGraph(information.TotalFrametime);
-        m_dashboard->updateGpuFrameTimeGraph(information.GpuFrametime);
-        m_dashboard->updateCpuFrameTimeGraph(information.CpuFrametime);
-        m_dashboard->updateFrameRateGraph(information.Framerate);
+        m_dashboard->updateTotalFrameTimeGraph(roundFloat(information.TotalFrametime));
+        m_dashboard->updateGpuFrameTimeGraph(roundFloat(information.GpuFrametime));
+        m_dashboard->updateCpuFrameTimeGraph(roundFloat(information.CpuFrametime));
+        m_dashboard->updateFrameRateGraph(roundFloat(information.Framerate));
     });
 
     std::cout << "Framerate: " << information.Framerate << std::endl;
     std::cout << "GpuFrameTime: " << information.GpuFrametime << std::endl;
     std::cout << "TotalFrameTime: " << information.TotalFrametime << std::endl;
     std::cout << "CpuFrametime: " << information.CpuFrametime << std::endl;
+}
+
+float FrameHandler::roundFloat(float number) {
+    return roundf(number * 100) / 100;
 }

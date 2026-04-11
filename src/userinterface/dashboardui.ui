@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1102</width>
+    <width>1219</width>
     <height>722</height>
    </rect>
   </property>
@@ -14,15 +14,15 @@
    <string>dashboardui</string>
   </property>
   <property name="windowOpacity">
-   <double>0.800000000000000</double>
+   <double>0.750000000000000</double>
   </property>
   <widget class="QWidget" name="gridLayoutWidget_2">
    <property name="geometry">
     <rect>
      <x>0</x>
-     <y>10</y>
-     <width>1101</width>
-     <height>441</height>
+     <y>0</y>
+     <width>1219</width>
+     <height>552</height>
     </rect>
    </property>
    <property name="font">
@@ -30,7 +30,222 @@
      <pointsize>20</pointsize>
     </font>
    </property>
-   <layout class="QGridLayout" name="mainGridLayout">
+   <layout class="QGridLayout" name="mainGridLayout" rowminimumheight="0,0,0,0">
+    <property name="sizeConstraint">
+     <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+    </property>
+    <item row="1" column="1">
+     <layout class="QHBoxLayout" name="FrameRate">
+      <item>
+       <widget class="QLabel" name="frameRateTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  Frame Rate:          </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="frameRateLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>FPS</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="0">
+     <layout class="QHBoxLayout" name="TotalFrameTime">
+      <item>
+       <widget class="QLabel" name="frameTimeTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  Total Frametime:   </string>
+        </property>
+        <property name="wordWrap">
+         <bool>false</bool>
+        </property>
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <property name="indent">
+         <number>-1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="frameTimeLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="margin">
+         <number>0</number>
+        </property>
+        <property name="indent">
+         <number>-1</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_3">
+        <property name="text">
+         <string>ms</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="0">
+     <layout class="QHBoxLayout" name="GPU" stretch="0,0,0">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="gpuFrameTimeTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  GPU Frametime:    </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="gpuFrameTimeLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>ms</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item row="0" column="1">
+     <layout class="QHBoxLayout" name="CPU">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="sizeConstraint">
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="cpuFrameTimeTitle">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>  CPU Frametime:   </string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="cpuFrameTimeLabel">
+        <property name="font">
+         <font>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+        <property name="text">
+         <string>Error</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+        <property name="margin">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_4">
+        <property name="text">
+         <string>ms</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item row="3" column="0">
      <layout class="QHBoxLayout" name="TargetFrameRate">
       <item>
@@ -53,6 +268,12 @@
       </item>
       <item>
        <widget class="QLabel" name="targetFrameRateLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
         <property name="font">
          <font>
           <pointsize>20</pointsize>
@@ -61,73 +282,15 @@
         <property name="text">
          <string>Error</string>
         </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="1" column="0">
-     <layout class="QHBoxLayout" name="TotalFrameTime">
-      <item>
-       <widget class="QLabel" name="frameTimeTitle">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>  Frame time:</string>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="frameTimeLabel">
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
+       <widget class="QLabel" name="label_6">
         <property name="text">
-         <string>Error</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="1" column="1">
-     <layout class="QHBoxLayout" name="FrameRate">
-      <item>
-       <widget class="QLabel" name="frameRateTitle">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>  Frame rate:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="frameRateLabel">
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Error</string>
+         <string>FPS</string>
         </property>
        </widget>
       </item>
@@ -149,7 +312,7 @@
          </font>
         </property>
         <property name="text">
-         <string>  Headset Refresh Rate:</string>
+         <string>  Target Frametime: </string>
         </property>
        </widget>
       </item>
@@ -163,83 +326,22 @@
         <property name="text">
          <string>Error</string>
         </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item row="0" column="1">
-     <layout class="QHBoxLayout" name="CPU">
-      <item>
-       <widget class="QLabel" name="cpuFrameTimeTitle">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>  CPU Frame time:</string>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="cpuFrameTimeLabel">
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>Error</string>
+         <string>ms</string>
         </property>
        </widget>
       </item>
      </layout>
     </item>
-    <item row="0" column="0">
-     <layout class="QHBoxLayout" name="GPU" stretch="0,0">
-      <property name="spacing">
-       <number>6</number>
-      </property>
-      <property name="rightMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="gpuFrameTimeTitle">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>0</height>
-         </size>
-        </property>
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>  GPU Frame time:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="gpuFrameTimeLabel">
-        <property name="font">
-         <font>
-          <pointsize>20</pointsize>
-         </font>
-        </property>
-        <property name="text">
-         <string>Error</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
+    <item row="3" column="1">
+     <layout class="QVBoxLayout" name="IconLayout"/>
     </item>
    </layout>
   </widget>

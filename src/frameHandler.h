@@ -12,6 +12,7 @@
 #include <iostream>
 #include <QThread>
 #include <QtCharts/QtCharts>
+#include <math.h>
 
 class FrameHandler: public QObject {
     Q_OBJECT
@@ -34,7 +35,10 @@ public slots:
     void calculateFrameData(vr::Compositor_FrameTiming &currentFrame, vr::Compositor_FrameTiming &previousFrame, frameStats &information);
 
 private:
+    float roundFloat(float number);
+
     uint32_t m_lastFrameSampleIndex;
+    uint32_t m_renderedFrames;
     float m_targetFrameRate;
     float m_targetRefreshRateMs;
     DashboardUI *m_dashboard;

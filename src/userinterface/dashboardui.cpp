@@ -32,8 +32,10 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     this->setObjectName("DashboardUI");
 
     this->setStyleSheet("#DashboardUI { "
-                            "background-color: #2D2D2D; " // Set your desired background
-                            "border-radius: 15px; "       // Adjust radius here
+                            "background-color: #232424; "
+                            "border-radius: 45px; "
+                            "border: 4px solid #1092BF; "
+                            "margin: 4px; "
                             "}"
                             );
 
@@ -71,6 +73,7 @@ void DashboardUI::insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int
     newWidget->setMinimumHeight(250);
     newWidget->setMaximumHeight(250);
 
+    // If the spot is already empty, no need to shift, simply add the widget
     if (!toShiftDown) {
         layout->addWidget(newWidget, targetRow, targetColumn);
         return;
@@ -82,7 +85,7 @@ void DashboardUI::insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int
     };
     QList<ShiftItem> itemsToShift;
 
-    // Collect all the items that need shifting
+    // Collects all the items that need shifting
     for (int i = 0; i < layout->count(); ++i) {
         int r, c, rs, cs;
         layout->getItemPosition(i, &r, &c, &rs, &cs);
@@ -92,17 +95,17 @@ void DashboardUI::insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int
         }
     }
 
-    // Remove the collected items
+    // Removes the collected items
     for (const ShiftItem& si : itemsToShift) {
         layout->removeItem(si.item);
     }
 
-    // Re-add the collected items but shift them
+    // Re-adds the collected items but shifts them
     for (const ShiftItem& si : itemsToShift) {
         layout->addItem(si.item, si.r + 1, si.c, si.rs, si.cs);
     }
 
-    // Add the widget in the row that is now empty
+    // Adds the widget in the row that is now empty
     layout->addWidget(newWidget, targetRow, targetColumn);
 }
 
@@ -218,7 +221,7 @@ void DashboardUI::setDashboardGpuFrameTime(float gpuFrameTime) {
 }
 
 void DashboardUI::setDashboardHeadsetRefreshRate(float headsetRefreshRate) {
-    ui->headsetRefreshRateLabel->setText(QString::number(headsetRefreshRate));
+    ui->headsetRefreshRateLabel->setText("< " + QString::number(headsetRefreshRate));
 }
 
 void DashboardUI::setDashboardTargetFrameRate(float targetFrameRate) {
@@ -340,15 +343,19 @@ void DashboardUI::setUpCharts() {
 
     m_chartTotalFrameTime->legend()->hide();
     m_chartTotalFrameTime->setAnimationOptions(QChart::NoAnimation); // Improves performance
+    m_chartTotalFrameTime->setBackgroundRoundness(28);
 
     m_chartCpuFrameTime->legend()->hide();
     m_chartCpuFrameTime->setAnimationOptions(QChart::NoAnimation); // Improves performance
+    m_chartCpuFrameTime->setBackgroundRoundness(28);
 
     m_chartGpuFrameTime->legend()->hide();
     m_chartGpuFrameTime->setAnimationOptions(QChart::NoAnimation); // Improves performance
+    m_chartGpuFrameTime->setBackgroundRoundness(28);
 
     m_chartFrameRate->legend()->hide();
     m_chartFrameRate->setAnimationOptions(QChart::NoAnimation); // Improves performance
+    m_chartFrameRate->setBackgroundRoundness(28);
 
     m_axisYTotalFrameTime = new QValueAxis();
     m_axisYTotalFrameTime->setRange(0, 50);
@@ -394,7 +401,8 @@ void DashboardUI::setUpCharts() {
     m_chartViewTotalFrameTime->setRenderHint(QPainter::Antialiasing);
     m_chartViewTotalFrameTime->setObjectName("chartViewTotalFrameTime");
     m_chartViewTotalFrameTime->setStyleSheet("#chartViewTotalFrameTime { "
-                        "background-color: #2D2D2D; "
+                        "background-color: #232424; "
+                        "border-radius: 45px; "
                         "}"
                         );
 
@@ -402,7 +410,8 @@ void DashboardUI::setUpCharts() {
     m_chartViewCpuFrameTime->setRenderHint(QPainter::Antialiasing);
     m_chartViewCpuFrameTime->setObjectName("chartViewCpuFrameTime");
     m_chartViewCpuFrameTime->setStyleSheet("#chartViewCpuFrameTime { "
-                        "background-color: #2D2D2D; "
+                        "background-color: #232424; "
+                        "border-radius: 45px; "
                         "}"
                         );
 
@@ -410,7 +419,8 @@ void DashboardUI::setUpCharts() {
     m_chartViewGpuFrameTime->setRenderHint(QPainter::Antialiasing);
     m_chartViewGpuFrameTime->setObjectName("chartViewGpuFrameTime");
     m_chartViewGpuFrameTime->setStyleSheet("#chartViewGpuFrameTime { "
-                        "background-color: #2D2D2D; "
+                        "background-color: #232424; "
+                        "border-radius: 45px; "
                         "}"
                         );
 
@@ -418,7 +428,8 @@ void DashboardUI::setUpCharts() {
     m_chartViewFrameRate->setRenderHint(QPainter::Antialiasing);
     m_chartViewFrameRate->setObjectName("chartViewFrameRate");
     m_chartViewFrameRate->setStyleSheet("#chartViewFrameRate { "
-                        "background-color: #2D2D2D; "
+                        "background-color: #232424; "
+                        "border-radius: 45px; "
                         "}"
                         );
 
