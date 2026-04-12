@@ -4,11 +4,15 @@
 #include <iostream>
 #include <QtWidgets/QApplication>
 #include <QThread>
+#include <QMetaType>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
+    qRegisterMetaType<FrameHandler::frameStats>("frameStats");
+
+    qRegisterMetaType<FrameHandler::frameStats>("FrameStatsList");
 
     if (!SteamVRLogic::SharedInstance()->Init()) {
         std::cerr << "Failed to initialize SteamVR Logic. Exiting." << std::endl;
@@ -22,17 +26,19 @@ int main(int argc, char *argv[])
     SteamVRLogic::SharedInstance()->SetWidget(pDashboardUI);
 
     FrameHandler *frameHandler = new FrameHandler(SteamVRLogic::SharedInstance()->GetHeadsetRefreshRate(),
-        SteamVRLogic::SharedInstance()->GetHeadsetMaxFrameRate(),
-        pDashboardUI
+        SteamVRLogic::SharedInstance()->GetHeadsetMaxFrameRate()
         );
 
     frameHandler->moveToThread(frameThread);
 
-    QObject::connect(frameThread, &QThread::started, frameHandler, &FrameHandler::run);
+    QObject::connect(frameThread, &QThread::started, frameHandler, &FrameHandler::startProcessing);
+    QObject::connect(frameThread, &QThread::finished, frameHandler, &QObject::deleteLater);
+    QObject::connect(frameHandler, &FrameHandler::updateGraphs, pDashboardUI, &DashboardUI::updateGraphs);
+    QObject::connect(frameHandler, &FrameHandler::updateLabels, pDashboardUI, &DashboardUI::updateLabels);
 
-    std::cout << "Started the thread (maybe)" << std::endl;
+    //std::cout << "Started the thread (maybe)" << std::endl;
 
-    frameThread->start(QThread::NormalPriority);
+    frameThread->start();
 
     int exitCode = a.exec();
 
@@ -40,8 +46,10 @@ int main(int argc, char *argv[])
     frameThread->wait();
 
     delete frameThread;
-    delete frameHandler;
+    //delete frameHandler;
     delete pDashboardUI;
+
+    SteamVRLogic::SharedInstance()->Shutdown();
 
     return exitCode;
 }

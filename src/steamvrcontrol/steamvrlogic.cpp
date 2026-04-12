@@ -142,30 +142,33 @@ void SteamVRLogic::Shutdown() {
 	}}
 
 void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
-    // Don't render if the overlay isn't visible
-    if ((m_ulOverlayHandle == vr::k_ulOverlayHandleInvalid ) || !vr::VROverlay() ||
-        (!vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && !vr::VROverlay()->IsOverlayVisible(m_ulOverlayThumbnailHandle)))
-        return;
+	// Only render if the overlay is visible
+	if ((m_ulOverlayHandle == vr::k_ulOverlayHandleInvalid ) || !vr::VROverlay() ||
+		(!vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && !vr::VROverlay()->IsOverlayVisible(m_ulOverlayThumbnailHandle))) {
+		return;
+		}
 
-    m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
-    m_pFbo->bind();
+	m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
+	m_pFbo->bind();
 
-    QOpenGLPaintDevice device(m_pFbo->size());
-    QPainter painter (&device);
+	// We must clear the tender buffer when rendering transparency as otherwise you'll see ghost images from previous frames
+	QOpenGLFunctions *f = m_pOpenGLContext->functions();
+	f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Clear to fully transparent
+	f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_pScene ->render(&painter);
+	QOpenGLPaintDevice device(m_pFbo->size());
+	QPainter painter(&device);
 
-    m_pFbo->release();
+	m_pScene->render(&painter);
 
-    GLuint unTexture = m_pFbo->texture();
-    if (unTexture != 0)
-    {
-        vr::Texture_t texure = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
-        vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texure);
-    }
+	m_pFbo->release();
+
+	GLuint unTexture = m_pFbo->texture();
+	if (unTexture != 0) {
+		vr::Texture_t texure = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+		vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texure);
+	}
 }
-
-
 
 void SteamVRLogic::OnTimeoutPumpEvents()
 {
@@ -197,7 +200,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				m_tLastMouse = ptNewMouse;
 				QApplication::sendEvent( m_pScene, &mouseEvent );
 
-				OnSceneChanged( QList<QRectF>() );
+				//OnSceneChanged( QList<QRectF>() );
 			}
 			break;
 
@@ -326,6 +329,13 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
     {
         // all of the mouse handling stuff requires that the widget be at 0,0
         pWidget->move(0,0);
+
+    	QGraphicsProxyWidget *proxy = m_pScene->addWidget( pWidget );
+
+    	// This forces Qt to render the whole overlay as a single texture, meaning one draw call. This massively improves GPU usage.
+    	// Going from 20% to 1.5% GPU usage on my system
+    	proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+
         m_pScene->addWidget( pWidget );
     }
     m_Widget = pWidget;

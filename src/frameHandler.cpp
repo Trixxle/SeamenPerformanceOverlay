@@ -4,9 +4,8 @@
 
 #include "frameHandler.h"
 
-FrameHandler::FrameHandler(float newRefreshRate, float newMaxFrameRate,DashboardUI *dashboard, QObject *parent):
+FrameHandler::FrameHandler(float newRefreshRate, float newMaxFrameRate, QObject *parent):
     QObject(parent),
-    m_dashboard(dashboard),
     m_lastFrameSampleIndex(0.0),
     m_targetFrameRate(newMaxFrameRate),
     m_targetRefreshRateMs(newRefreshRate)
@@ -16,84 +15,79 @@ FrameHandler::FrameHandler(float newRefreshRate, float newMaxFrameRate,Dashboard
 FrameHandler::~FrameHandler() {
 }
 
-void FrameHandler::run() {
-    std::cout << "Frame thread is alive!! " << std::endl;
-    vr::Compositor_FrameTiming currentFrame;
-    vr::Compositor_FrameTiming previousFrame;
+void FrameHandler::startProcessing() {
+    if (!m_timer) {
+        m_timer = new QTimer(this);
+
+        // Use PreciseTimer to prevent standard OS scheduling drift
+        m_timer->setTimerType(Qt::PreciseTimer);
+
+        // QTimer takes integer milliseconds. 11.11ms becomes 11ms. Important note: It doesn't round the number, it just truncates it. So 6.9 becomes 6
+        int intervalMs = static_cast<int>(m_targetRefreshRateMs);
+        if (intervalMs <= 0) intervalMs = 5; // Fallback
+
+        connect(m_timer, &QTimer::timeout, this, &FrameHandler::processFrame);
+
+        m_uiUpdateTimerGraphs.start();
+        m_uiUpdateTimerLabels.start();
+        m_timer->start(intervalMs);
+
+        std::cout << "Frame timer started on thread: " << QThread::currentThreadId() << std::endl;
+    }
+}
+
+void FrameHandler::stopProcessing() {
+    if (m_timer) {
+        m_timer->stop();
+        m_timer->deleteLater();
+        m_timer = nullptr;
+    }
+}
+
+void FrameHandler::processFrame() {
+    vr::Compositor_FrameTiming currentFrame = {};
+    vr::Compositor_FrameTiming previousFrame = {};
     frameStats information;
 
-    // Calculate a sleep interval so to not overload the CPU
-    auto sleepTimeMs = static_cast<unsigned long>(m_targetFrameRate / 2.0f);
-    //auto sleepTimeMs = static_cast<unsigned long>(m_targetRefreshRateMs);
-    if (sleepTimeMs == 0) sleepTimeMs = 5; // Fallback to 5ms just in case
-
-    while (true) {
-        calculateFrameData(currentFrame, previousFrame, information);
-        QThread::msleep(sleepTimeMs);
-    }
+    calculateFrameData(currentFrame, previousFrame, information);
 }
 
 void FrameHandler::calculateFrameData(vr::Compositor_FrameTiming &currentFrame, vr::Compositor_FrameTiming &previousFrame, frameStats &information) {
 
     currentFrame.m_nSize = sizeof(vr::Compositor_FrameTiming);
+
+    // Skip in-flight or fully dropped frames where Submit was never called
+    //if (currentFrame.m_flNewFrameReadyMs == 0.0f) return;
+
     previousFrame.m_nSize = sizeof(vr::Compositor_FrameTiming);
 
     // Fetch the most recent frame just to get the latest index
-    if (!vr::VRCompositor()->GetFrameTiming(&currentFrame, 0)) return;
+    bool validCurrent = vr::VRCompositor()->GetFrameTiming(&currentFrame, 0);
+    bool validPrev = vr::VRCompositor()->GetFrameTiming(&previousFrame, 1);
 
+    // Break early if we've exhausted the compositor's frame history
+    if (!validCurrent || !validPrev) return;
+
+    // Check if the frame was already processed last function call
     uint32_t currentFrameIndex = currentFrame.m_nFrameIndex;
-    uint32_t amountOfFramesSinceLast = currentFrameIndex - 1;//m_lastFrameSampleIndex;
-
-    // Safety checks
-    if (amountOfFramesSinceLast == 0) return;
-
-    // OpenVR only stores 128 frames. Cap it so we don't query out of bounds.
-    if (amountOfFramesSinceLast > 128) {
-        amountOfFramesSinceLast = 128;
+    if (currentFrameIndex == m_lastFrameSampleIndex) {
+        return;
     }
 
     double gpuFrametimeMs = 0;
     double cpuFrametimeMs = 0;
     double totalFrametimeMs = 0;
-    uint32_t validFramesProcessed = 0;
 
-    for (uint32_t i = 0; i < amountOfFramesSinceLast; i++) {
+    gpuFrametimeMs = currentFrame.m_flTotalRenderGpuMs;
 
-        bool validCurrent = vr::VRCompositor()->GetFrameTiming(&currentFrame, 0);
-        bool validPrev = vr::VRCompositor()->GetFrameTiming(&previousFrame, 1);
+    // CPU Timing calculation
+    cpuFrametimeMs = (currentFrame.m_flNewFrameReadyMs -
+                        currentFrame.m_flNewPosesReadyMs +
+                        currentFrame.m_flCompositorRenderCpuMs);
 
-        // Break early if we've exhausted the compositor's frame history
-        if (!validCurrent || !validPrev) break;
-
-        // TODO: FIX THIS GOD DAMN THING
-        // SKIP in-flight or fully dropped frames where Submit was never called
-        // if (currentFrame.m_flNewFrameReadyMs == 0.0f) continue;
-
-        gpuFrametimeMs += currentFrame.m_flTotalRenderGpuMs;
-
-        // CPU Timing calculation
-        cpuFrametimeMs += (currentFrame.m_flNewFrameReadyMs -
-                            currentFrame.m_flNewPosesReadyMs +
-                            currentFrame.m_flCompositorRenderCpuMs);
-
-        // Delta time between system timestamps
-        totalFrametimeMs += (currentFrame.m_flSystemTimeInSeconds -
-                            previousFrame.m_flSystemTimeInSeconds) * 1000.0;
-
-        validFramesProcessed++;
-    }
-
-    m_lastFrameSampleIndex = currentFrameIndex;
-
-    // If no valid frames were found exit
-    if (validFramesProcessed == 0) return;
-
-    // Averaging the results
-    gpuFrametimeMs /= validFramesProcessed;
-    cpuFrametimeMs /= validFramesProcessed;
-    totalFrametimeMs /= validFramesProcessed;
-
-    //m_lastFrameSampleIndex = currentFrameIndex;
+    // Delta time between system timestamps
+    totalFrametimeMs = (currentFrame.m_flSystemTimeInSeconds -
+                        previousFrame.m_flSystemTimeInSeconds) * 1000.0;
 
     information.GpuFrametime = static_cast<float>(gpuFrametimeMs);
     information.CpuFrametime = static_cast<float>(cpuFrametimeMs);
@@ -106,27 +100,31 @@ void FrameHandler::calculateFrameData(vr::Compositor_FrameTiming &currentFrame, 
     information.MaxFrametime = m_targetRefreshRateMs;
     information.MaxFramerate = m_targetFrameRate;
 
-    // Invoking the method is thread safe
-    QMetaObject::invokeMethod(m_dashboard, [this, information]() {
-        m_dashboard->setDashboardFrameRate(roundFloat(information.Framerate));
-        m_dashboard->setDashboardFrameTime(roundFloat(information.TotalFrametime));
-        m_dashboard->setDashboardCpuFrameTime(roundFloat(information.CpuFrametime));
-        m_dashboard->setDashboardGpuFrameTime(roundFloat(information.GpuFrametime));
-        m_dashboard->setDashboardTargetFrameRate(roundFloat(information.MaxFramerate));
-        m_dashboard->setDashboardHeadsetRefreshRate(roundFloat(information.MaxFrametime));
+    smoothFrameRateArray[smoothIndex] = information.Framerate;
+    smoothIndex = (smoothIndex + 1) % 20;
+    if (smoothCount < 20) smoothCount++;
 
-        m_dashboard->updateTotalFrameTimeGraph(roundFloat(information.TotalFrametime));
-        m_dashboard->updateGpuFrameTimeGraph(roundFloat(information.GpuFrametime));
-        m_dashboard->updateCpuFrameTimeGraph(roundFloat(information.CpuFrametime));
-        m_dashboard->updateFrameRateGraph(roundFloat(information.Framerate));
-    });
+    float averagedFrames = 0;
+    for (int i = 0; i < smoothCount; i++) {
+        averagedFrames += smoothFrameRateArray[i];
+    }
+    information.smoothFrameRate = averagedFrames / smoothCount;
 
-    std::cout << "Framerate: " << information.Framerate << std::endl;
-    std::cout << "GpuFrameTime: " << information.GpuFrametime << std::endl;
-    std::cout << "TotalFrameTime: " << information.TotalFrametime << std::endl;
-    std::cout << "CpuFrametime: " << information.CpuFrametime << std::endl;
-}
+    m_frameBuffer.append(information);
 
-float FrameHandler::roundFloat(float number) {
-    return roundf(number * 100) / 100;
+    if (m_uiUpdateTimerLabels.hasExpired(UI_UPDATE_INTERVAL_MS_LABELS))
+        if (!m_frameBuffer.isEmpty()) {
+            emit updateLabels(m_frameBuffer.last());
+            m_uiUpdateTimerLabels.restart(); // Reset the timer for the next batch
+        }
+
+    if (m_uiUpdateTimerGraphs.hasExpired(UI_UPDATE_INTERVAL_MS_GRAPHS)) {
+        if (!m_frameBuffer.isEmpty()) {
+            emit updateGraphs(m_frameBuffer);
+            m_frameBuffer.clear();
+        }
+        m_uiUpdateTimerGraphs.restart(); // Reset the timer for the next batch
+    }
+
+    m_lastFrameSampleIndex = currentFrameIndex;
 }

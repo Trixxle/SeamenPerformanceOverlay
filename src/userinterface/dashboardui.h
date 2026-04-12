@@ -11,7 +11,9 @@
 #include <QBarSeries>
 #include <QBarSet>
 #include <QValueAxis>
+#include <QList>
 #include <QtCharts/QtCharts>
+#include "frameHandler.h"
 #include <QtCharts/QChartView>
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QStackedBarSeries>
@@ -43,22 +45,31 @@ public:
     void setDashboardGpuFrameTime(float gpuFrameTime);
     void setDashboardHeadsetRefreshRate(float headsetRefreshRate);
     void setDashboardTargetFrameRate(float targetFrameRate);
+    void setSmoothFrameRate(float smoothFrameRate);
 
-    void updateTotalFrameTimeGraph(float newFrameTimeMs);
-    void updateGpuFrameTimeGraph(float newFrameTimeMs);
-    void updateCpuFrameTimeGraph(float newFrameTimeMs);
-    void updateFrameRateGraph(float newFrameRate);
+    void updateTotalFrameTimeGraph(const QList<float>& newFrameTimes);
+    void updateGpuFrameTimeGraph(const QList<float>& newFrameTimes);
+    void updateCpuFrameTimeGraph(const QList<float>& newFrameTimes);
+    void updateFrameRateGraph(const QList<float>& newFrameRates);
 
     void insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int targetRow, int targetColumn, bool toShiftDown);
 
     [[nodiscard]] Ui::DashboardUI *getUi() const;
 
+public slots:
+    void updateGraphs(const FrameHandler::FrameStatsList& informationList);
+    void updateLabels(const FrameHandler::frameStats& information);
+
+private slots:
+    void onExitButtonClicked();
+
 private:
     void setUpCharts();
     void paintEvent(QPaintEvent *event) override;
+    float roundFloat(float number, int decimalCases);
 
     Ui::DashboardUI *ui;
-    const int MAX_GRAPH_POINTS = 50;
+    const int MAX_GRAPH_POINTS = 250;
 
     float m_headsetRefreshRate;
     float m_targetFrameRate;

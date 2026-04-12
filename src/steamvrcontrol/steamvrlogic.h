@@ -26,6 +26,8 @@
 #include <QtWidgets/QGraphicsEllipseItem>
 #include <QCursor>
 #include <iostream>
+#include <QGraphicsProxyWidget>
+#include <QOpenGLFunctions>
 #include "openvr.h"
 
 class SteamVRLogic: public QObject {
