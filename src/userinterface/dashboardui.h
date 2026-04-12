@@ -20,6 +20,7 @@
 #include <QtCharts/QBarSet>
 #include <QtCharts/QValueAxis>
 #include <QtCharts/QBarCategoryAxis>
+#include <QLineSeries>
 #include <QPainter>
 #include <QStyleOption>
 

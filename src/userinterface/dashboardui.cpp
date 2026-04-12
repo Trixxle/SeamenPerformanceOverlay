@@ -69,7 +69,6 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
     ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
-    ui->mainGridLayout->setContentsMargins(15, 15, 15, 15);
 }
 
 DashboardUI::~DashboardUI() {
@@ -84,9 +83,9 @@ void DashboardUI::updateGraphs(const FrameHandler::FrameStatsList& informationLi
 
     if (informationList.isEmpty()) return;
 
-    // After some research blocking signals here increases performance by a massive amoutn.
+    // After some research blocking signals here increases performance.
     // Qt will send a onSceneChanged signal for every single item inside the struct for every graph
-    // Blocking the signal and only sending the last one (which is the only one that matters) decreased GPU by 5%
+    // Blocking the signal and only sending the last one (which is the only one that matters) decreased GPU usage by 5%
     m_chartTotalFrameTime->blockSignals(true);
     m_chartCpuFrameTime->blockSignals(true);
     m_chartGpuFrameTime->blockSignals(true);
@@ -490,44 +489,92 @@ void DashboardUI::setUpCharts() {
     m_seriesFrameRate->attachAxis(m_axisXFrameRate);
 
     m_chartTotalFrameTime->legend()->hide();
-    m_chartTotalFrameTime->setAnimationOptions(QChart::NoAnimation); // Improves performance
-    m_chartTotalFrameTime->setBackgroundRoundness(28);
+    m_chartTotalFrameTime->setAnimationOptions(QChart::NoAnimation);
+    m_chartTotalFrameTime->setBackgroundRoundness(0); // Remove internal rounding
+    m_chartTotalFrameTime->setBackgroundBrush(Qt::transparent); // Let the view's background show
 
     m_chartCpuFrameTime->legend()->hide();
-    m_chartCpuFrameTime->setAnimationOptions(QChart::NoAnimation); // Improves performance
-    m_chartCpuFrameTime->setBackgroundRoundness(28);
+    m_chartCpuFrameTime->setAnimationOptions(QChart::NoAnimation);
+    m_chartCpuFrameTime->setBackgroundRoundness(0);
+    m_chartCpuFrameTime->setBackgroundBrush(Qt::transparent);
 
     m_chartGpuFrameTime->legend()->hide();
-    m_chartGpuFrameTime->setAnimationOptions(QChart::NoAnimation); // Improves performance
-    m_chartGpuFrameTime->setBackgroundRoundness(28);
+    m_chartGpuFrameTime->setAnimationOptions(QChart::NoAnimation);
+    m_chartGpuFrameTime->setBackgroundRoundness(0);
+    m_chartGpuFrameTime->setBackgroundBrush(Qt::transparent);
 
     m_chartFrameRate->legend()->hide();
-    m_chartFrameRate->setAnimationOptions(QChart::NoAnimation); // Improves performance
-    m_chartFrameRate->setBackgroundRoundness(28);
+    m_chartFrameRate->setAnimationOptions(QChart::NoAnimation);
+    m_chartFrameRate->setBackgroundRoundness(0);
+    m_chartFrameRate->setBackgroundBrush(Qt::transparent);
+
+    // Makes the charts sit at the bottom of the chartView
+    m_chartTotalFrameTime->setMargins(QMargins(0, 20, 0, 0));
+    m_chartCpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
+    m_chartGpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
+    m_chartFrameRate->setMargins(QMargins(0, 20, 0, 0));
 
     m_axisYTotalFrameTime = new QValueAxis();
     m_axisYTotalFrameTime->setRange(0, m_headsetRefreshRate + 10);
-    m_axisYTotalFrameTime->setTitleText("ms");
+    m_axisYTotalFrameTime->setLabelsVisible(false);
+    m_axisYTotalFrameTime->setLineVisible(false);
+    m_axisYTotalFrameTime->setGridLineVisible(false);
     m_chartTotalFrameTime->addAxis(m_axisYTotalFrameTime, Qt::AlignLeft);
     m_seriesTotalFrameTime->attachAxis(m_axisYTotalFrameTime);
 
     m_axisYCpuFrameTime = new QValueAxis();
     m_axisYCpuFrameTime->setRange(0, m_headsetRefreshRate + 10);
-    m_axisYCpuFrameTime->setTitleText("ms");
+    m_axisYCpuFrameTime->setLabelsVisible(false);
+    m_axisYCpuFrameTime->setLineVisible(false);
+    m_axisYCpuFrameTime->setGridLineVisible(false);
     m_chartCpuFrameTime->addAxis(m_axisYCpuFrameTime, Qt::AlignLeft);
     m_seriesCpuFrameTime->attachAxis(m_axisYCpuFrameTime);
 
     m_axisYGpuFrameTime = new QValueAxis();
     m_axisYGpuFrameTime->setRange(0, m_headsetRefreshRate + 10);
-    m_axisYGpuFrameTime->setTitleText("ms");
+    m_axisYGpuFrameTime->setLabelsVisible(false);
+    m_axisYGpuFrameTime->setLineVisible(false);
+    m_axisYGpuFrameTime->setGridLineVisible(false);
     m_chartGpuFrameTime->addAxis(m_axisYGpuFrameTime, Qt::AlignLeft);
     m_seriesGpuFrameTime->attachAxis(m_axisYGpuFrameTime);
 
     m_axisYFrameRate = new QValueAxis();
     m_axisYFrameRate->setRange(0, m_targetFrameRate + 10);
-    m_axisYFrameRate->setTitleText("FPS");
+    m_axisYFrameRate->setLabelsVisible(false);
+    m_axisYFrameRate->setLineVisible(false);
+    m_axisYFrameRate->setGridLineVisible(false);
     m_chartFrameRate->addAxis(m_axisYFrameRate, Qt::AlignLeft);
     m_seriesFrameRate->attachAxis(m_axisYFrameRate);
+
+    QPen targetPen(QColor("#232424"));
+    targetPen.setWidth(2);
+    QList<qreal> dashPattern;
+    dashPattern << 2 << 4; // pixels of line, followed by pixels of empty space
+    targetPen.setDashPattern(dashPattern);
+
+    QLineSeries *targetLineTotal = new QLineSeries();
+    targetLineTotal->append(0, m_headsetRefreshRate);
+    targetLineTotal->append(MAX_GRAPH_POINTS - 1, m_headsetRefreshRate);
+    targetLineTotal->setPen(targetPen);
+    m_chartTotalFrameTime->addSeries(targetLineTotal);
+    targetLineTotal->attachAxis(m_axisXTotalFrameTime);
+    targetLineTotal->attachAxis(m_axisYTotalFrameTime);
+
+    QLineSeries *targetLineCpu = new QLineSeries();
+    targetLineCpu->append(0, m_headsetRefreshRate);
+    targetLineCpu->append(MAX_GRAPH_POINTS - 1, m_headsetRefreshRate);
+    targetLineCpu->setPen(targetPen);
+    m_chartCpuFrameTime->addSeries(targetLineCpu);
+    targetLineCpu->attachAxis(m_axisXCpuFrameTime);
+    targetLineCpu->attachAxis(m_axisYCpuFrameTime);
+
+    QLineSeries *targetLineGpu = new QLineSeries();
+    targetLineGpu->append(0, m_headsetRefreshRate);
+    targetLineGpu->append(MAX_GRAPH_POINTS - 1, m_headsetRefreshRate);
+    targetLineGpu->setPen(targetPen);
+    m_chartGpuFrameTime->addSeries(targetLineGpu);
+    targetLineGpu->attachAxis(m_axisXGpuFrameTime);
+    targetLineGpu->attachAxis(m_axisYGpuFrameTime);
 
     // Initialize with empty data
     for(int i = 0; i < MAX_GRAPH_POINTS; ++i) {
@@ -549,37 +596,50 @@ void DashboardUI::setUpCharts() {
     //m_chartViewTotalFrameTime->setRenderHint(QPainter::Antialiasing);
     m_chartViewTotalFrameTime->setObjectName("chartViewTotalFrameTime");
     m_chartViewTotalFrameTime->setStyleSheet("#chartViewTotalFrameTime { "
-                        "background-color: #232424; "
-                        "border-radius: 45px; "
-                        "}"
-                        );
+                            "background-color: #FFFFFF; "
+                            "border-top-left-radius: 45px; "
+                            "border-top-right-radius: 45px; "
+                            "border-bottom-left-radius: 0px; "
+                            "border-bottom-right-radius: 0px; "
+                            "}"
+                            );
 
     m_chartViewCpuFrameTime->setChart(m_chartCpuFrameTime);
     //m_chartViewCpuFrameTime->setRenderHint(QPainter::Antialiasing);
     m_chartViewCpuFrameTime->setObjectName("chartViewCpuFrameTime");
     m_chartViewCpuFrameTime->setStyleSheet("#chartViewCpuFrameTime { "
-                        "background-color: #232424; "
-                        "border-radius: 45px; "
-                        "}"
-                        );
+                            "background-color: #FFFFFF; "
+                            "border-top-left-radius: 45px; "
+                            "border-top-right-radius: 45px; "
+                            "border-bottom-left-radius: 0px; "
+                            "border-bottom-right-radius: 0px; "
+                            "}"
+                            );
 
     m_chartViewGpuFrameTime->setChart(m_chartGpuFrameTime);
     //m_chartViewGpuFrameTime->setRenderHint(QPainter::Antialiasing);
     m_chartViewGpuFrameTime->setObjectName("chartViewGpuFrameTime");
     m_chartViewGpuFrameTime->setStyleSheet("#chartViewGpuFrameTime { "
-                        "background-color: #232424; "
-                        "border-radius: 45px; "
-                        "}"
-                        );
+                            "background-color: #FFFFFF; "
+                            "border-top-left-radius: 45px; "
+                            "border-top-right-radius: 45px; "
+                            "border-bottom-left-radius: 0px; "
+                            "border-bottom-right-radius: 0px; "
+                            "}"
+                            );
 
     m_chartViewFrameRate->setChart(m_chartFrameRate);
     //m_chartViewFrameRate->setRenderHint(QPainter::Antialiasing);
     m_chartViewFrameRate->setObjectName("chartViewFrameRate");
     m_chartViewFrameRate->setStyleSheet("#chartViewFrameRate { "
-                        "background-color: #232424; "
-                        "border-radius: 45px; "
-                        "}"
-                        );
+                            "background-color: #FFFFFF; "
+                            "border-top-left-radius: 45px; "
+                            "border-top-right-radius: 45px; "
+                            "border-bottom-left-radius: 0px; "
+                            "border-bottom-right-radius: 0px; "
+                            "}"
+                            );
+
 
     m_chartViewCpuFrameTime->setParent(this);
     insertWidgetAtRow(ui->mainGridLayout, m_chartViewCpuFrameTime, 0, 1, true);
@@ -587,9 +647,44 @@ void DashboardUI::setUpCharts() {
     m_chartViewGpuFrameTime->setParent(this);
     insertWidgetAtRow(ui->mainGridLayout, m_chartViewGpuFrameTime, 0,0, false);
 
+    /*
     m_chartViewTotalFrameTime->setParent(this);
     insertWidgetAtRow(ui->mainGridLayout, m_chartViewTotalFrameTime, 2, 0, true);
 
     m_chartViewFrameRate->setParent(this);
     insertWidgetAtRow(ui->mainGridLayout, m_chartViewFrameRate, 2, 1, false);
+    */
+
+    // Add spacers
+    struct LayoutShiftItem {
+        QLayoutItem* item;
+        int r, c, rs, cs;
+    };
+    QList<LayoutShiftItem> itemsToShift;
+
+    for (int i = 0; i < ui->mainGridLayout->count(); ++i) {
+        int r, c, rs, cs;
+        ui->mainGridLayout->getItemPosition(i, &r, &c, &rs, &cs);
+        // Grab everything from Row 2 downwards
+        if (r >= 2) {
+            itemsToShift.append({ui->mainGridLayout->itemAt(i), r, c, rs, cs});
+        }
+    }
+
+    for (const LayoutShiftItem& si : itemsToShift) {
+        ui->mainGridLayout->removeItem(si.item);
+    }
+
+    for (const LayoutShiftItem& si : itemsToShift) {
+        ui->mainGridLayout->addItem(si.item, si.r + 1, si.c, si.rs, si.cs);
+    }
+
+    // SPacer height
+    ui->mainGridLayout->setRowMinimumHeight(2, 20);
+
+    m_chartViewTotalFrameTime->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_chartViewTotalFrameTime, 3, 0, true);
+
+    m_chartViewFrameRate->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_chartViewFrameRate, 3, 1, false);
 }

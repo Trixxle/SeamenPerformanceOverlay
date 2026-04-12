@@ -199,8 +199,6 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 				m_tLastMouse = ptNewMouse;
 				QApplication::sendEvent( m_pScene, &mouseEvent );
-
-				//OnSceneChanged( QList<QRectF>() );
 			}
 			break;
 
@@ -373,12 +371,14 @@ QString SteamVRLogic::GetVRDisplayString()
 	return m_strVRDisplay;
 }
 
+// Given in ms
 float SteamVRLogic::GetHeadsetRefreshRate()
 {
 	vr::ETrackedPropertyError err;
 	return 1000 / m_pVRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayFrequency_Float, &err);
 }
 
+// Given in fps
 float SteamVRLogic::GetHeadsetMaxFrameRate()
 {
 	vr::ETrackedPropertyError err;
