@@ -114,6 +114,9 @@ private:
     QBarCategoryAxis *m_axisXFrameRate;
     QStringList m_categoriesFrameRate;
     QChartView *m_chartViewFrameRate;
+
+signals:
+    void requestControllerSwitch();
 };
 
 

@@ -61,7 +61,6 @@ private:
     signals:
     void updateGraphs(const FrameStatsList &informationList);
     void updateLabels(const frameStats &information);
-
 };
 
 Q_DECLARE_METATYPE(FrameHandler::FrameStatsList)

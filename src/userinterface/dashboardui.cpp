@@ -4,6 +4,7 @@
 
 #include "dashboardui.h"
 #include "ui_dashboardui.h"
+#include "steamvrcontrol/steamvrlogic.h"
 
 DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidget *parent):
     QWidget(parent),
@@ -50,6 +51,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     )";
 
     ui->exitButton->setStyleSheet(exitButtonStyle);
+    ui->moveButton->setStyleSheet(exitButtonStyle);
 
     this->setObjectName("DashboardUI");
 
@@ -66,6 +68,14 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     //this->resize(800, 1000); // Expands the widget to fit the graph
 
     connect(ui->exitButton, &QPushButton::clicked, this, &DashboardUI::onExitButtonClicked);
+    connect(ui->moveButton, &QPushButton::clicked, this, &DashboardUI::requestControllerSwitch);
+
+    /*connect(ui->moveButton, &QPushButton::pressed, this, [this]() {
+        emit moveOverlayRequested(true);
+    });
+    connect(ui->moveButton, &QPushButton::released, this, [this]() {
+        emit moveOverlayRequested(false);
+    });*/
 
     ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);

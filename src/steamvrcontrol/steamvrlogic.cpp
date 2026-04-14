@@ -95,8 +95,12 @@ bool SteamVRLogic::Init() {
     if( vr::VROverlay() )
     {
         std::string sKey = std::string( "com.seamen.overlay." ) + m_strOverlayName.toStdString();
-		vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(),
-			"Seamen Performance Overlay", &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
+		//vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(),
+		//	"Seamen Performance Overlay", &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
+
+    	vr::VROverlayError overlayError = vr::VROverlay()->CreateOverlay( sKey.c_str(),
+					"Seamen Performance Overlay", &m_ulOverlayHandle );
+
     	bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
     	if (overlayError != vr::VROverlayError_None) {
     		// Overlay failed to create
@@ -110,16 +114,25 @@ bool SteamVRLogic::Init() {
     	}
     }
 
-    if( bSuccess )
-    {
-        vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 1.5f );
-        vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
+	if( bSuccess )
+	{
+		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 0.2f ); // Scaled down to 15cm for a watch size
+		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 
-        m_pPumpEventsTimer = new QTimer( this );
-        connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
-        m_pPumpEventsTimer->setInterval( 20 );
-        m_pPumpEventsTimer->start();
-    }
+		vr::TrackedDeviceIndex_t leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+
+		if (leftController != vr::k_unTrackedDeviceIndexInvalid) {
+			// Attach to left hand if it's currently turned on
+			AttachToDevice(leftController);
+		}
+
+		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
+
+		m_pPumpEventsTimer = new QTimer( this );
+		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
+		m_pPumpEventsTimer->setInterval( 20 );
+		m_pPumpEventsTimer->start();
+	}
 
     std::cout << "bSucces: " << bSuccess << std::endl;
     return bSuccess;
@@ -256,6 +269,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	vr::VREvent_t vrEvent;
     while( vr::VROverlay()->PollNextOverlayEvent( m_ulOverlayHandle, &vrEvent, sizeof( vrEvent )  ) )
 	{
+    	if (vrEvent.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
+    		m_unLastInteractingDevice = vrEvent.trackedDeviceIndex;
+    	}
+
 		switch( vrEvent.eventType )
 		{
 		case vr::VREvent_MouseMove:
@@ -338,13 +355,19 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 		case vr::VREvent_TrackedDeviceActivated:
 			{
-				//RestoreOverlayPosition();
-			}break;
+			vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;
+			vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
+
+			if (role == vr::TrackedControllerRole_LeftHand) AttachToDevice(newDeviceIndex);
+			//RestoreOverlayPosition();
+			}
+			break;
 
         case vr::VREvent_Quit:
             QApplication::exit();
             break;
 		}
+    	if (m_switchController) switchController();
 	}
 
     if( m_ulOverlayThumbnailHandle != vr::k_ulOverlayHandleInvalid )
@@ -362,6 +385,41 @@ void SteamVRLogic::OnTimeoutPumpEvents()
         }
     }
 
+}
+
+// False for left, true for right
+void SteamVRLogic::AttachToDevice(vr::TrackedDeviceIndex_t device) {
+	/*
+	AXx AYx AZx Tx
+	AXy AYy AZy Ty
+	AXz AYz AZz Tz
+	*/
+		vr::HmdMatrix34_t transform = {
+			1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
+			0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
+			0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
+		};
+		vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &transform);
+}
+
+void SteamVRLogic::switchController() {
+    m_switchController = true;
+
+    // Ensure we actually have a valid device that clicked the button
+    if (m_unLastInteractingDevice != vr::k_unTrackedDeviceIndexInvalid) {
+
+        // Attach the overlay to the controller that triggered the click
+        AttachToDevice(m_unLastInteractingDevice);
+
+        // Because AttachToDevice sets a persistent relative transform in SteamVR,
+        // you don't actually need to keep calling moveOverlay() every tick.
+        // We can immediately toggle the flag off to save API calls.
+        m_switchController = false;
+
+    } else {
+        std::cerr << "Warning: Attempted to move overlay, but no interacting device was found." << std::endl;
+        m_switchController = false;
+    }
 }
 
 bool SteamVRLogic::ConnectToVRRuntime() {

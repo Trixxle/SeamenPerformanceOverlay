@@ -58,9 +58,10 @@ public:
 public slots:
     void OnSceneChanged(const QList<QRectF>&);
     void OnTimeoutPumpEvents();
+    void switchController();
 
 private:
-
+    vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
     vr::EVRInitError m_eOverlayError;
@@ -72,6 +73,9 @@ private:
     void DisconnectFromVRRuntime();
     void SaveOverlayPosition();
     void RestoreOverlayPosition();
+    void AttachToDevice(vr::TrackedDeviceIndex_t device);
+
+    bool m_switchController = false;
 
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
