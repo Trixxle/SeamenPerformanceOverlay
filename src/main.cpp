@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
     QObject::connect(frameHandler, &FrameHandler::updateGraphs, pDashboardUI, &DashboardUI::updateGraphs);
     QObject::connect(frameHandler, &FrameHandler::updateLabels, pDashboardUI, &DashboardUI::updateLabels);
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, SteamVRLogic::SharedInstance(), &SteamVRLogic::switchController);
+    QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, SteamVRLogic::SharedInstance(), &SteamVRLogic::startMove);
+    //QObject::connect(pDashboardUI, &DashboardUI::requestMoveEnd, SteamVRLogic::SharedInstance(), &SteamVRLogic::stopMove);
+
 
     //std::cout << "Started the thread (maybe)" << std::endl;
 

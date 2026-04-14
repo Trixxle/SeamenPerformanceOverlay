@@ -59,9 +59,14 @@ public slots:
     void OnSceneChanged(const QList<QRectF>&);
     void OnTimeoutPumpEvents();
     void switchController();
+    void startMove();
+    void stopMove();
 
 private:
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
+    vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
+    vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
+    vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
     vr::EVRInitError m_eOverlayError;
@@ -73,9 +78,14 @@ private:
     void DisconnectFromVRRuntime();
     void SaveOverlayPosition();
     void RestoreOverlayPosition();
-    void AttachToDevice(vr::TrackedDeviceIndex_t device);
+    void AttachToDevice(const vr::TrackedDeviceIndex_t& device);
+    vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
+    void mirrorMatrix();
 
-    bool m_switchController = false;
+    bool m_firstMoveClick = true;
+    bool m_isMoving = false;
+
+    vr::HmdMatrix34_t m_overlayPositionMatrix;
 
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 

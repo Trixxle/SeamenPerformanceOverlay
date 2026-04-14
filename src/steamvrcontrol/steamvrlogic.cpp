@@ -4,6 +4,8 @@
 
 #include "steamvrlogic.h"
 
+#include <bits/regex_constants.h>
+
 SteamVRLogic *s_pSharedSteamVRLogic= NULL;
 
 SteamVRLogic *SteamVRLogic::SharedInstance()
@@ -21,6 +23,11 @@ m_eLastHmdError(vr::VRInitError_None),
 m_eCompositorError( vr::VRInitError_None ),
 m_eOverlayError( vr::VRInitError_None ),
 m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid ),
+m_overlayPositionMatrix({
+		1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
+		0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
+		0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
+	}),
 m_Widget(NULL),
 m_strVRDriver("No Driver"),
 m_strVRDisplay("No Display"),
@@ -119,11 +126,16 @@ bool SteamVRLogic::Init() {
 		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 0.2f ); // Scaled down to 15cm for a watch size
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 
-		vr::TrackedDeviceIndex_t leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 
-		if (leftController != vr::k_unTrackedDeviceIndexInvalid) {
+		if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
 			// Attach to left hand if it's currently turned on
-			AttachToDevice(leftController);
+			AttachToDevice(m_leftController);
+		}
+
+		if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
+			m_deviceOverlayIsAttachedTo = m_rightController;
 		}
 
 		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
@@ -344,6 +356,11 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				mouseEvent.setAccepted( false );
 
 				QApplication::sendEvent(  m_pScene, &mouseEvent );
+			
+				if (m_isMoving) {
+					stopMove();
+					m_isMoving = false;
+				}
 			}
 			break;
 
@@ -353,21 +370,27 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			}
 			break;
 
-		case vr::VREvent_TrackedDeviceActivated:
+    		case vr::VREvent_TrackedDeviceActivated:
 			{
-			vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;
-			vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
+				vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;
+				vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
 
-			if (role == vr::TrackedControllerRole_LeftHand) AttachToDevice(newDeviceIndex);
-			//RestoreOverlayPosition();
+				if (role == vr::TrackedControllerRole_LeftHand) {
+					m_leftController = newDeviceIndex;
+					AttachToDevice(m_leftController);
+					//RestoreOverlayPosition();
+				}
+    			if (role == vr::TrackedControllerRole_RightHand) {
+    				m_rightController = newDeviceIndex;
+    			}
 			}
+
 			break;
 
         case vr::VREvent_Quit:
             QApplication::exit();
             break;
 		}
-    	if (m_switchController) switchController();
 	}
 
     if( m_ulOverlayThumbnailHandle != vr::k_ulOverlayHandleInvalid )
@@ -388,38 +411,157 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 }
 
 // False for left, true for right
-void SteamVRLogic::AttachToDevice(vr::TrackedDeviceIndex_t device) {
+void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
 	/*
 	AXx AYx AZx Tx
 	AXy AYy AZy Ty
 	AXz AYz AZz Tz
 	*/
-		vr::HmdMatrix34_t transform = {
-			1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
-			0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
-			0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
-		};
-		vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &transform);
+	vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &m_overlayPositionMatrix);
+	m_deviceOverlayIsAttachedTo = device;
 }
 
 void SteamVRLogic::switchController() {
-    m_switchController = true;
+	// Ensure we actually have a valid device that clicked the button
+	if (m_unLastInteractingDevice != vr::k_unTrackedDeviceIndexInvalid) {
+		// Attach the overlay to the controller that triggered the click
+		mirrorMatrix();
+		AttachToDevice(m_unLastInteractingDevice);
 
-    // Ensure we actually have a valid device that clicked the button
-    if (m_unLastInteractingDevice != vr::k_unTrackedDeviceIndexInvalid) {
+		m_isMoving = false;
+	} else {
+		std::cerr << "Warning: Attempted to move overlay, but no interacting device was found." << std::endl;
+	}
+}
 
-        // Attach the overlay to the controller that triggered the click
-        AttachToDevice(m_unLastInteractingDevice);
+void SteamVRLogic::startMove() {
+	// If widget is already moving, cannot start moving it again
+	if (m_isMoving) return;
 
-        // Because AttachToDevice sets a persistent relative transform in SteamVR,
-        // you don't actually need to keep calling moveOverlay() every tick.
-        // We can immediately toggle the flag off to save API calls.
-        m_switchController = false;
+	if (m_deviceOverlayIsAttachedTo == m_leftController) {
+		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
+		AttachToDevice(m_rightController);
+		m_isMoving = true;
+	}
+	else {
+		m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
+		AttachToDevice(m_leftController);
+		m_isMoving = true;
+	}
 
-    } else {
-        std::cerr << "Warning: Attempted to move overlay, but no interacting device was found." << std::endl;
-        m_switchController = false;
+}
+
+void SteamVRLogic::stopMove() {
+	if (m_deviceOverlayIsAttachedTo == m_rightController) {
+		m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
+		AttachToDevice(m_leftController);
+	}
+	else {
+		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
+		AttachToDevice(m_rightController);
+	}
+}
+
+void SteamVRLogic::mirrorMatrix() {
+	m_overlayPositionMatrix.m[0][3] = -m_overlayPositionMatrix.m[0][3];
+	m_overlayPositionMatrix.m[0][1] = -m_overlayPositionMatrix.m[0][1];
+	m_overlayPositionMatrix.m[0][2] = -m_overlayPositionMatrix.m[0][2];
+	m_overlayPositionMatrix.m[1][0] = -m_overlayPositionMatrix.m[1][0];
+	m_overlayPositionMatrix.m[2][0] = -m_overlayPositionMatrix.m[2][0];
+}
+
+// Calculates the relative transform between the overlay and the passed device
+vr::HmdMatrix34_t SteamVRLogic::calculateRelativeTransform(vr::TrackedDeviceIndex_t device) {
+    // Fallback to the current matrix if anything goes wrong
+    vr::HmdMatrix34_t fallbackMatrix = m_overlayPositionMatrix;
+
+    if (!vr::VROverlay() || !m_pVRSystem || device == vr::k_unTrackedDeviceIndexInvalid) {
+        return fallbackMatrix;
     }
+
+    // Helper lambdas to cleanly convert between OpenVR's 3x4 and Qt's 4x4 matrices
+    auto toQMatrix = [](const vr::HmdMatrix34_t& mat) {
+        return QMatrix4x4(
+            mat.m[0][0], mat.m[0][1], mat.m[0][2], mat.m[0][3],
+            mat.m[1][0], mat.m[1][1], mat.m[1][2], mat.m[1][3],
+            mat.m[2][0], mat.m[2][1], mat.m[2][2], mat.m[2][3],
+            0.0f,        0.0f,        0.0f,        1.0f
+        );
+    };
+
+    auto toVrMatrix = [](const QMatrix4x4& mat) {
+        vr::HmdMatrix34_t res;
+        for(int i = 0; i < 3; ++i) {
+            for(int j = 0; j < 4; ++j) {
+                res.m[i][j] = mat(i, j);
+            }
+        }
+        return res;
+    };
+
+    vr::TrackingUniverseOrigin trackingOrigin = vr::TrackingUniverseStanding;
+    QMatrix4x4 overlayAbsoluteTransform;
+
+    // Determine the current absolute transform of the overlay in the tracking space
+    vr::VROverlayTransformType transformType;
+    if (vr::VROverlay()->GetOverlayTransformType(m_ulOverlayHandle, &transformType) != vr::VROverlayError_None) {
+        return fallbackMatrix;
+    }
+
+    if (transformType == vr::VROverlayTransform_Absolute) {
+        // Overlay is currently pinned to the world
+        vr::HmdMatrix34_t absMat;
+        vr::VROverlay()->GetOverlayTransformAbsolute(m_ulOverlayHandle, &trackingOrigin, &absMat);
+        overlayAbsoluteTransform = toQMatrix(absMat);
+    }
+    else if (transformType == vr::VROverlayTransform_TrackedDeviceRelative) {
+        // Overlay is currently pinned to another device
+        vr::TrackedDeviceIndex_t currentParentDevice;
+        vr::HmdMatrix34_t currentRelativeMat;
+        vr::VROverlay()->GetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, &currentParentDevice, &currentRelativeMat);
+
+        vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+        m_pVRSystem->GetDeviceToAbsoluteTrackingPose(trackingOrigin, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
+
+        if (!poses[currentParentDevice].bPoseIsValid) {
+            return fallbackMatrix; // Cannot calculate if the current parent isn't tracking
+        }
+
+        QMatrix4x4 parentAbsoluteTransform = toQMatrix(poses[currentParentDevice].mDeviceToAbsoluteTracking);
+        QMatrix4x4 relativeTransform = toQMatrix(currentRelativeMat);
+
+        // Absolute = Parent_Absolute * Relative
+        overlayAbsoluteTransform = parentAbsoluteTransform * relativeTransform;
+    }
+    else {
+        // Unsupported transform type (e.g., Dashboard)
+        return fallbackMatrix;
+    }
+
+    // Get the absolute transform of the target device we want to attach the overlay to
+    vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+    m_pVRSystem->GetDeviceToAbsoluteTrackingPose(trackingOrigin, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
+
+    if (!poses[device].bPoseIsValid) {
+        return fallbackMatrix; // Target device isn't tracking right now
+    }
+
+    QMatrix4x4 targetDeviceAbsoluteTransform = toQMatrix(poses[device].mDeviceToAbsoluteTracking);
+
+    // Calculate the new relative transform
+    // Target_Absolute * New_Relative = Overlay_Absolute
+    // New_Relative = Inverse(Target_Absolute) * Overlay_Absolute
+    bool invertible;
+    QMatrix4x4 targetDeviceInverse = targetDeviceAbsoluteTransform.inverted(&invertible);
+
+    if (!invertible) {
+        return fallbackMatrix; // Prevent division by zero / math errors if tracking glitches heavily
+    }
+
+    QMatrix4x4 newRelativeTransform = targetDeviceInverse * overlayAbsoluteTransform;
+
+    // Convert back to OpenVR format and return
+    return toVrMatrix(newRelativeTransform);
 }
 
 bool SteamVRLogic::ConnectToVRRuntime() {

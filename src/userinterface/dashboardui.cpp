@@ -22,15 +22,17 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     m_chartViewFrameRate(new QChartView()),
 
     m_targetFrameRate(targetFrameRate),
-    m_headsetRefreshRate(headsetRefreshRate)
+    m_headsetRefreshRate(headsetRefreshRate),
+
+    m_opacity(0.85)
 {
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
     //this->setStyleSheet("background: transparent;");
 
     ui->setupUi(this);
-
-    QString exitButtonStyle = R"(
+    /*
+    QString buttonStyle = R"(
     QPushButton {
         border: 2px solid #1092BF;
         border-radius: 10px;
@@ -48,16 +50,40 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
         border-color: #1EAEED;
         color: black;
     }
+    )";*/
+
+    QString buttonStyle = R"(
+    QPushButton {
+        background-color: #252525;
+        color: white;
+        border-radius: 15px;
+    }
+
+    QPushButton:hover {
+        background-color: #262626;
+    }
+
+    QPushButton:pressed {
+        background-color: #1EAEED;
+        border-color: #1EAEED;
+        color: black;
+    }
     )";
 
-    ui->exitButton->setStyleSheet(exitButtonStyle);
-    ui->moveButton->setStyleSheet(exitButtonStyle);
+    ui->exitButton->setStyleSheet(buttonStyle);
+    ui->moveButton->setStyleSheet(buttonStyle);
+    ui->increaseOpacityButton->setStyleSheet(buttonStyle);
+    ui->increaseScaleButton->setStyleSheet(buttonStyle);
+    ui->decreaseOpacityButton->setStyleSheet(buttonStyle);
+    ui->decreaseScaleButton->setStyleSheet(buttonStyle);
+
+    ui->switchControllerButton->setStyleSheet(buttonStyle);
 
     this->setObjectName("DashboardUI");
 
     this->setStyleSheet("#DashboardUI { "
                             "background-color: #232424; "
-                            "border-radius: 45px; "
+                            "border-radius: 60px; "
                             "border: 4px solid #1092BF; "
                             "margin: 4px; "
                             "}"
@@ -65,24 +91,31 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
     setUpCharts();
 
-    //this->resize(800, 1000); // Expands the widget to fit the graph
-
     connect(ui->exitButton, &QPushButton::clicked, this, &DashboardUI::onExitButtonClicked);
-    connect(ui->moveButton, &QPushButton::clicked, this, &DashboardUI::requestControllerSwitch);
+    connect(ui->increaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::increaseOpacityButtonClicked);
+    connect(ui->decreaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::decreaseOpacityButtonClicked);
+    connect(ui->switchControllerButton, &QPushButton::clicked, this, &DashboardUI::requestControllerSwitch);
+    connect(ui->moveButton, &QPushButton::pressed, this, &DashboardUI::requestMoveBegin);
+    //connect(ui->moveButton, &QPushButton::released, this, &DashboardUI::requestMoveEnd);
 
-    /*connect(ui->moveButton, &QPushButton::pressed, this, [this]() {
-        emit moveOverlayRequested(true);
-    });
-    connect(ui->moveButton, &QPushButton::released, this, [this]() {
-        emit moveOverlayRequested(false);
-    });*/
-
-    ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
+    //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
 }
 
 DashboardUI::~DashboardUI() {
     delete ui;
+}
+
+void DashboardUI::increaseOpacityButtonClicked() {
+    if (m_opacity == 1.0) return;
+    m_opacity += 0.05;
+    this->setWindowOpacity(m_opacity);
+}
+
+void DashboardUI::decreaseOpacityButtonClicked() {
+    if (m_opacity == 0.0) return;
+    m_opacity -= 0.05;
+    this->setWindowOpacity(m_opacity);
 }
 
 void DashboardUI::onExitButtonClicked() {

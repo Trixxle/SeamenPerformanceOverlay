@@ -63,6 +63,8 @@ public slots:
 
 private slots:
     void onExitButtonClicked();
+    void increaseOpacityButtonClicked();
+    void decreaseOpacityButtonClicked();
 
 private:
     void setUpCharts();
@@ -74,6 +76,8 @@ private:
 
     float m_headsetRefreshRate;
     float m_targetFrameRate;
+
+    float m_opacity;
 
     QChart *m_chartTotalFrameTime;
     QBarSet *m_barSetTotalFrameTimeFast;
@@ -117,6 +121,8 @@ private:
 
 signals:
     void requestControllerSwitch();
+    void requestMoveBegin();
+    //void requestMoveEnd();
 };
 
 
