@@ -76,21 +76,19 @@ bool SteamVRLogic::Init() {
     bSuccess = ConnectToVRRuntime();
 
 	if (bSuccess && vr::VRApplications()) {
-		QString manifestPath = QApplication::applicationDirPath() + "/manifest.vrmanifest";
+		std::string sKey = "com.seamen.overlay";
+		// Not yet installed
+		if (!vr::VRApplications()->IsApplicationInstalled(sKey.c_str())) {
 
-		vr::EVRApplicationError appError = vr::VRApplications()->AddApplicationManifest(manifestPath.toStdString().c_str());
+			QString manifestPath = QApplication::applicationDirPath() + "\\manifest.vrmanifest";
+			std::cout << manifestPath.toStdString() << std::endl;
 
-		if (appError != vr::VRApplicationError_None) {
-			std::cerr << "Failed to register manifest: "
-					  << vr::VRApplications()->GetApplicationsErrorNameFromEnum(appError) << std::endl;
-		} else {
-			// Automatically set the overlay to launch when SteamVR starts
-			std::string sKey = std::string("com.seamen.overlay.") + m_strOverlayName.toStdString();
-			vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
-			// Identify this process to SteamVR
-			vr::VRApplications()->IdentifyApplication((uint32_t)QCoreApplication::applicationPid(), sKey.c_str());
+			if (vr::VRApplications()->AddApplicationManifest(manifestPath.toStdString().c_str()) == vr::VRApplicationError_None) {
+				vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
+			}
 		}
 	}
+
 
     bSuccess = bSuccess && vr::VRCompositor() != NULL;
 
@@ -128,6 +126,7 @@ bool SteamVRLogic::Init() {
 }
 
 void SteamVRLogic::Shutdown() {
+	//SaveOverlayPosition();
 	DisconnectFromVRRuntime();
 
 	delete m_pScene;
@@ -139,7 +138,86 @@ void SteamVRLogic::Shutdown() {
 		//		m_pOpenGLContext->destroy();
 		delete m_pOpenGLContext;
 		m_pOpenGLContext = NULL;
-	}}
+	}
+}
+
+
+// TODO: IMPLEMENT
+void SteamVRLogic::SaveOverlayPosition() {
+	if (!vr::VROverlay() || !m_pVRSystem) return;
+
+	vr::VROverlayTransformType transformType;
+	vr::VROverlayError typeError = vr::VROverlay()->GetOverlayTransformType(m_ulOverlayHandle, &transformType);
+
+	QSettings settings("Seamen", "PerformanceOverlay");
+
+	// Check if the user tore it off and attached it to a controller
+	if (typeError == vr::VROverlayError_None && transformType == vr::VROverlayTransform_TrackedDeviceRelative) {
+
+		std::cout << "Overlay detached" << std::endl;
+
+		vr::TrackedDeviceIndex_t attachedDevice;
+		vr::HmdMatrix34_t transform;
+
+		if (vr::VROverlay()->GetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, &attachedDevice, &transform) == vr::VROverlayError_None) {
+
+			// Convert index to Role (Left Hand vs Right Hand)
+			vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(attachedDevice);
+
+			if (role != vr::TrackedControllerRole_Invalid) {
+				settings.setValue("IsTornOff", true);
+				settings.setValue("AttachedRole", (int)role);
+
+				// Flatten the 3x4 matrix into a list for easy saving
+				QList<QVariant> matrixValues;
+				for (int i = 0; i < 3; ++i) {
+					for (int j = 0; j < 4; ++j) {
+						matrixValues.append(transform.m[i][j]);
+					}
+				}
+				settings.setValue("TransformMatrix", matrixValues);
+				return;
+			}
+		}
+	}
+	std::cout << "Overlay not detached" << std::endl;
+
+	// If it's still in the dashboard or an error occurred, mark it as not torn off
+	settings.setValue("IsTornOff", false);
+}
+
+// TODO: IMPLEMENT
+void SteamVRLogic::RestoreOverlayPosition() {
+	if (!vr::VROverlay() || !m_pVRSystem) return;
+
+	QSettings settings("Seamen", "PerformanceOverlay");
+
+	if (settings.value("IsTornOff", false).toBool()) {
+		// Read the target role and convert it back to a current session device index
+		vr::ETrackedControllerRole role = (vr::ETrackedControllerRole)settings.value("AttachedRole").toInt();
+		vr::TrackedDeviceIndex_t deviceIndex = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(role);
+
+		if (deviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
+			QList<QVariant> matrixValues = settings.value("TransformMatrix").toList();
+
+			if (matrixValues.size() == 12) {
+				vr::HmdMatrix34_t transform;
+				int k = 0;
+				for (int i = 0; i < 3; ++i) {
+					for (int j = 0; j < 4; ++j) {
+						transform.m[i][j] = matrixValues[k++].toFloat();
+					}
+				}
+
+				// This call effectively "tears it out" of the dashboard programmatically
+				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, deviceIndex, &transform);
+
+				// Dashboard overlays are hidden by default when torn out programmatically
+				vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
+			}
+		}
+	}
+}
 
 void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
 	// Only render if the overlay is visible
@@ -257,6 +335,11 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				m_Widget->repaint();
 			}
 			break;
+
+		case vr::VREvent_TrackedDeviceActivated:
+			{
+				//RestoreOverlayPosition();
+			}break;
 
         case vr::VREvent_Quit:
             QApplication::exit();

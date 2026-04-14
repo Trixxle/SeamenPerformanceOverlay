@@ -26,6 +26,7 @@
 #include <QtWidgets/QGraphicsEllipseItem>
 #include <QCursor>
 #include <iostream>
+#include <filesystem>
 #include <QGraphicsProxyWidget>
 #include <QOpenGLFunctions>
 #include "openvr.h"
@@ -69,6 +70,8 @@ private:
 
     bool ConnectToVRRuntime();
     void DisconnectFromVRRuntime();
+    void SaveOverlayPosition();
+    void RestoreOverlayPosition();
 
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
