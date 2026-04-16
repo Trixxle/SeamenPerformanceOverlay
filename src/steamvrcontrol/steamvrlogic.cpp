@@ -37,7 +37,8 @@ m_pOpenGLContext(NULL),
 m_pOffscreenSurface(NULL),
 m_pScene(NULL),
 m_pFbo(NULL),
-m_lastMouseButtons( 0 )
+m_lastMouseButtons( 0 ),
+m_settings("Seamen", "PerformanceOverlay")
 {}
 
 SteamVRLogic::~SteamVRLogic() {
@@ -123,16 +124,19 @@ bool SteamVRLogic::Init() {
 
 	if( bSuccess )
 	{
-		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, 0.2f ); // Scaled down to 15cm for a watch size
+		m_overlayWidthInMeters = 0.2f;
+		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, m_overlayWidthInMeters );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 
 		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 
-		if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
-			// Attach to left hand if it's currently turned on
+		restoreSession();
+
+		// Some IDEs will say the following statement will always be false, this is incorrect
+		if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid &&
+			m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
 			AttachToDevice(m_leftController);
-			m_deviceOverlayIsAttachedTo = m_leftController;
 		}
 
 		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
@@ -142,13 +146,32 @@ bool SteamVRLogic::Init() {
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
 	}
-
     std::cout << "bSucces: " << bSuccess << std::endl;
     return bSuccess;
 }
 
+// Why limit this? Allow the user to increase it as much as they want, let them be free. They will play themselves
+void SteamVRLogic::increaseOverlayScale() {
+	m_overlayWidthInMeters += 0.05;
+	updateOverlayWidthInMeters();
+	saveSize();
+}
+
+// Unfortuantely, we do have to limit this to stop users from being too stupid
+void SteamVRLogic::decreaseOverlayScale() {
+	// Size can't be 0, then it breaks
+	if (m_overlayWidthInMeters - 0.05 < 0.01) return;
+	m_overlayWidthInMeters -= 0.05;
+	updateOverlayWidthInMeters();
+	saveSize();
+}
+
+void SteamVRLogic::updateOverlayWidthInMeters() {
+	vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, m_overlayWidthInMeters );
+}
+
 void SteamVRLogic::Shutdown() {
-	//SaveOverlayPosition();
+	saveSession();
 	DisconnectFromVRRuntime();
 
 	delete m_pScene;
@@ -163,81 +186,73 @@ void SteamVRLogic::Shutdown() {
 	}
 }
 
-
-// TODO: IMPLEMENT
-void SteamVRLogic::SaveOverlayPosition() {
+// Important to note, the opacity is saved in dashboard.cpp as it is handled by Qt
+void SteamVRLogic::saveSession() {
 	if (!vr::VROverlay() || !m_pVRSystem) return;
+	saveSize();
+	saveController();
+	savePosition();
+	emit saveOpacity();
+}
 
+void SteamVRLogic::savePosition() {
 	vr::VROverlayTransformType transformType;
 	vr::VROverlayError typeError = vr::VROverlay()->GetOverlayTransformType(m_ulOverlayHandle, &transformType);
+	if (typeError) return;
 
-	QSettings settings("Seamen", "PerformanceOverlay");
+	// Flatten the 3x4 matrix into a list for easy saving
+	QList<QVariant> matrixValues;
+	for (int i = 0; i < 3; ++i) {
+		for (int j = 0; j < 4; ++j) {
+			matrixValues.append(m_overlayPositionMatrix.m[i][j]);
+		}
+	}
+	m_settings.setValue("TransformMatrix", matrixValues);
+}
 
-	// Check if the user tore it off and attached it to a controller
-	if (typeError == vr::VROverlayError_None && transformType == vr::VROverlayTransform_TrackedDeviceRelative) {
+void SteamVRLogic::saveSize() {
+	m_settings.setValue("Size", m_overlayWidthInMeters);
+}
 
-		std::cout << "Overlay detached" << std::endl;
+void SteamVRLogic::saveController() {
+	if (m_deviceOverlayIsAttachedTo == m_leftController) {
+		m_settings.setValue("AttachedRole", vr::TrackedControllerRole_LeftHand);
+	} else if (m_deviceOverlayIsAttachedTo == m_rightController) {
+		m_settings.setValue("AttachedRole", vr::TrackedControllerRole_RightHand);
+	}
+}
 
-		vr::TrackedDeviceIndex_t attachedDevice;
-		vr::HmdMatrix34_t transform;
+// IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is run before the widget exists
+void SteamVRLogic::restoreSession() {
+	if (!vr::VROverlay() || !m_pVRSystem) return;
 
-		if (vr::VROverlay()->GetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, &attachedDevice, &transform) == vr::VROverlayError_None) {
-
-			// Convert index to Role (Left Hand vs Right Hand)
-			vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(attachedDevice);
-
-			if (role != vr::TrackedControllerRole_Invalid) {
-				settings.setValue("IsTornOff", true);
-				settings.setValue("AttachedRole", (int)role);
-
-				// Flatten the 3x4 matrix into a list for easy saving
-				QList<QVariant> matrixValues;
-				for (int i = 0; i < 3; ++i) {
-					for (int j = 0; j < 4; ++j) {
-						matrixValues.append(transform.m[i][j]);
-					}
+	// Restore position
+	if (!m_settings.value("TransformMatrix").isNull()) {
+		QList<QVariant> matrixValues = m_settings.value("TransformMatrix").toList();
+		if (matrixValues.size() == 12) {
+			int k = 0;
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 4; ++j) {
+					m_overlayPositionMatrix.m[i][j] = matrixValues[k++].toFloat();
 				}
-				settings.setValue("TransformMatrix", matrixValues);
-				return;
 			}
 		}
 	}
-	std::cout << "Overlay not detached" << std::endl;
 
-	// If it's still in the dashboard or an error occurred, mark it as not torn off
-	settings.setValue("IsTornOff", false);
-}
-
-// TODO: IMPLEMENT
-void SteamVRLogic::RestoreOverlayPosition() {
-	if (!vr::VROverlay() || !m_pVRSystem) return;
-
-	QSettings settings("Seamen", "PerformanceOverlay");
-
-	if (settings.value("IsTornOff", false).toBool()) {
-		// Read the target role and convert it back to a current session device index
-		vr::ETrackedControllerRole role = (vr::ETrackedControllerRole)settings.value("AttachedRole").toInt();
-		vr::TrackedDeviceIndex_t deviceIndex = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(role);
-
-		if (deviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
-			QList<QVariant> matrixValues = settings.value("TransformMatrix").toList();
-
-			if (matrixValues.size() == 12) {
-				vr::HmdMatrix34_t transform;
-				int k = 0;
-				for (int i = 0; i < 3; ++i) {
-					for (int j = 0; j < 4; ++j) {
-						transform.m[i][j] = matrixValues[k++].toFloat();
-					}
-				}
-
-				// This call effectively "tears it out" of the dashboard programmatically
-				vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, deviceIndex, &transform);
-
-				// Dashboard overlays are hidden by default when torn out programmatically
-				vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
-			}
+	// Restore controller attached to
+	if (!m_settings.value("AttachedRole").isNull()) {
+		int savedRole = m_settings.value("AttachedRole").toInt();
+		vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(
+			static_cast<vr::ETrackedControllerRole>(savedRole));
+		if (device != vr::k_unTrackedDeviceIndexInvalid) {
+			AttachToDevice(device);
 		}
+	}
+
+	// Restore size
+	if (!m_settings.value("Size").isNull()) {
+		m_overlayWidthInMeters = m_settings.value("Size").toFloat();
+		updateOverlayWidthInMeters();
 	}
 }
 
@@ -374,11 +389,13 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 				if (role == vr::TrackedControllerRole_LeftHand) {
 					m_leftController = newDeviceIndex;
-					AttachToDevice(m_leftController);
-					//RestoreOverlayPosition();
 				}
     			if (role == vr::TrackedControllerRole_RightHand) {
     				m_rightController = newDeviceIndex;
+    			}
+    			// Re-attach if overlay was on this role but device index changed
+    			if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+    				restoreSession();
     			}
 			}
 
@@ -416,6 +433,7 @@ void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
 	*/
 	vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &m_overlayPositionMatrix);
 	m_deviceOverlayIsAttachedTo = device;
+	saveController();
 }
 
 void SteamVRLogic::switchController() {
@@ -457,6 +475,7 @@ void SteamVRLogic::stopMove() {
 		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
 		AttachToDevice(m_rightController);
 	}
+	savePosition();
 }
 
 void SteamVRLogic::mirrorMatrix() {

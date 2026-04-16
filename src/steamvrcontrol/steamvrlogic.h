@@ -61,6 +61,8 @@ public slots:
     void switchController();
     void startMove();
     void stopMove();
+    void increaseOverlayScale();
+    void decreaseOverlayScale();
 
 private:
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
@@ -76,16 +78,20 @@ private:
 
     bool ConnectToVRRuntime();
     void DisconnectFromVRRuntime();
-    void SaveOverlayPosition();
-    void RestoreOverlayPosition();
+    void saveSession();
+    void restoreSession();
     void AttachToDevice(const vr::TrackedDeviceIndex_t& device);
     vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
     void mirrorMatrix();
+    void updateOverlayWidthInMeters();
+    void saveSize();
+    void savePosition();
+    void saveController();
 
     bool m_isMoving = false;
+    float m_overlayWidthInMeters;
 
     vr::HmdMatrix34_t m_overlayPositionMatrix;
-
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
     // The widget created with Qt
@@ -104,6 +110,11 @@ private:
 
     QPointF m_tLastMouse;
     Qt::MouseButtons m_lastMouseButtons;
+    QSettings m_settings;
+
+signals:
+    void saveOpacity();
+    void restoreOpacity();
 };
 
 

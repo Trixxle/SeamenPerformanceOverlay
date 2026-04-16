@@ -24,7 +24,8 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     m_targetFrameRate(targetFrameRate),
     m_headsetRefreshRate(headsetRefreshRate),
 
-    m_opacity(this->windowOpacity())
+    m_opacity(this->windowOpacity()),
+    m_settings("Seamen", "PerformanceOverlay")
 {
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
@@ -49,25 +50,45 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     connect(ui->decreaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::decreaseOpacityButtonClicked);
     connect(ui->switchControllerButton, &QPushButton::clicked, this, &DashboardUI::requestControllerSwitch);
     connect(ui->moveButton, &QPushButton::pressed, this, &DashboardUI::requestMoveBegin);
+    connect(ui->increaseScaleButton, &QPushButton::clicked, this, &DashboardUI::requestScaleUp);
+    connect(ui->decreaseScaleButton, &QPushButton::clicked, this, &DashboardUI::requestScaleDown);
 
     //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
+
+    restoreOpacity();
 }
 
 DashboardUI::~DashboardUI() {
     delete ui;
 }
 
+void DashboardUI::saveOpacity() {
+    m_settings.setValue("Opacity", m_opacity);
+}
+
+void DashboardUI::restoreOpacity() {
+    if (!m_settings.value("Opacity", m_opacity).isNull()) {
+        m_opacity = m_settings.value("Opacity", m_opacity).toFloat();
+        updateOpacity();
+    }
+}
+
+void DashboardUI::updateOpacity() {
+    this->setWindowOpacity(m_opacity);
+    saveOpacity();
+}
+
 void DashboardUI::increaseOpacityButtonClicked() {
     if (m_opacity == 1.0) return;
     m_opacity += 0.05;
-    this->setWindowOpacity(m_opacity);
+    updateOpacity();
 }
 
 void DashboardUI::decreaseOpacityButtonClicked() {
     if (m_opacity == 0.0) return;
     m_opacity -= 0.05;
-    this->setWindowOpacity(m_opacity);
+    updateOpacity();
 }
 
 void DashboardUI::onExitButtonClicked() {

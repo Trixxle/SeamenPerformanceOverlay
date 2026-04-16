@@ -60,6 +60,8 @@ public:
 public slots:
     void updateGraphs(const FrameHandler::FrameStatsList& informationList);
     void updateLabels(const FrameHandler::frameStats& information);
+    void saveOpacity();
+    void restoreOpacity();
 
 private slots:
     void onExitButtonClicked();
@@ -70,6 +72,7 @@ private:
     void setUpCharts();
     void paintEvent(QPaintEvent *event) override;
     float roundFloat(float number, int decimalCases);
+    void updateOpacity();
 
     Ui::DashboardUI *ui;
     const int MAX_GRAPH_POINTS = 250;
@@ -78,6 +81,7 @@ private:
     float m_targetFrameRate;
 
     float m_opacity;
+    QSettings m_settings;
 
     QChart *m_chartFrameTimeConsistency;
     QBarSet *m_barSetFrameTimeConsistencyFast;
@@ -123,6 +127,8 @@ private:
 signals:
     void requestControllerSwitch();
     void requestMoveBegin();
+    void requestScaleUp();
+    void requestScaleDown();
     //void requestMoveEnd();
 };
 
