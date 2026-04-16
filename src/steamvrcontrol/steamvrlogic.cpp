@@ -132,10 +132,7 @@ bool SteamVRLogic::Init() {
 		if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
 			// Attach to left hand if it's currently turned on
 			AttachToDevice(m_leftController);
-		}
-
-		if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
-			m_deviceOverlayIsAttachedTo = m_rightController;
+			m_deviceOverlayIsAttachedTo = m_leftController;
 		}
 
 		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);

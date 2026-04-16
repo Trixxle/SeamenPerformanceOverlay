@@ -8,6 +8,8 @@
 
 int main(int argc, char *argv[])
 {
+    std::this_thread::sleep_for(std::chrono::milliseconds(8000));
+
     QApplication a(argc, argv);
 
     qRegisterMetaType<FrameHandler::frameStats>("frameStats");
@@ -38,7 +40,6 @@ int main(int argc, char *argv[])
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, SteamVRLogic::SharedInstance(), &SteamVRLogic::switchController);
     QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, SteamVRLogic::SharedInstance(), &SteamVRLogic::startMove);
     //QObject::connect(pDashboardUI, &DashboardUI::requestMoveEnd, SteamVRLogic::SharedInstance(), &SteamVRLogic::stopMove);
-
 
     //std::cout << "Started the thread (maybe)" << std::endl;
 

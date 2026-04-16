@@ -41,14 +41,14 @@ public:
     ~DashboardUI() override;
 
     void setDashboardFrameRate(float framerate);
-    void setDashboardFrameTime(float frametime);
+    void setDashboardFrameTimeConsistency(float frametime);
     void setDashboardCpuFrameTime(float cpuFrameTime);
     void setDashboardGpuFrameTime(float gpuFrameTime);
     void setDashboardHeadsetRefreshRate(float headsetRefreshRate);
     void setDashboardTargetFrameRate(float targetFrameRate);
     void setSmoothFrameRate(float smoothFrameRate);
 
-    void updateTotalFrameTimeGraph(const QList<float>& newFrameTimes);
+    void updateFrameTimeConsistencyGraph(const QList<float>& newFrameTimes);
     void updateGpuFrameTimeGraph(const QList<float>& newFrameTimes);
     void updateCpuFrameTimeGraph(const QList<float>& newFrameTimes);
     void updateFrameRateGraph(const QList<float>& newFrameRates);
@@ -79,20 +79,21 @@ private:
 
     float m_opacity;
 
-    QChart *m_chartTotalFrameTime;
-    QBarSet *m_barSetTotalFrameTimeFast;
-    QBarSet *m_barSetTotalFrameTimeMedium;
-    QBarSet *m_barSetTotalFrameTimeSlow;
-    QStackedBarSeries *m_seriesTotalFrameTime;
-    QValueAxis *m_axisYTotalFrameTime;
-    QBarCategoryAxis *m_axisXTotalFrameTime;
-    QStringList m_categoriesTotalFrameTime;
-    QChartView *m_chartViewTotalFrameTime;
+    QChart *m_chartFrameTimeConsistency;
+    QBarSet *m_barSetFrameTimeConsistencyFast;
+    QBarSet *m_barSetFrameTimeConsistencyMedium;
+    QBarSet *m_barSetFrameTimeConsistencySlow;
+    QStackedBarSeries *m_seriesFrameTimeConsistency;
+    QValueAxis *m_axisYFrameTimeConsistency;
+    QBarCategoryAxis *m_axisXFrameTimeConsistency;
+    QStringList m_categoriesFrameTimeConsistency;
+    QChartView *m_chartViewFrameTimeConsistency;
 
     QChart *m_chartCpuFrameTime;
     QBarSet *m_barSetCpuFrameTimeFast;
     QBarSet *m_barSetCpuFrameTimeMedium;
     QBarSet *m_barSetCpuFrameTimeSlow;
+    QBarSet *m_barSetCpuFrameTimeDropped;
     QStackedBarSeries *m_seriesCpuFrameTime;
     QValueAxis *m_axisYCpuFrameTime;
     QBarCategoryAxis *m_axisXCpuFrameTime;

@@ -26,7 +26,7 @@ public:
     struct frameStats {
         float GpuFrametime = 0;
         float CpuFrametime = 0;
-        float TotalFrametime = 0;
+        float frameDeliverySmoothness = 0;
         float Framerate = 0;
         float MaxFrametime = 0;
         float MaxFramerate = 0;
@@ -36,7 +36,6 @@ public:
 
 public slots:
     //void run();
-    void calculateFrameData(vr::Compositor_FrameTiming &currentFrame, vr::Compositor_FrameTiming &previousFrame, frameStats &information);
     void startProcessing();
     void stopProcessing();
     void processFrame();
@@ -46,6 +45,10 @@ private:
     float smoothFrameRateArray[20] = {0};
     int smoothIndex = 0;
     int smoothCount = 0;
+
+    vr::Compositor_FrameTiming m_currentFrame = {};
+    vr::Compositor_FrameTiming m_previousFrame = {};
+    frameStats m_information;
 
     QElapsedTimer m_uiUpdateTimerGraphs;
     QElapsedTimer m_uiUpdateTimerLabels;

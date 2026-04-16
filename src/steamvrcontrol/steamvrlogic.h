@@ -82,7 +82,6 @@ private:
     vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
     void mirrorMatrix();
 
-    bool m_firstMoveClick = true;
     bool m_isMoving = false;
 
     vr::HmdMatrix34_t m_overlayPositionMatrix;
