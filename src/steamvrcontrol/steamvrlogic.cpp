@@ -4,6 +4,8 @@
 
 #include "steamvrlogic.h"
 
+#include <qdialogbuttonbox.h>
+#include <qmessagebox.h>
 #include <bits/regex_constants.h>
 
 SteamVRLogic *s_pSharedSteamVRLogic= NULL;
@@ -71,7 +73,11 @@ bool SteamVRLogic::Init() {
     m_pOpenGLContext = new QOpenGLContext();
     m_pOpenGLContext->setFormat( format );
     bSuccess = m_pOpenGLContext->create();
-    if( !bSuccess )return false;
+    if( !bSuccess ) {
+    	//QMessageBox::critical( this, "Error", "Failed to create OpenGL context" );
+		std::cout << "Failed to initialize OpenGL context." << std::endl;
+    	return false;
+    }
 
     // create an offscreen surface to attach the context and FBO to
     m_pOffscreenSurface = new QOffscreenSurface();
@@ -83,22 +89,52 @@ bool SteamVRLogic::Init() {
 
     bSuccess = ConnectToVRRuntime();
 
-	if (bSuccess && vr::VRApplications()) {
+	if (!bSuccess) {
+		int attempt = 0;
+
+		while (attempt < MAX_VRRUNTIME_CONNECTION_ATTEMPTS && !bSuccess) {
+			bSuccess = ConnectToVRRuntime();
+			++attempt;
+		}
+
+		if (!bSuccess) {
+			std::cout << "Failed to connect to VR runtime." << std::endl;
+			return false;
+		}
+	}
+
+	// Check the app is installed to SteamVR already. If not, add it and turn on autostart
+	if (vr::VRApplications()) {
 		std::string sKey = "com.seamen.overlay";
-		// Not yet installed
+
 		if (!vr::VRApplications()->IsApplicationInstalled(sKey.c_str())) {
 
-			QString manifestPath = QApplication::applicationDirPath() + "\\manifest.vrmanifest";
-			std::cout << manifestPath.toStdString() << std::endl;
+			QString manifestPath = QApplication::applicationDirPath() + "/manifest.vrmanifest";
 
-			if (vr::VRApplications()->AddApplicationManifest(manifestPath.toStdString().c_str()) == vr::VRApplicationError_None) {
-				vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
+			manifestPath = QDir::toNativeSeparators(manifestPath);
+
+			if (!QFile::exists(manifestPath)) {
+				std::cerr << "Manifest file not found: " << manifestPath.toStdString() << std::endl;
+			} else {
+				std::cout << manifestPath.toStdString() << std::endl;
+
+				std::string utf8Path = manifestPath.toUtf8().constData();
+
+				vr::EVRApplicationError err = vr::VRApplications()->AddApplicationManifest(utf8Path.c_str());
+
+				if (err == vr::VRApplicationError_None) {
+					vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
+					std::cout << "Manifest successfully registered and set to auto-launch." << std::endl;
+				} else {
+					std::cerr << "Failed to add manifest. Error: "
+							  << vr::VRApplications()->GetApplicationsErrorNameFromEnum(err) << std::endl;
+				}
 			}
 		}
 	}
 
 
-    bSuccess = bSuccess && vr::VRCompositor() != NULL;
+    bSuccess = vr::VRCompositor() != NULL;
 
     if( vr::VROverlay() )
     {

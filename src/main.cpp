@@ -8,8 +8,6 @@
 
 int main(int argc, char *argv[])
 {
-    std::this_thread::sleep_for(std::chrono::milliseconds(8000));
-
     QApplication a(argc, argv);
 
     qRegisterMetaType<FrameHandler::frameStats>("frameStats");

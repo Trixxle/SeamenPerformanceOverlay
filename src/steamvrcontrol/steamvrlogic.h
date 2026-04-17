@@ -29,6 +29,9 @@
 #include <filesystem>
 #include <QGraphicsProxyWidget>
 #include <QOpenGLFunctions>
+#include <QDir>
+#include <QFile>
+#include <iostream>
 #include "openvr.h"
 
 class SteamVRLogic: public QObject {
@@ -65,6 +68,7 @@ public slots:
     void decreaseOverlayScale();
 
 private:
+    int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
