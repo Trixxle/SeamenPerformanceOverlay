@@ -1,6 +1,19 @@
-//
-// Created by jornt on 03/02/2026.
-//
+/*
+Copyright (C) 2026 Jorn ten Kate, The Seamen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 #ifndef PERFORMANCEVR_DASHBOARDUI_H
 #define PERFORMANCEVR_DASHBOARDUI_H
@@ -13,7 +26,6 @@
 #include <QValueAxis>
 #include <QList>
 #include <QtCharts/QtCharts>
-#include "frameHandler.h"
 #include <QtCharts/QChartView>
 #include <QtCharts/QBarSeries>
 #include <QtCharts/QStackedBarSeries>
@@ -23,6 +35,8 @@
 #include <QLineSeries>
 #include <QPainter>
 #include <QStyleOption>
+#include "frameHandler.h"
+#include "systemResourcesHandler.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -47,6 +61,10 @@ public:
     void setDashboardHeadsetRefreshRate(float headsetRefreshRate);
     void setDashboardTargetFrameRate(float targetFrameRate);
     void setSmoothFrameRate(float smoothFrameRate);
+    void setSystemRam(float systemRam);
+    void setSystemVram(float systemVram);
+    void setSystemRamUsage(float ramUasge);
+    void setSystemVramUsage(float vramUasge);
 
     void updateFrameTimeConsistencyGraph(const QList<float>& newFrameTimes);
     void updateGpuFrameTimeGraph(const QList<float>& newFrameTimes);
@@ -60,8 +78,11 @@ public:
 public slots:
     void updateGraphs(const FrameHandler::FrameStatsList& informationList);
     void updateLabels(const FrameHandler::frameStats& information);
+    void updateSystemResources(const SystemResourcesHandler::systemResources& systemResources);
+    void updateSystemResourceUsage(const SystemResourcesHandler::systemResourceUsage& systemResourceUsage);
     void saveOpacity();
     void restoreOpacity();
+    void resetOpacityToDefault();
 
 private slots:
     void onExitButtonClicked();

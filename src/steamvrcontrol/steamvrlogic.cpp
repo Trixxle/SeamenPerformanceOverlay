@@ -1,6 +1,19 @@
-//
-// Created by jornt on 05/02/2026.
-//
+/*
+Copyright (C) 2026 Jorn ten Kate, The Seamen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 #include "steamvrlogic.h"
 
@@ -24,7 +37,9 @@ BaseClass(),
 m_eLastHmdError(vr::VRInitError_None),
 m_eCompositorError( vr::VRInitError_None ),
 m_eOverlayError( vr::VRInitError_None ),
+m_ePanicOverlayError( vr::VRInitError_None ),
 m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid ),
+m_ulPanicOverlayHandle( vr::k_ulOverlayHandleInvalid ),
 m_overlayPositionMatrix({
 		1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
 		0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
@@ -38,7 +53,9 @@ m_pPumpEventsTimer(NULL),
 m_pOpenGLContext(NULL),
 m_pOffscreenSurface(NULL),
 m_pScene(NULL),
+m_pPanicScene(NULL),
 m_pFbo(NULL),
+m_PanicpFbo(NULL),
 m_lastMouseButtons( 0 ),
 m_settings("Seamen", "PerformanceOverlay")
 {}
@@ -48,8 +65,8 @@ SteamVRLogic::~SteamVRLogic() {
 }
 
 bool SteamVRLogic::Init() {
-	if (!vr::VR_IsRuntimeInstalled() || !vr::VR_IsHmdPresent()) {
-		std::cerr << "SteamVR is not running or no HMD is present." << std::endl;
+	if (!vr::VR_IsRuntimeInstalled()) {
+		std::cerr << "SteamVR is not running." << std::endl;
 		return false;
 	}
 
@@ -87,6 +104,9 @@ bool SteamVRLogic::Init() {
     m_pScene = new QGraphicsScene();
     connect( m_pScene, SIGNAL(changed(const QList<QRectF>&)), this, SLOT( OnSceneChanged(const QList<QRectF>&)) );
 
+	m_pPanicScene = new QGraphicsScene();
+	connect( m_pPanicScene, SIGNAL(changed(const QList<QRectF>&)), this, SLOT( OnPanicSceneChanged(const QList<QRectF>&)) );
+
     bSuccess = ConnectToVRRuntime();
 
 	if (!bSuccess) {
@@ -95,10 +115,11 @@ bool SteamVRLogic::Init() {
 		while (attempt < MAX_VRRUNTIME_CONNECTION_ATTEMPTS && !bSuccess) {
 			bSuccess = ConnectToVRRuntime();
 			++attempt;
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		}
 
 		if (!bSuccess) {
-			std::cout << "Failed to connect to VR runtime." << std::endl;
+			std::cerr << "Failed to connect to VR runtime." << std::endl;
 			return false;
 		}
 	}
@@ -136,19 +157,24 @@ bool SteamVRLogic::Init() {
 
     bSuccess = vr::VRCompositor() != NULL;
 
+	if (!bSuccess) std::cerr << "Failed to initialize Compositor." << std::endl;
+
     if( vr::VROverlay() )
     {
         std::string sKey = std::string( "com.seamen.overlay." ) + m_strOverlayName.toStdString();
-		//vr::VROverlayError overlayError = vr::VROverlay()->CreateDashboardOverlay( sKey.c_str(),
-		//	"Seamen Performance Overlay", &m_ulOverlayHandle, &m_ulOverlayThumbnailHandle );
+    	std::string sPanicKey = sKey + ".panic";
+
+		vr::VROverlayError overlayErrorPanic = vr::VROverlay()->CreateDashboardOverlay( sPanicKey.c_str(),
+			"Seamen Performance Overlay", &m_ulPanicOverlayHandle, &m_ulOverlayThumbnailHandle );
 
     	vr::VROverlayError overlayError = vr::VROverlay()->CreateOverlay( sKey.c_str(),
 					"Seamen Performance Overlay", &m_ulOverlayHandle );
 
-    	bSuccess = bSuccess && overlayError == vr::VROverlayError_None;
-    	if (overlayError != vr::VROverlayError_None) {
-    		// Overlay failed to create
+    	bSuccess = bSuccess && overlayError == vr::VROverlayError_None && overlayErrorPanic == vr::VROverlayError_None;
+    	if (overlayError != vr::VROverlayError_None || overlayErrorPanic != vr::VROverlayError_None) {
+    		// Overlays failed to create
     		std::cerr << "Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayError);
+    		std::cerr << "Panic Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayErrorPanic);
     		return false;
     	}
 		QString iconPath = QApplication::applicationDirPath() + "/icon.png";
@@ -162,25 +188,32 @@ bool SteamVRLogic::Init() {
 	{
 		m_overlayWidthInMeters = 0.2f;
 		vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, m_overlayWidthInMeters );
+		vr::VROverlay()->SetOverlayWidthInMeters( m_ulPanicOverlayHandle, 2.0 );
+
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
+		vr::VROverlay()->SetOverlayInputMethod( m_ulPanicOverlayHandle, vr::VROverlayInputMethod_Mouse );
 
 		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 
 		restoreSession();
 
-		// Some IDEs will say the following statement will always be false, this is incorrect
+		// Some IDEs will say the following statement< will always be false, this is incorrect
 		if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid &&
 			m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
 			AttachToDevice(m_leftController);
 		}
 
 		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
+		//vr::VROverlay()->ShowOverlay(m_ulPanicOverlayHandle);
 
 		m_pPumpEventsTimer = new QTimer( this );
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
+	}
+	else {
+		std::cerr << "Failed to initialize VR overlay." << std::endl;
 	}
     std::cout << "bSucces: " << bSuccess << std::endl;
     return bSuccess;
@@ -206,12 +239,25 @@ void SteamVRLogic::updateOverlayWidthInMeters() {
 	vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, m_overlayWidthInMeters );
 }
 
+void SteamVRLogic::resetOverlayToDefault() {
+	m_overlayPositionMatrix = {
+		1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
+		0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
+		0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
+	};
+	m_overlayWidthInMeters = 0.2f;
+	AttachToDevice(m_leftController);
+	updateOverlayWidthInMeters();
+}
+
 void SteamVRLogic::Shutdown() {
 	saveSession();
 	DisconnectFromVRRuntime();
 
 	delete m_pScene;
+	delete m_pPanicScene;
 	delete m_pFbo;
+	delete m_PanicpFbo;
 	delete m_pOffscreenSurface;
 
 	if( m_pOpenGLContext )
@@ -293,31 +339,65 @@ void SteamVRLogic::restoreSession() {
 }
 
 void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
-	// Only render if the overlay is visible
-	if ((m_ulOverlayHandle == vr::k_ulOverlayHandleInvalid ) || !vr::VROverlay() ||
-		(!vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && !vr::VROverlay()->IsOverlayVisible(m_ulOverlayThumbnailHandle))) {
-		return;
-		}
+	if (!vr::VROverlay()) return;
+
+	bool mainVisible = m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
+		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle);
+
+	if (!mainVisible) return;
 
 	m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
-	m_pFbo->bind();
 
-	// We must clear the tender buffer when rendering transparency as otherwise you'll see ghost images from previous frames
 	QOpenGLFunctions *f = m_pOpenGLContext->functions();
-	f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f); // Clear to fully transparent
-	f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	QOpenGLPaintDevice device(m_pFbo->size());
-	QPainter painter(&device);
+	// Render scene into main FBO
+	if (m_pFbo) {
+		m_pFbo->bind();
+		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	m_pScene->render(&painter);
+		QOpenGLPaintDevice device(m_pFbo->size());
+		QPainter painter(&device);
+		m_pScene->render(&painter);
+		painter.end();
+		m_pFbo->release();
 
-	m_pFbo->release();
+		GLuint unTexture = m_pFbo->texture();
+		if (unTexture != 0) {
+			vr::Texture_t texture = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+			vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texture);
+		}
+	}
+}
 
-	GLuint unTexture = m_pFbo->texture();
-	if (unTexture != 0) {
-		vr::Texture_t texure = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
-		vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texure);
+void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>&) {
+	if (!vr::VROverlay()) return;
+
+	bool panicVisible = m_ulPanicOverlayHandle != vr::k_ulOverlayHandleInvalid
+		&& vr::VROverlay()->IsOverlayVisible(m_ulPanicOverlayHandle);
+
+	if (!panicVisible) return;
+
+	m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
+
+	QOpenGLFunctions *f = m_pOpenGLContext->functions();
+
+	if (m_PanicpFbo) {
+		m_PanicpFbo->bind();
+		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		QOpenGLPaintDevice panicDevice(m_PanicpFbo->size());
+		QPainter panicPainter(&panicDevice);
+		m_pPanicScene->render(&panicPainter);
+		panicPainter.end();
+		m_PanicpFbo->release();
+
+		GLuint unPanicTexture = m_PanicpFbo->texture();
+		if (unPanicTexture != 0) {
+			vr::Texture_t texture = {(void*)(uintptr_t)unPanicTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+			vr::VROverlay()->SetOverlayTexture(m_ulPanicOverlayHandle, &texture);
+		}
 	}
 }
 
@@ -326,122 +406,151 @@ void SteamVRLogic::OnTimeoutPumpEvents()
     if( !vr::VRSystem() )
 		return;
 
-	vr::VREvent_t vrEvent;
-    while( vr::VROverlay()->PollNextOverlayEvent( m_ulOverlayHandle, &vrEvent, sizeof( vrEvent )  ) )
-	{
-    	if (vrEvent.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
-    		m_unLastInteractingDevice = vrEvent.trackedDeviceIndex;
-    	}
+	// During autostart, controllers may not be enumerated when Init() runs.
+	// VREvent_TrackedDeviceActivated is missed because the overlay doesn't exist yet when
+	// controllers first connect. Poll here until we get a valid attachment.
+	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+		if (m_leftController == vr::k_unTrackedDeviceIndexInvalid)
+			m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		if (m_rightController == vr::k_unTrackedDeviceIndexInvalid)
+			m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 
-		switch( vrEvent.eventType )
-		{
-		case vr::VREvent_MouseMove:
-			{
-				QPointF ptNewMouse( vrEvent.data.mouse.x, vrEvent.data.mouse.y );
-				QPoint ptGlobal = ptNewMouse.toPoint();
-				QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseMove );
-				mouseEvent.setWidget( NULL );
-				mouseEvent.setPos( ptNewMouse );
-				mouseEvent.setScenePos( ptGlobal );
-				mouseEvent.setScreenPos( ptGlobal );
-				mouseEvent.setLastPos( m_tLastMouse );
-				mouseEvent.setLastScenePos( m_Widget->mapToGlobal( m_tLastMouse.toPoint() ) );
-				mouseEvent.setLastScreenPos( m_Widget->mapToGlobal( m_tLastMouse.toPoint() ) );
-				mouseEvent.setButtons( m_lastMouseButtons );
-				mouseEvent.setButton( Qt::NoButton );
-				mouseEvent.setModifiers( ( Qt::KeyboardModifiers)0 );
-				mouseEvent.setAccepted( false );
-
-				m_tLastMouse = ptNewMouse;
-				QApplication::sendEvent( m_pScene, &mouseEvent );
+		if (m_leftController != vr::k_unTrackedDeviceIndexInvalid || m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
+			restoreSession();
+			if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+				vr::TrackedDeviceIndex_t fallback = (m_leftController != vr::k_unTrackedDeviceIndexInvalid)
+					? m_leftController : m_rightController;
+				AttachToDevice(fallback);
 			}
-			break;
-
-		case vr::VREvent_MouseButtonDown:
-			{
-				Qt::MouseButton button = vrEvent.data.mouse.button == vr::VRMouseButton_Right ? Qt::RightButton : Qt::LeftButton;
-
-				m_lastMouseButtons |= button;
-
-				QPoint ptGlobal = m_tLastMouse.toPoint();
-				QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMousePress );
-				mouseEvent.setWidget( NULL );
-				mouseEvent.setPos( m_tLastMouse );
-				mouseEvent.setButtonDownPos( button, m_tLastMouse );
-				mouseEvent.setButtonDownScenePos( button, ptGlobal);
-				mouseEvent.setButtonDownScreenPos( button, ptGlobal );
-				mouseEvent.setScenePos( ptGlobal );
-				mouseEvent.setScreenPos( ptGlobal );
-				mouseEvent.setLastPos( m_tLastMouse );
-				mouseEvent.setLastScenePos( ptGlobal );
-				mouseEvent.setLastScreenPos( ptGlobal );
-				mouseEvent.setButtons( m_lastMouseButtons );
-				mouseEvent.setButton( button );
-				mouseEvent.setModifiers( ( Qt::KeyboardModifiers ) 0 );
-				mouseEvent.setAccepted( false );
-
-				QApplication::sendEvent( m_pScene, &mouseEvent );
-			}
-			break;
-
-		case vr::VREvent_MouseButtonUp:
-			{
-				Qt::MouseButton button = vrEvent.data.mouse.button == vr::VRMouseButton_Right ? Qt::RightButton : Qt::LeftButton;
-				m_lastMouseButtons &= ~button;
-
-				QPoint ptGlobal = m_tLastMouse.toPoint();
-				QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseRelease );
-				mouseEvent.setWidget( NULL );
-				mouseEvent.setPos( m_tLastMouse );
-				mouseEvent.setScenePos( ptGlobal );
-				mouseEvent.setScreenPos( ptGlobal );
-				mouseEvent.setLastPos( m_tLastMouse );
-				mouseEvent.setLastScenePos( ptGlobal );
-				mouseEvent.setLastScreenPos( ptGlobal );
-				mouseEvent.setButtons( m_lastMouseButtons );
-				mouseEvent.setButton( button );
-				mouseEvent.setModifiers( ( Qt::KeyboardModifiers )0 );
-				mouseEvent.setAccepted( false );
-
-				QApplication::sendEvent(  m_pScene, &mouseEvent );
-			
-				if (m_isMoving) {
-					stopMove();
-					m_isMoving = false;
-				}
-			}
-			break;
-
-		case vr::VREvent_OverlayShown:
-			{
-				m_Widget->repaint();
-			}
-			break;
-
-    		case vr::VREvent_TrackedDeviceActivated:
-			{
-				vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;
-				vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
-
-				if (role == vr::TrackedControllerRole_LeftHand) {
-					m_leftController = newDeviceIndex;
-				}
-    			if (role == vr::TrackedControllerRole_RightHand) {
-    				m_rightController = newDeviceIndex;
-    			}
-    			// Re-attach if overlay was on this role but device index changed
-    			if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
-    				restoreSession();
-    			}
-			}
-
-			break;
-
-        case vr::VREvent_Quit:
-            QApplication::exit();
-            break;
 		}
 	}
+
+	vr::VREvent_t vrEvent;
+
+	// Process events for one overlay, dispatching mouse events to the given scene and widget
+	auto processOverlayEvents = [&](vr::VROverlayHandle_t handle, QGraphicsScene* scene, QWidget* widget) {
+		while( vr::VROverlay()->PollNextOverlayEvent( handle, &vrEvent, sizeof( vrEvent ) ) )
+		{
+			if (vrEvent.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
+				m_unLastInteractingDevice = vrEvent.trackedDeviceIndex;
+			}
+
+			switch( vrEvent.eventType )
+			{
+			case vr::VREvent_MouseMove:
+				{
+					QPointF ptNewMouse( vrEvent.data.mouse.x, vrEvent.data.mouse.y );
+					QPoint ptGlobal = ptNewMouse.toPoint();
+					QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseMove );
+					mouseEvent.setWidget( NULL );
+					mouseEvent.setPos( ptNewMouse );
+					mouseEvent.setScenePos( ptGlobal );
+					mouseEvent.setScreenPos( ptGlobal );
+					mouseEvent.setLastPos( m_tLastMouse );
+					mouseEvent.setLastScenePos( widget->mapToGlobal( m_tLastMouse.toPoint() ) );
+					mouseEvent.setLastScreenPos( widget->mapToGlobal( m_tLastMouse.toPoint() ) );
+					mouseEvent.setButtons( m_lastMouseButtons );
+					mouseEvent.setButton( Qt::NoButton );
+					mouseEvent.setModifiers( (Qt::KeyboardModifiers)0 );
+					mouseEvent.setAccepted( false );
+
+					m_tLastMouse = ptNewMouse;
+					QApplication::sendEvent( scene, &mouseEvent );
+				}
+				break;
+
+			case vr::VREvent_MouseButtonDown:
+				{
+					Qt::MouseButton button = vrEvent.data.mouse.button == vr::VRMouseButton_Right ? Qt::RightButton : Qt::LeftButton;
+
+					m_lastMouseButtons |= button;
+
+					QPoint ptGlobal = m_tLastMouse.toPoint();
+					QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMousePress );
+					mouseEvent.setWidget( NULL );
+					mouseEvent.setPos( m_tLastMouse );
+					mouseEvent.setButtonDownPos( button, m_tLastMouse );
+					mouseEvent.setButtonDownScenePos( button, ptGlobal );
+					mouseEvent.setButtonDownScreenPos( button, ptGlobal );
+					mouseEvent.setScenePos( ptGlobal );
+					mouseEvent.setScreenPos( ptGlobal );
+					mouseEvent.setLastPos( m_tLastMouse );
+					mouseEvent.setLastScenePos( ptGlobal );
+					mouseEvent.setLastScreenPos( ptGlobal );
+					mouseEvent.setButtons( m_lastMouseButtons );
+					mouseEvent.setButton( button );
+					mouseEvent.setModifiers( (Qt::KeyboardModifiers)0 );
+					mouseEvent.setAccepted( false );
+
+					QApplication::sendEvent( scene, &mouseEvent );
+				}
+				break;
+
+			case vr::VREvent_MouseButtonUp:
+				{
+					Qt::MouseButton button = vrEvent.data.mouse.button == vr::VRMouseButton_Right ? Qt::RightButton : Qt::LeftButton;
+					m_lastMouseButtons &= ~button;
+
+					QPoint ptGlobal = m_tLastMouse.toPoint();
+					QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseRelease );
+					mouseEvent.setWidget( NULL );
+					mouseEvent.setPos( m_tLastMouse );
+					mouseEvent.setScenePos( ptGlobal );
+					mouseEvent.setScreenPos( ptGlobal );
+					mouseEvent.setLastPos( m_tLastMouse );
+					mouseEvent.setLastScenePos( ptGlobal );
+					mouseEvent.setLastScreenPos( ptGlobal );
+					mouseEvent.setButtons( m_lastMouseButtons );
+					mouseEvent.setButton( button );
+					mouseEvent.setModifiers( (Qt::KeyboardModifiers)0 );
+					mouseEvent.setAccepted( false );
+
+					QApplication::sendEvent( scene, &mouseEvent );
+
+					if (m_isMoving) {
+						stopMove();
+						m_isMoving = false;
+					}
+				}
+				break;
+
+			case vr::VREvent_OverlayShown:
+				widget->repaint();
+				break;
+
+			case vr::VREvent_TrackedDeviceActivated:
+				{
+					vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;
+					vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
+
+					if (role == vr::TrackedControllerRole_LeftHand) {
+						m_leftController = newDeviceIndex;
+					}
+					if (role == vr::TrackedControllerRole_RightHand) {
+						m_rightController = newDeviceIndex;
+					}
+					// Re-attach if overlay was on this role but device index changed
+					if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+						restoreSession();
+						// If restoreSession didn't attach,
+						// fall back to the left controller so the overlay always gets a transform.
+						if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid &&
+							m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
+							AttachToDevice(m_leftController);
+							}
+					}
+				}
+				break;
+
+			case vr::VREvent_Quit:
+				QApplication::exit();
+				break;
+			}
+		}
+	};
+
+	processOverlayEvents( m_ulOverlayHandle, m_pScene, m_Widget );
+	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene, m_panicWidget );
 
     if( m_ulOverlayThumbnailHandle != vr::k_ulOverlayHandleInvalid )
     {
@@ -450,14 +559,11 @@ void SteamVRLogic::OnTimeoutPumpEvents()
             switch( vrEvent.eventType )
             {
             case vr::VREvent_OverlayShown:
-                {
-                    m_Widget->repaint();
-                }
+                m_panicWidget->repaint();
                 break;
             }
         }
     }
-
 }
 
 // False for left, true for right
@@ -469,7 +575,6 @@ void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
 	*/
 	vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &m_overlayPositionMatrix);
 	m_deviceOverlayIsAttachedTo = device;
-	saveController();
 }
 
 void SteamVRLogic::switchController() {
@@ -489,12 +594,28 @@ void SteamVRLogic::startMove() {
 	// If widget is already moving, cannot start moving it again
 	if (m_isMoving) return;
 
+	// Re-query controller indices — they may have been invalid at init time during SteamVR autostart
+	if (m_leftController == vr::k_unTrackedDeviceIndexInvalid) {
+		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+	}
+	if (m_rightController == vr::k_unTrackedDeviceIndexInvalid) {
+		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+	}
+
 	if (m_deviceOverlayIsAttachedTo == m_leftController) {
+		if (m_rightController == vr::k_unTrackedDeviceIndexInvalid) {
+			std::cerr << "startMove: right controller not yet tracked, cannot start move." << std::endl;
+			return;
+		}
 		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
 		AttachToDevice(m_rightController);
 		m_isMoving = true;
 	}
 	else {
+		if (m_leftController == vr::k_unTrackedDeviceIndexInvalid) {
+			std::cerr << "startMove: left controller not yet tracked, cannot start move." << std::endl;
+			return;
+		}
 		m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
 		AttachToDevice(m_leftController);
 		m_isMoving = true;
@@ -512,6 +633,7 @@ void SteamVRLogic::stopMove() {
 		AttachToDevice(m_rightController);
 	}
 	savePosition();
+	saveController();
 }
 
 void SteamVRLogic::mirrorMatrix() {
@@ -684,6 +806,35 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
         };
         vr::VROverlay()->SetOverlayMouseScale( m_ulOverlayHandle, &vecWindowSize );
     }
+}
+
+void SteamVRLogic::SetPanicWidget(QWidget *pWidget) {
+	if( m_pPanicScene )
+	{
+		// all of the mouse handling stuff requires that the widget be at 0,0
+		pWidget->move(0,0);
+
+		QGraphicsProxyWidget *proxy = m_pPanicScene->addWidget( pWidget );
+
+		// This forces Qt to render the whole overlay as a single texture, meaning one draw call. This massively improves GPU usage.
+		// Going from 20% to 1.5% GPU usage on my system
+		proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+
+		m_pPanicScene->addWidget( pWidget );
+	}
+	m_panicWidget = pWidget;
+
+	m_PanicpFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+
+	if( vr::VROverlay() )
+	{
+		vr::HmdVector2_t vecWindowSize =
+		{
+			(float)pWidget->width(),
+			(float)pWidget->height()
+		};
+		vr::VROverlay()->SetOverlayMouseScale( m_ulPanicOverlayHandle, &vecWindowSize );
+	}
 }
 
 vr::HmdError SteamVRLogic::GetLastHmdError()

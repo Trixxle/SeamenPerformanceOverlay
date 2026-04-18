@@ -27,6 +27,12 @@ add_executable(PerformanceVR
         src/steamvrcontrol/steamvrlogic.h
         src/frameHandler.cpp
         src/frameHandler.h
+        src/userinterface/panicdashboard.cpp
+        src/userinterface/panicdashboard.h
+        src/userinterface/panicdashboard.ui
+        src/systemResourcesHandler.cpp
+        src/systemResourcesHandler.h
+        src/systemResourcesHandler.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
@@ -87,6 +93,8 @@ target_link_libraries(PerformanceVR
         Qt::Charts
         Qt::OpenGLWidgets
         OpenVR::API
+        dxgi
+        pdh
 )
 
 # Make all warnings errors etc.

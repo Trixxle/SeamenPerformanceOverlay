@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>panicDashboard</class>
+ <widget class="QWidget" name="panicDashboard">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1181</width>
+    <height>819</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>panicDashboard</string>
+  </property>
+  <property name="windowOpacity">
+   <double>1.000000000000000</double>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">                           background-color: #232424; 
+                            border-radius: 60px; 
+                            border: 4px solid #1092BF;
+                            margin: 4px; </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QVBoxLayout" name="mainLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+     </property>
+     <property name="leftMargin">
+      <number>0</number>
+     </property>
+     <item>
+      <widget class="QLabel" name="panicMessageTitle">
+       <property name="font">
+        <font>
+         <pointsize>35</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string>Did you accidentally make the overlay invisible and
+you can no longer find the - opacity button? :(
+
+Or maybe you made it so small you can't click
+the - scale button anymore? :(
+
+Or maybe you just lost the overlay? :(
+
+Now imagine I had not placed this convenient
+button here for people like you.</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+      </widget>
+     </item>
+     <item alignment="Qt::AlignmentFlag::AlignHCenter">
+      <widget class="QPushButton" name="panicButton">
+       <property name="enabled">
+        <bool>true</bool>
+       </property>
+       <property name="minimumSize">
+        <size>
+         <width>300</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>300</width>
+         <height>80</height>
+        </size>
+       </property>
+       <property name="font">
+        <font>
+         <pointsize>35</pointsize>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">    QPushButton {
+        color: white;
+		border-radius: 25px;
+    }
+
+    QPushButton:hover {
+        background-color: #262626;
+    }
+
+    QPushButton:pressed {
+        background-color: #1EAEED;
+        border-color: #1EAEED;
+        color: black;
+    }</string>
+       </property>
+       <property name="text">
+        <string>SAVE ME!</string>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

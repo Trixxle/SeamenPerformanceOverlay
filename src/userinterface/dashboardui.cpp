@@ -1,6 +1,19 @@
-//
-// Created by jornt on 03/02/2026.
-//
+/*
+Copyright (C) 2026 Jorn ten Kate, The Seamen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 #include "dashboardui.h"
 #include "ui_dashboardui.h"
@@ -61,6 +74,11 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
 DashboardUI::~DashboardUI() {
     delete ui;
+}
+
+void DashboardUI::resetOpacityToDefault() {
+    m_opacity = 1.0;
+    updateOpacity();
 }
 
 void DashboardUI::saveOpacity() {
@@ -372,6 +390,16 @@ void DashboardUI::updateFrameRateGraph(const QList<float>& newFrameRates) {
     m_barSetFrameRateSlow->append(slowList);
 }
 
+void DashboardUI::updateSystemResources(const SystemResourcesHandler::systemResources& systemResources) {
+    setSystemRam(systemResources.systemRam);
+    setSystemVram(systemResources.systemVram);
+}
+
+void DashboardUI::updateSystemResourceUsage(const SystemResourcesHandler::systemResourceUsage& systemResourceUsage) {
+    setSystemRamUsage(systemResourceUsage.ramUsage);
+    setSystemVramUsage(systemResourceUsage.vramUsage);
+}
+
 void DashboardUI::setSmoothFrameRate(float smoothFrameRate) {
     ui->smoothFrameRateLabel->setText(QString::number(smoothFrameRate));
 }
@@ -398,6 +426,22 @@ void DashboardUI::setDashboardHeadsetRefreshRate(float headsetRefreshRate) {
 
 void DashboardUI::setDashboardTargetFrameRate(float targetFrameRate) {
     ui->targetFrameRateLabel->setText(QString::number(targetFrameRate));
+}
+
+void DashboardUI::setSystemRamUsage(float ramUsage) {
+    ui->ramUsageLabel->setText(QString::number(roundFloat(ramUsage, 2)));
+}
+
+void DashboardUI::setSystemVramUsage(float vramUsage) {
+    ui->vramUsageLabel->setText(QString::number(roundFloat(vramUsage, 2)));
+}
+
+void DashboardUI::setSystemRam(float systemRam) {
+    ui->totalRamLabel->setText(tr("/") + QString::number(roundFloat(systemRam, 2)) + tr(" GB"));
+}
+
+void DashboardUI::setSystemVram(float systemVram) {
+    ui->totalVramLabel->setText(tr("/") + QString::number(roundFloat(systemVram, 2)) + tr(" GB"));
 }
 
 // TODO: Delete this but check if it is used anywhere first

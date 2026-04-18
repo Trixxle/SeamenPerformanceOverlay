@@ -1,6 +1,19 @@
-//
-// Created by jornt on 05/02/2026.
-//
+/*
+Copyright (C) 2026 Jorn ten Kate, The Seamen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
 
 #ifndef PERFORMANCEVR_STEAMVRLOGIC_H
 #define PERFORMANCEVR_STEAMVRLOGIC_H
@@ -48,6 +61,7 @@ public:
     void Shutdown();
     bool BHMDAvailable();
     void SetWidget( QWidget *pWidget);
+    void SetPanicWidget( QWidget *pWidget);
     float GetHeadsetRefreshRate();
     float GetHeadsetMaxFrameRate();
     //vr::IVRSystem *GetVRSystem();
@@ -60,12 +74,14 @@ public:
 
 public slots:
     void OnSceneChanged(const QList<QRectF>&);
+    void OnPanicSceneChanged(const QList<QRectF>&);
     void OnTimeoutPumpEvents();
     void switchController();
     void startMove();
     void stopMove();
     void increaseOverlayScale();
     void decreaseOverlayScale();
+    void resetOverlayToDefault();
 
 private:
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
@@ -76,7 +92,9 @@ private:
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
     vr::EVRInitError m_eOverlayError;
+    vr::EVRInitError m_ePanicOverlayError;
     vr::VROverlayHandle_t m_ulOverlayHandle;
+    vr::VROverlayHandle_t m_ulPanicOverlayHandle;
     vr::VROverlayHandle_t m_ulOverlayThumbnailHandle;
     vr::IVRSystem *m_pVRSystem;
 
@@ -101,6 +119,9 @@ private:
     // The widget created with Qt
     QWidget *m_Widget;
 
+    // Dashboard overlay in with a panic button
+    QWidget *m_panicWidget;
+
     QString m_strVRDriver;
     QString m_strVRDisplay;
     QString m_strOverlayName;
@@ -110,7 +131,9 @@ private:
     QOpenGLContext *m_pOpenGLContext;
     QOffscreenSurface *m_pOffscreenSurface;
     QGraphicsScene *m_pScene;
+    QGraphicsScene *m_pPanicScene;
     QOpenGLFramebufferObject *m_pFbo;
+    QOpenGLFramebufferObject *m_PanicpFbo;
 
     QPointF m_tLastMouse;
     Qt::MouseButtons m_lastMouseButtons;
