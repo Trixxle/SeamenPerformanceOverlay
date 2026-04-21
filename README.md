@@ -2,6 +2,8 @@
 <img width="16001" height="5168" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
 
 
+Get in on Steam! [ADD STEAMSTORE LINK]
+
 ## What is it?
 The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics alongside RAM and VRAM usage! It automatically detects your headset's specifications to select to right frame time and frame rate to keep as reference.
 The frame time consistency graph it has it a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped brands such as PICO troubleshoot their VR streaming application PICO Connect.
