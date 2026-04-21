@@ -113,10 +113,14 @@ private:
     void saveSize();
     void savePosition();
     void saveController();
+    void RenderDirtyOverlayScenes();
 
     bool m_isMoving = false;
     float m_overlayWidthInMeters;
     float m_baseAlpha = 1.0f;
+    float m_lastAlpha = -1.0f;  // Cached alpha to avoid redundant SetOverlayAlpha calls
+    bool m_mainSceneDirty = false;   // Dirty flags: set on scene change, cleared after FBO render
+    bool m_panicSceneDirty = false;
 
     vr::HmdMatrix34_t m_overlayPositionMatrix;
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
@@ -132,6 +136,7 @@ private:
     QString m_strOverlayName;
 
     QTimer *m_pPumpEventsTimer;
+    QTimer *m_pRenderTimer;
 
     QOpenGLContext *m_pOpenGLContext;
     QOffscreenSurface *m_pOffscreenSurface;

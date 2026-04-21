@@ -50,6 +50,7 @@ m_strVRDriver("No Driver"),
 m_strVRDisplay("No Display"),
 m_strOverlayName("Seamen Performance Overlay"),
 m_pPumpEventsTimer(NULL),
+m_pRenderTimer(NULL),
 m_pOpenGLContext(NULL),
 m_pOffscreenSurface(NULL),
 m_pScene(NULL),
@@ -208,9 +209,19 @@ bool SteamVRLogic::Init() {
 		//vr::VROverlay()->ShowOverlay(m_ulPanicOverlayHandle);
 
 		m_pPumpEventsTimer = new QTimer( this );
+		m_pRenderTimer = new QTimer( this );
+		m_pRenderTimer->setTimerType(Qt::CoarseTimer);
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
+		connect(m_pRenderTimer, &QTimer::timeout, this, &SteamVRLogic::RenderDirtyOverlayScenes);
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
+
+		// The quickest updating UI element is the text, which happens at 100ms.
+		// Rendering above that frequency would be wasted performance
+		// Yes, this makes the buttons slightly less responsive but at 100ms interval they still feel fine, it is worth the
+		// Trade-off
+		m_pRenderTimer->setInterval(100);
+		m_pRenderTimer->start();
 	}
 	else {
 		std::cerr << "Failed to initialize VR overlay." << std::endl;
@@ -347,6 +358,79 @@ void SteamVRLogic::restoreSession() {
 }
 
 void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
+	// Just mark dirty. The actual GPU render is batched in OnTimeoutPumpEvents
+	// to prevent multiple FBO renders per timer tick when the UI updates several
+	// items at once (labels, charts, etc.).
+	m_mainSceneDirty = true;
+}
+
+void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>&) {
+	// Just mark dirty. Rendered in OnTimeoutPumpEvents alongside the main scene.
+	m_panicSceneDirty = true;
+}
+
+// Performs the actual OpenGL FBO render and texture upload to OpenVR for any
+// scene that has been marked dirty since the last render update tick.
+// Called once per timer tick so that multiple scene-changed signals within a
+// single tick collapse into one GPU render instead of mtwo, as there are two overlays
+void SteamVRLogic::RenderDirtyOverlayScenes() {
+	if (!vr::VROverlay()) return;
+
+	bool mainVisible = m_mainSceneDirty
+		&& m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
+		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle);
+
+	bool panicVisible = m_panicSceneDirty
+		&& m_ulPanicOverlayHandle != vr::k_ulOverlayHandleInvalid
+		&& vr::VROverlay()->IsOverlayVisible(m_ulPanicOverlayHandle);
+
+	if (!mainVisible && !panicVisible) return;
+
+	// Make context current once for both scenes
+	m_pOpenGLContext->makeCurrent(m_pOffscreenSurface);
+	QOpenGLFunctions *f = m_pOpenGLContext->functions();
+
+	if (mainVisible && m_pFbo) {
+		m_pFbo->bind();
+		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		QOpenGLPaintDevice device(m_pFbo->size());
+		QPainter painter(&device);
+		m_pScene->render(&painter);
+		painter.end();
+		m_pFbo->release();
+
+		GLuint unTexture = m_pFbo->texture();
+		if (unTexture != 0) {
+			vr::Texture_t texture = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+			vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texture);
+		}
+		m_mainSceneDirty = false;
+	}
+
+	if (panicVisible && m_PanicpFbo) {
+		m_PanicpFbo->bind();
+		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		QOpenGLPaintDevice panicDevice(m_PanicpFbo->size());
+		QPainter panicPainter(&panicDevice);
+		m_pPanicScene->render(&panicPainter);
+		panicPainter.end();
+		m_PanicpFbo->release();
+
+		GLuint unPanicTexture = m_PanicpFbo->texture();
+		if (unPanicTexture != 0) {
+			vr::Texture_t texture = {(void*)(uintptr_t)unPanicTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+			vr::VROverlay()->SetOverlayTexture(m_ulPanicOverlayHandle, &texture);
+		}
+		m_panicSceneDirty = false;
+	}
+}
+
+/*
+void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
 	if (!vr::VROverlay()) return;
 
 	bool mainVisible = m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
@@ -408,6 +492,7 @@ void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>&) {
 		}
 	}
 }
+*/
 
 void SteamVRLogic::OnTimeoutPumpEvents()
 {
@@ -569,7 +654,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
 	{
 		vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
-		m_pVRSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
+		// Query only up to the highest index we need (HMD=0, controller=small index).
+		// This avoids filling all 64 pose slots when only 2 are read.
+		uint32_t poseCount = static_cast<uint32_t>(m_deviceOverlayIsAttachedTo) + 1;
+		m_pVRSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, poses, poseCount);
 
 		const vr::TrackedDevicePose_t& hmdPose    = poses[vr::k_unTrackedDeviceIndex_Hmd];
 		const vr::TrackedDevicePose_t& devicePose = poses[m_deviceOverlayIsAttachedTo];
@@ -613,7 +701,13 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			float angleFactor = (cosAngle - cosEnd) / (cosStart - cosEnd);
 			angleFactor = std::max(0.0f, std::min(1.0f, angleFactor));
 
-			vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, m_baseAlpha * angleFactor);
+			// Only call the API if the alpha actually changed, to avoid redundant
+			// OpenVR calls every 20ms when the viewing angle is stable.
+			float newAlpha = m_baseAlpha * angleFactor;
+			if (std::abs(newAlpha - m_lastAlpha) > 0.005f) {
+				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, newAlpha);
+				m_lastAlpha = newAlpha;
+			}
 		}
 	}
 
@@ -855,8 +949,6 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
     	// This forces Qt to render the whole overlay as a single texture, meaning one draw call. This massively improves GPU usage.
     	// Going from 20% to 1.5% GPU usage on my system
     	proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-
-        m_pScene->addWidget( pWidget );
     }
     m_Widget = pWidget;
 
@@ -884,8 +976,6 @@ void SteamVRLogic::SetPanicWidget(QWidget *pWidget) {
 		// This forces Qt to render the whole overlay as a single texture, meaning one draw call. This massively improves GPU usage.
 		// Going from 20% to 1.5% GPU usage on my system
 		proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-
-		m_pPanicScene->addWidget( pWidget );
 	}
 	m_panicWidget = pWidget;
 
