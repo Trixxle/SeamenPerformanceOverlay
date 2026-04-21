@@ -1,6 +1,18 @@
+# Seamen Performance Overlay
 <img width="16001" height="5168" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
 
-# Seamen Performance Overlay
+Check your real-time frame time statistics! What about RAM and VRAM? It does that too!
+<img width="1526" height="902" alt="Screenshot 2026-04-21 211733" src="https://github.com/user-attachments/assets/e253f596-63bd-469c-8941-3425f801629b" />
+
+
+<img width="1096" height="718" alt="MOVEMENT" src="https://github.com/user-attachments/assets/5ea58ccf-df86-4f23-b84b-e1590529e30d" />
+Free movement!
+
+<img width="1099" height="720" alt="SWITCHCONTROLLER" src="https://github.com/user-attachments/assets/d708cf1a-f593-4d80-84dc-efb96dd7c66c" />
+Switch controllers!
+
+<img width="1102" height="720" alt="ANGLEFADE" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
+Fades with viewing angle!
 
 ## Features:
 
