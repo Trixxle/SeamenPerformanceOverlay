@@ -25,17 +25,17 @@ Switch Controllers!        |  Fades based on viewing angle!
 
 Simply download the latest released .zip, extract it anywhere, run SteamVR, and run the .exe within the downloaded folder.
 Do not move files outside the folder, all files must remain in one folder.
-The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Overlay Startup"
+The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Startup Overlay Apps"
 
 
 ## Features:
 
 ### Graphs:
-The graphs are the main event on this overlay, but to properly read them it is important to understant them.
-The graphs display 4 colors: blue, orange, red, and pruple.
-  - Blue means it is perfect
+The graphs are the main event on this overlay, but to properly read them it is important to understand them.
+The graphs display 4 colors: blue, orange, red, and purple.
+  - Blue means it is optimal
   - Orange means the performance was almost optimal
-  - Red means the performance is nowehere near optimal
+  - Red means the performance is nowhere near optimal
   - Purple means a frame was dropped completely and never shown
 
 Some graphs will also display a dotted line, this line represents the value the bars have to stay under or at to display a frame with perfection.
@@ -43,8 +43,8 @@ Some graphs will also display a dotted line, this line represents the value the 
 ### Statistics:
   - GPU Frame time and respective graph
   - CPU Frame time and respective graph
-  - Frame time consistencty and respective graph
-  - Accurate and precise framer rate and respective graph
+  - Frame time consistency and respective graph
+  - Accurate and precise frame rate and respective graph
   - Less accurate but more stable frame rate number for easy viewing
   - System RAM usage and total RAM count
   - System VRAM usage and total VRAM count
@@ -58,7 +58,7 @@ Some graphs will also display a dotted line, this line represents the value the 
 
 ### Miscelaneous features:
   - Fades based on viewing angle
-  - Will fall back to showing in front of view when no controllers are detected. Will attach to controller if it appears mid-session
+  - Will fall back to showing in front of view when no controllers are detected. Will attach to a controller if it appears mid-session
   - Saves everything about the overlay (opacity, scale, placement etc.) and restores it in future sessions
   - Works across AMD and Nvidia GPUs. (Probably Intel too but not tested)
   - Works across Intel and AMD CPUs
@@ -66,7 +66,7 @@ Some graphs will also display a dotted line, this line represents the value the 
 
 ## Known bugs:
   - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
-  - When scaling the overlay to impractical uses the fading based on viewing angle stops working correctly
+  - When scaling the overlay to an impractical size the fading based on viewing angle stops working correctly
 
 ## Planned features:
   - Linux support (I need a Linux distro to test with)
@@ -75,9 +75,7 @@ Some graphs will also display a dotted line, this line represents the value the 
 
 ### Prerequisites:
   Qt Framework: You need the community version of Qt installed on your computer. You can download the Qt installer from [qt.io](https://my.qt.io/download). You will have to create a Qt account to access the downloads on that page.
-This project is built using MINGW64 so you will need to install the MINGW64 version of Qt.
-Qt 6.11 is the version used to build this project but future or older versions can also work. Your mileage may vary.
-Make sure you install Qt in C:/Qt/6.11.0/mingw_64/. If you install it somewhere else, change line 41 of CMakeLists.txt to the directory you installed it in.
+This project is built using MINGW64 so you will need to install the MINGW64 version of Qt. Qt 6.11 is the version used to build this project but future or older versions can also work. Your mileage may vary. Make sure you install Qt in C:/Qt/6.11.0/mingw_64/. If you install it somewhere else, or a different version, change line 41 of CMakeLists.txt to the directory/version you installed it in.
 
 ### Instructions:
 Clone the repository. Either download the source code or run:
