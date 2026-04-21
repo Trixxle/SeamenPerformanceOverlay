@@ -77,6 +77,15 @@ Some graphs will also display a dotted line, this line represents the value the 
   Qt Framework: You need the community version of Qt installed on your computer. You can download the Qt installer from [qt.io](https://my.qt.io/download). You will have to create a Qt account to access the downloads on that page.
 This project is built using MINGW64 so you will need to install the MINGW64 version of Qt.
 Qt 6.11 is the version used to build this project but future or older versions can also work. Your mileage may vary.
+Make sure you install Qt in C:/Qt/6.11.0/mingw_64/. If you install it somewhere else, change line 41 of CMakeLists.txt to the directory you installed it in.
 
 ### Instructions:
-Make sure you install Qt in C:/Qt/6.11.0/mingw_64/. If you install it somewhere else, change line 41 of CMakeLists.txt to the directory you installed it in.
+Clone the repository. Either download the source code or run:
+```
+git clone https://github.com/Trixxle/SeamenPerformanceOverlay.git --recursive
+```
+
+You can either build using your IDE of choice or by opening a terminal, navigating to the root folder of the code and running:
+```
+[UNFINISHED]
+```
