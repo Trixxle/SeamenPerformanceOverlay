@@ -198,7 +198,7 @@ bool SteamVRLogic::Init() {
 
 		restoreSession();
 
-		// Some IDEs will say the following statement< will always be false, this is incorrect
+		// Some IDEs will say the following statement will always be false, this is incorrect
 		if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid &&
 			m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
 			AttachToDevice(m_leftController);
@@ -219,9 +219,14 @@ bool SteamVRLogic::Init() {
     return bSuccess;
 }
 
+void SteamVRLogic::setBaseAlpha(float alpha)
+{
+	m_baseAlpha = std::max(0.0f, std::min(1.0f, alpha));
+}
+
 // Why limit this? Allow the user to increase it as much as they want, let them be free. They will play themselves
 void SteamVRLogic::increaseOverlayScale() {
-	m_overlayWidthInMeters += 0.05;
+	m_overlayWidthInMeters += 0.01;
 	updateOverlayWidthInMeters();
 	saveSize();
 }
@@ -229,8 +234,11 @@ void SteamVRLogic::increaseOverlayScale() {
 // Unfortuantely, we do have to limit this to stop users from being too stupid
 void SteamVRLogic::decreaseOverlayScale() {
 	// Size can't be 0, then it breaks
-	if (m_overlayWidthInMeters - 0.05 < 0.01) return;
-	m_overlayWidthInMeters -= 0.05;
+	if (m_overlayWidthInMeters - 0.01 < 0.01) {
+		m_overlayWidthInMeters = 0.01;
+	}
+	else m_overlayWidthInMeters -= 0.01;
+
 	updateOverlayWidthInMeters();
 	saveSize();
 }
@@ -241,7 +249,7 @@ void SteamVRLogic::updateOverlayWidthInMeters() {
 
 void SteamVRLogic::resetOverlayToDefault() {
 	m_overlayPositionMatrix = {
-		1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
+		1.0f, /*Stretches horizontally*/ 	0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
 		0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
 		0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
 	};
@@ -551,6 +559,63 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 	processOverlayEvents( m_ulOverlayHandle, m_pScene, m_Widget );
 	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene, m_panicWidget );
+
+	// The below code is made almost entirely made by Claude. I was too lazy to refresh my math on matrices
+
+	// Update overlay alpha based on the viewing angle so the overlay fades when seen edge-on
+	if (vr::VROverlay()
+		&& m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
+		&& m_deviceOverlayIsAttachedTo != vr::k_unTrackedDeviceIndexInvalid
+		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle))
+	{
+		vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+		m_pVRSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
+
+		const vr::TrackedDevicePose_t& hmdPose    = poses[vr::k_unTrackedDeviceIndex_Hmd];
+		const vr::TrackedDevicePose_t& devicePose = poses[m_deviceOverlayIsAttachedTo];
+
+		if (hmdPose.bPoseIsValid && devicePose.bPoseIsValid)
+		{
+			// Build the overlay's world transform: deviceWorld * overlayRelative
+			const vr::HmdMatrix34_t& dw = devicePose.mDeviceToAbsoluteTracking;
+			const vr::HmdMatrix34_t& rel = m_overlayPositionMatrix;
+
+			// World position of overlay (translation column of dw * rel)
+			float ox = dw.m[0][0]*rel.m[0][3] + dw.m[0][1]*rel.m[1][3] + dw.m[0][2]*rel.m[2][3] + dw.m[0][3];
+			float oy = dw.m[1][0]*rel.m[0][3] + dw.m[1][1]*rel.m[1][3] + dw.m[1][2]*rel.m[2][3] + dw.m[1][3];
+			float oz = dw.m[2][0]*rel.m[0][3] + dw.m[2][1]*rel.m[1][3] + dw.m[2][2]*rel.m[2][3] + dw.m[2][3];
+
+			// Z-axis of overlay in world space (third column of the 3x3 rotation block of dw * rel)
+			float wzx = dw.m[0][0]*rel.m[0][2] + dw.m[0][1]*rel.m[1][2] + dw.m[0][2]*rel.m[2][2];
+			float wzy = dw.m[1][0]*rel.m[0][2] + dw.m[1][1]*rel.m[1][2] + dw.m[1][2]*rel.m[2][2];
+			float wzz = dw.m[2][0]*rel.m[0][2] + dw.m[2][1]*rel.m[1][2] + dw.m[2][2]*rel.m[2][2];
+
+			// The visible (front) face of an OpenVR overlay faces in the +Z direction of its local frame
+			float nx = wzx, ny = wzy, nz = wzz;
+			float nLen = std::sqrt(nx*nx + ny*ny + nz*nz);
+			if (nLen > 0.0001f) { nx /= nLen; ny /= nLen; nz /= nLen; }
+
+			// Vector from overlay centre to HMD
+			float dx = hmdPose.mDeviceToAbsoluteTracking.m[0][3] - ox;
+			float dy = hmdPose.mDeviceToAbsoluteTracking.m[1][3] - oy;
+			float dz = hmdPose.mDeviceToAbsoluteTracking.m[2][3] - oz;
+			float dLen = std::sqrt(dx*dx + dy*dy + dz*dz);
+			if (dLen > 0.0001f) { dx /= dLen; dy /= dLen; dz /= dLen; }
+
+			// cosAngle = 1 when facing head-on, 0 at 90 degrees (edge-on)
+			float cosAngle = nx*dx + ny*dy + nz*dz;
+
+			// Full opacity within 40 degrees, fades to zero at 70 degrees
+			constexpr float fadeStartDeg = 40.0f;
+			constexpr float fadeEndDeg   = 70.0f;
+			constexpr float cosStart = 0.766044f; // cos(40°)
+			constexpr float cosEnd   = 0.342020f; // cos(70°)
+			float angleFactor = (cosAngle - cosEnd) / (cosStart - cosEnd);
+			angleFactor = std::max(0.0f, std::min(1.0f, angleFactor));
+
+			vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, m_baseAlpha * angleFactor);
+		}
+	}
 
     if( m_ulOverlayThumbnailHandle != vr::k_ulOverlayHandleInvalid )
     {

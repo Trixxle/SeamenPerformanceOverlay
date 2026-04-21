@@ -81,6 +81,10 @@ public slots:
     void stopMove();
     void increaseOverlayScale();
     void decreaseOverlayScale();
+    // IMPORTANT: The alpha value changed here is NOT is overlay's main opacity.
+    // The overlay's main opacity is handled by Qt in the dashboard class.
+    // This alpha is only used to calculate the fade in and out when the viewing angle is steep.
+    void setBaseAlpha(float alpha);
     void resetOverlayToDefault();
 
 private:
@@ -112,6 +116,7 @@ private:
 
     bool m_isMoving = false;
     float m_overlayWidthInMeters;
+    float m_baseAlpha = 1.0f;
 
     vr::HmdMatrix34_t m_overlayPositionMatrix;
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
