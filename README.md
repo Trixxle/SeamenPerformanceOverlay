@@ -74,9 +74,8 @@ Some graphs will also display a dotted line, this line represents the value the 
 ## Building Instructions
 
 ### Prerequisites:
-  Qt Framework:
-You need the community version of Qt installed on your computer. You can download it from [qt.io](https://my.qt.io/download). You will have to create a Qt account to access the downloads on that page.
-This project is built using MINGW64 so you will need to download the MINGW64 version of Qt.
+  Qt Framework: You need the community version of Qt installed on your computer. You can download the Qt installer from [qt.io](https://my.qt.io/download). You will have to create a Qt account to access the downloads on that page.
+This project is built using MINGW64 so you will need to install the MINGW64 version of Qt.
 Qt 6.11 is the version used to build this project but future or older versions can also work. Your mileage may vary.
 
 ### Instructions:
