@@ -21,6 +21,13 @@ Switch Controllers!        |  Fades based on viewing angle!
 <img width="440" height="288" alt="SWITCHCONTROLLER" src="https://github.com/user-attachments/assets/4e9630ba-a02f-493d-bca8-e6b042689aab" /> | <img width="440" height="288" alt="ANGLEFADE" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
 
 
+## Installation Instructions:
+
+Simply download the latest released .zip, extract it anywhere, run SteamVR, and run the .exe within the downloaded folder.
+Do not move files outside the folder, all files must remain in one folder.
+The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Overlay Startup"
+
+
 ## Features:
 
 ### Graphs:
@@ -60,13 +67,6 @@ Some graphs will also display a dotted line, this line represents the value the 
 ## Known bugs:
   - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
   - When scaling the overlay to impractical uses the fading based on viewing angle stops working correctly
-
-
-## Installation Instructions:
-
-Simply download the latest released .zip, extract it anywhere, run SteamVR, and run the .exe within the downloaded folder.
-Do not move files outside the folder, all files must remain in one folder.
-The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Overlay Startup"
 
 
 ## Building Instructions
