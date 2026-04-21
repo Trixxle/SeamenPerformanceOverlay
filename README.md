@@ -1,20 +1,35 @@
 # Seamen Performance Overlay
 <img width="16001" height="5168" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
 
-Check your real-time frame time statistics! What about RAM and VRAM? It does that too!
-<img width="1526" height="902" alt="Screenshot 2026-04-21 211733" src="https://github.com/user-attachments/assets/e253f596-63bd-469c-8941-3425f801629b" />
+
+## What is it?
+The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics alongside RAM and VRAM usage! It automatically detects your headset's specifications to select to right frame time and frame rate to keep as reference.
+The frame time consistency graph it has it a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped brands such as PICO troubleshoot their VR streaming application PICO Connect.
+
+As long as you connect to SteamVR this overlay *should* work with any headset and controllers. Even without controllers!
 
 
-<img width="1096" height="718" alt="MOVEMENT" src="https://github.com/user-attachments/assets/5ea58ccf-df86-4f23-b84b-e1590529e30d" />
-Free movement!
+## Gallery:
+UI                         |  Move it anywhere!
+:-------------------------:|:-------------------------:
+<img width="500" height="269" alt="Screenshot 2026-04-21 211733" src="https://github.com/user-attachments/assets/e253f596-63bd-469c-8941-3425f801629b" />  |  <img width="401" height="269" alt="MOVEMENT" src="https://github.com/user-attachments/assets/e84cf9d4-89f3-4aa9-bb62-5269260c6cf4" />
 
-<img width="1099" height="720" alt="SWITCHCONTROLLER" src="https://github.com/user-attachments/assets/d708cf1a-f593-4d80-84dc-efb96dd7c66c" />
-Switch controllers!
+Switch Controllers!        |  Fades based on viewing angle!
+:-------------------------:|:-------------------------:
+<img width="440" height="288" alt="SWITCHCONTROLLER" src="https://github.com/user-attachments/assets/4e9630ba-a02f-493d-bca8-e6b042689aab" /> | <img width="440" height="288" alt="ANGLEFADE" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
 
-<img width="1102" height="720" alt="ANGLEFADE" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
-Fades with viewing angle!
 
 ## Features:
+
+### Graphs:
+The graphs are the main event on this overlay, but to properly read them it is important to understant them.
+The graphs display 4 colors: blue, orange, red, and pruple.
+  - Blue means it is perfect
+  - Orange means the performance was almost optimal
+  - Red means the performance is nowehere near optimal
+  - Purple means a frame was dropped completely and never shown
+
+Some graphs will also display a dotted line, this line represents the value the bars have to stay under or at to display a frame with perfection.
 
 ### Statistics:
   - GPU Frame time and respective graph
