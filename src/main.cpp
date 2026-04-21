@@ -15,16 +15,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include <iostream>
+#include <QtWidgets/QApplication>
+#include <QThread>
+#include <QMetaType>
 #include "userinterface/dashboardui.h"
 #include "userinterface/panicdashboard.h"
 #include "steamvrcontrol/steamvrlogic.h"
 #include "systemResourcesHandler.h"
 #include "frameHandler.h"
-#include <iostream>
-#include <QtWidgets/QApplication>
-#include <QThread>
-#include <QMetaType>
-
 #include "systemResourcesHandler.h"
 
 int main(int argc, char *argv[])

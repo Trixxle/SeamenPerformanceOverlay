@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 4.0)
 
-project(PerformanceVR)
-set(TARGET_NAME PerformanceVR)
+project(SeamenPerformanceOverlay)
+set(TARGET_NAME SeamenPerformanceOverlay)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -18,7 +18,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Where CMake searches for .ui files
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR})
 
-add_executable(PerformanceVR
+add_executable(SeamenPerformanceOverlay
+        resources/SeamenPerformanceOverlay.rc
         src/main.cpp
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
@@ -55,11 +56,14 @@ if (WIN32 AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
     if (EXISTS "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E make_directory
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/"
+                COMMAND ${CMAKE_COMMAND} -E make_directory
+                "${OUTPUT_DIR}/plugins/platforms/")
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy
                 "${QT_INSTALL_PATH}/plugins/platforms/qwindows${DEBUG_SUFFIX}.dll"
-                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/")
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>/plugins/platforms/"
+                "${OUTPUT_DIR}/plugins/platforms/")
     endif ()
     foreach (QT_LIB Core Gui Widgets OpenGL Charts OpenGLWidgets)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -81,10 +85,10 @@ find_package(Qt6 COMPONENTS
 set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/openvr)
 find_package(OpenVR REQUIRED)
 
-target_include_directories(PerformanceVR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_compile_features(PerformanceVR PUBLIC cxx_std_23)
+target_include_directories(SeamenPerformanceOverlay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_compile_features(SeamenPerformanceOverlay PUBLIC cxx_std_23)
 
-target_link_libraries(PerformanceVR
+target_link_libraries(SeamenPerformanceOverlay
         PRIVATE
         Qt::Core
         Qt::Gui
@@ -98,13 +102,13 @@ target_link_libraries(PerformanceVR
 )
 
 # Make all warnings errors etc.
-target_compile_options(PerformanceVR PRIVATE
+target_compile_options(SeamenPerformanceOverlay PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
         #$<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wall -Wextra -Wpedantic -Werror>
         $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wextra -Wpedantic -Werror>
 )
 
-set_target_properties(PerformanceVR PROPERTIES
+set_target_properties(SeamenPerformanceOverlay PROPERTIES
         WIN32_EXECUTABLE TRUE
         MACOSX_BUNDLE TRUE
         COMPILE_FLAGS "${QT_FLAGS}"
@@ -113,9 +117,49 @@ set_target_properties(PerformanceVR PROPERTIES
 file(COPY ${OpenVR_BINARY} DESTINATION ${CMAKE_BINARY_DIR})
 
 add_custom_command(
-        TARGET PerformanceVR POST_BUILD
+        TARGET SeamenPerformanceOverlay POST_BUILD
         COMMENT "Copying Executable and DLLs"
-        COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_FILE:PerformanceVR>
-        COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_RUNTIME_DLLS:PerformanceVR>
+        COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_FILE:SeamenPerformanceOverlay>
+        COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTPUT_DIR} $<TARGET_RUNTIME_DLLS:SeamenPerformanceOverlay>
         COMMAND_EXPAND_LISTS
 )
+
+add_custom_command(
+        TARGET SeamenPerformanceOverlay POST_BUILD
+        COMMENT "Copying resources to bin"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/resources"
+        "${OUTPUT_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/resources"
+        "$<TARGET_FILE_DIR:SeamenPerformanceOverlay>"
+)
+
+if (MINGW)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+
+    set(MINGW_RUNTIME_DLLS
+            "libgcc_s_seh-1.dll"
+            "libstdc++-6.dll"
+            "libwinpthread-1.dll"
+    )
+
+    foreach(MINGW_DLL IN LISTS MINGW_RUNTIME_DLLS)
+        add_custom_command(
+                TARGET SeamenPerformanceOverlay POST_BUILD
+                COMMENT "Copying MinGW runtime DLL: ${MINGW_DLL}"
+                # Copy to the CMake target build directory (to sit alongside Qt DLLs)
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MINGW_BIN_DIR}/${MINGW_DLL}"
+                "$<TARGET_FILE_DIR:SeamenPerformanceOverlay>"
+                # Copy to your custom output bin directory
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${MINGW_BIN_DIR}/${MINGW_DLL}"
+                "${OUTPUT_DIR}"
+        )
+    endforeach()
+endif ()
+
+if (WIN32)
+    target_sources(SeamenPerformanceOverlay PRIVATE "resources/SeamenPerformanceOverlay.rc")
+endif()
