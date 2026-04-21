@@ -647,9 +647,9 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				// cosAngle = 1 when facing head-on, 0 at 90 degrees (edge-on)
 				float cosAngle = nx*dx + ny*dy + nz*dz;
 
-				// Full opacity within 40 degrees, fades to zero at 70 degrees
-				constexpr float cosStart = 0.766044f; // cos(40°)
-				constexpr float cosEnd   = 0.342020f; // cos(70°)
+				// Full opacity within 30 degrees, fades to zero at 50 degrees
+				constexpr float cosStart = 0.866025f; // cos(30°)
+				constexpr float cosEnd   = 0.642787f; // cos(50°)
 				float angleFactor = (cosAngle - cosEnd) / (cosStart - cosEnd);
 				angleFactor = std::max(0.0f, std::min(1.0f, angleFactor));
 
