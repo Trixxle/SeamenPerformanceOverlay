@@ -59,6 +59,7 @@ Some graphs will also display a dotted line, this line represents the value the 
 
 ## Known bugs:
   - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
+  - When scaling the overlay to impractical uses the fading based on viewing angle stops working correctly
 
 
 ## Installation Instructions:
