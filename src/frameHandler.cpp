@@ -29,31 +29,31 @@ FrameHandler::~FrameHandler() {
 }
 
 void FrameHandler::startProcessing() {
-    if (!m_timer) {
-        m_timer = new QTimer(this);
+    if (!m_pTimer) {
+        m_pTimer = new QTimer(this);
 
         // Use PreciseTimer to prevent standard OS scheduling drift
-        m_timer->setTimerType(Qt::PreciseTimer);
+        m_pTimer->setTimerType(Qt::PreciseTimer);
 
         // QTimer takes integer milliseconds. 11.11ms becomes 11ms. Important note: It doesn't round the number, it just truncates it. So 6.9 becomes 6
         int intervalMs = static_cast<int>(m_targetRefreshRateMs);
         //if (intervalMs <= 0) intervalMs = 5; // Fallback
 
-        connect(m_timer, &QTimer::timeout, this, &FrameHandler::processFrame);
+        connect(m_pTimer, &QTimer::timeout, this, &FrameHandler::processFrame);
 
         m_uiUpdateTimerGraphs.start();
         m_uiUpdateTimerLabels.start();
-        m_timer->start(intervalMs);
+        m_pTimer->start(intervalMs);
 
         std::cout << "Frame timer started on thread: " << QThread::currentThreadId() << std::endl;
     }
 }
 
 void FrameHandler::stopProcessing() {
-    if (m_timer) {
-        m_timer->stop();
-        m_timer->deleteLater();
-        m_timer = nullptr;
+    if (m_pTimer) {
+        m_pTimer->stop();
+        m_pTimer->deleteLater();
+        m_pTimer = nullptr;
     }
 }
 

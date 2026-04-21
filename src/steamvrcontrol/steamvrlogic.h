@@ -126,10 +126,10 @@ private:
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
     // The widget created with Qt
-    QWidget *m_Widget;
+    QWidget *m_pWidget;
 
     // Dashboard overlay in with a panic button
-    QWidget *m_panicWidget;
+    QWidget *m_pPanicWidget;
 
     QString m_strVRDriver;
     QString m_strVRDisplay;
@@ -143,13 +143,13 @@ private:
     QGraphicsScene *m_pScene;
     QGraphicsScene *m_pPanicScene;
     QOpenGLFramebufferObject *m_pFbo;
-    QOpenGLFramebufferObject *m_PanicpFbo;
+    QOpenGLFramebufferObject *m_pPanicFbo;
 
     QPointF m_tLastMouse;
     Qt::MouseButtons m_lastMouseButtons;
     QSettings m_settings;
 
-    int m_bindToControllerAttemps = 0;
+    int m_bindToControllerAttempts = 0;
 
 signals:
     void saveOpacity();

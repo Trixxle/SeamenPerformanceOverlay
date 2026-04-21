@@ -45,7 +45,7 @@ m_overlayPositionMatrix({
 	0.0f, /*Vertical Shear*/			0.866f,  /*Stretches vertically*/		0.5f,   /*Tilt top away*/	0.1f,  /*Up and down*/
 	0.0f, /*Rotation vertical axis*/	-0.5f,   /*Rotation horizontal axis*/	0.866f, /*Stretches depth*/	-0.08f  /*Closer and farther*/
 	}),
-m_Widget(NULL),
+m_pWidget(NULL),
 m_strVRDriver("No Driver"),
 m_strVRDisplay("No Display"),
 m_strOverlayName("Seamen Performance Overlay"),
@@ -56,7 +56,7 @@ m_pOffscreenSurface(NULL),
 m_pScene(NULL),
 m_pPanicScene(NULL),
 m_pFbo(NULL),
-m_PanicpFbo(NULL),
+m_pPanicFbo(NULL),
 m_lastMouseButtons( 0 ),
 m_settings("Seamen", "PerformanceOverlay")
 {}
@@ -278,7 +278,7 @@ void SteamVRLogic::Shutdown() {
 	delete m_pScene;
 	delete m_pPanicScene;
 	delete m_pFbo;
-	delete m_PanicpFbo;
+	delete m_pPanicFbo;
 	delete m_pOffscreenSurface;
 
 	if( m_pOpenGLContext )
@@ -415,18 +415,18 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
 		m_mainSceneDirty = false;
 	}
 
-	if (panicVisible && m_PanicpFbo) {
-		m_PanicpFbo->bind();
+	if (panicVisible && m_pPanicFbo) {
+		m_pPanicFbo->bind();
 		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		f->glClear(GL_COLOR_BUFFER_BIT);
 
-		QOpenGLPaintDevice panicDevice(m_PanicpFbo->size());
+		QOpenGLPaintDevice panicDevice(m_pPanicFbo->size());
 		QPainter panicPainter(&panicDevice);
 		m_pPanicScene->render(&panicPainter);
 		panicPainter.end();
-		m_PanicpFbo->release();
+		m_pPanicFbo->release();
 
-		GLuint unPanicTexture = m_PanicpFbo->texture();
+		GLuint unPanicTexture = m_pPanicFbo->texture();
 		if (unPanicTexture != 0) {
 			vr::Texture_t texture = {(void*)(uintptr_t)unPanicTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
 			vr::VROverlay()->SetOverlayTexture(m_ulPanicOverlayHandle, &texture);
@@ -443,7 +443,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	// During autostart, controllers may not be enumerated when Init() runs.
 	// VREvent_TrackedDeviceActivated is missed because the overlay doesn't exist yet when
 	// controllers first connect. Poll here until we get a valid attachment.
-	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid && m_bindToControllerAttemps <= 10) {
+	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid && m_bindToControllerAttempts <= 10) {
 		if (m_leftController == vr::k_unTrackedDeviceIndexInvalid)
 			m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		if (m_rightController == vr::k_unTrackedDeviceIndexInvalid)
@@ -458,10 +458,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
-		if (m_bindToControllerAttemps >= 10) {
+		if (m_bindToControllerAttempts >= 10) {
 			AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
 		}
-		++m_bindToControllerAttemps;
+		++m_bindToControllerAttempts;
 	}
 
 
@@ -585,8 +585,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		}
 	};
 
-	processOverlayEvents( m_ulOverlayHandle, m_pScene, m_Widget );
-	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene, m_panicWidget );
+	processOverlayEvents( m_ulOverlayHandle, m_pScene, m_pWidget );
+	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene, m_pPanicWidget );
 
 	// The below code is made almost entirely made by Claude. I was too lazy to refresh my math on matrices
 
@@ -673,7 +673,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
             switch( vrEvent.eventType )
             {
             case vr::VREvent_OverlayShown:
-                m_panicWidget->repaint();
+                m_pPanicWidget->repaint();
                 break;
             }
         }
@@ -913,7 +913,7 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
     	// Going from 20% to 1.5% GPU usage on my system
     	proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
     }
-    m_Widget = pWidget;
+    m_pWidget = pWidget;
 
     m_pFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
 
@@ -940,9 +940,9 @@ void SteamVRLogic::SetPanicWidget(QWidget *pWidget) {
 		// Going from 20% to 1.5% GPU usage on my system
 		proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
 	}
-	m_panicWidget = pWidget;
+	m_pPanicWidget = pWidget;
 
-	m_PanicpFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+	m_pPanicFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
 
 	if( vr::VROverlay() )
 	{

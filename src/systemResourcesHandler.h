@@ -57,7 +57,7 @@ private:
     void getSystemRamUsage();
     void getSystemVramUsage();
 
-    QTimer* m_updateTimer = nullptr;
+    QTimer* m_pUpdateTimer = nullptr;
     const qint64 UI_UPDATE_INTERVAL_MS = 2000; // Interval for UI updating
     systemResourceUsage m_systemResourceUsage;
     systemResources m_systemResources;

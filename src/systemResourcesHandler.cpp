@@ -102,17 +102,17 @@ void SystemResourcesHandler::getSystemVramUsage() {
 }
 
 void SystemResourcesHandler::startSystemResourcesProcessing() {
-    if (!m_updateTimer) {
-        m_updateTimer = new QTimer(this);
+    if (!m_pUpdateTimer) {
+        m_pUpdateTimer = new QTimer(this);
 
         // As the interval is 2 seconds there is no need to waste resources on a precise timer
-        m_updateTimer->setTimerType(Qt::VeryCoarseTimer);
+        m_pUpdateTimer->setTimerType(Qt::VeryCoarseTimer);
 
-        connect(m_updateTimer, &QTimer::timeout, this, &SystemResourcesHandler::processSystemResources);
+        connect(m_pUpdateTimer, &QTimer::timeout, this, &SystemResourcesHandler::processSystemResources);
 
         emit updateSystemResources(m_systemResources);
 
-        m_updateTimer->start(UI_UPDATE_INTERVAL_MS);
+        m_pUpdateTimer->start(UI_UPDATE_INTERVAL_MS);
 
         std::cout << "System resources timer started on thread: " << QThread::currentThreadId() << std::endl;
     }

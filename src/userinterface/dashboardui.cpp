@@ -22,17 +22,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidget *parent):
     QWidget(parent),
     ui(new Ui::DashboardUI),
-    m_axisXFrameTimeConsistency(new QBarCategoryAxis()),
-    m_chartViewFrameTimeConsistency(new QChartView()),
+    m_pAxisXFrameTimeConsistency(new QBarCategoryAxis()),
+    m_pChartViewFrameTimeConsistency(new QChartView()),
 
-    m_axisXCpuFrameTime(new QBarCategoryAxis()),
-    m_chartViewCpuFrameTime(new QChartView()),
+    m_pAxisXCpuFrameTime(new QBarCategoryAxis()),
+    m_pChartViewCpuFrameTime(new QChartView()),
 
-    m_axisXGpuFrameTime(new QBarCategoryAxis()),
-    m_chartViewGpuFrameTime(new QChartView()),
+    m_pAxisXGpuFrameTime(new QBarCategoryAxis()),
+    m_pChartViewGpuFrameTime(new QChartView()),
 
-    m_axisXFrameRate(new QBarCategoryAxis()),
-    m_chartViewFrameRate(new QChartView()),
+    m_pAxisXFrameRate(new QBarCategoryAxis()),
+    m_pChartViewFrameRate(new QChartView()),
 
     m_targetFrameRate(targetFrameRate),
     m_headsetRefreshRate(headsetRefreshRate),
@@ -121,10 +121,10 @@ void DashboardUI::updateGraphs(const FrameHandler::FrameStatsList& informationLi
     // After some research blocking signals here increases performance.
     // Qt will send a onSceneChanged signal for every single item inside the struct for every graph
     // Blocking the signal and only sending the last one (which is the only one that matters) decreased GPU usage by 5%
-    m_chartFrameTimeConsistency->blockSignals(true);
-    m_chartCpuFrameTime->blockSignals(true);
-    m_chartGpuFrameTime->blockSignals(true);
-    m_chartFrameRate->blockSignals(true);
+    m_pChartFrameTimeConsistency->blockSignals(true);
+    m_pChartCpuFrameTime->blockSignals(true);
+    m_pChartGpuFrameTime->blockSignals(true);
+    m_pChartFrameRate->blockSignals(true);
 
     QList<float> totalTimes;
     QList<float> gpuTimes;
@@ -149,16 +149,16 @@ void DashboardUI::updateGraphs(const FrameHandler::FrameStatsList& informationLi
     updateCpuFrameTimeGraph(cpuTimes);
     updateFrameRateGraph(frameRates);
 
-    m_chartFrameTimeConsistency->blockSignals(false);
-    m_chartCpuFrameTime->blockSignals(false);
-    m_chartGpuFrameTime->blockSignals(false);
-    m_chartFrameRate->blockSignals(false);
+    m_pChartFrameTimeConsistency->blockSignals(false);
+    m_pChartCpuFrameTime->blockSignals(false);
+    m_pChartGpuFrameTime->blockSignals(false);
+    m_pChartFrameRate->blockSignals(false);
 
     // Because the signals were blocked it must now be manually forced
-    m_chartFrameTimeConsistency->update();
-    m_chartCpuFrameTime->update();
-    m_chartGpuFrameTime->update();
-    m_chartFrameRate->update();
+    m_pChartFrameTimeConsistency->update();
+    m_pChartCpuFrameTime->update();
+    m_pChartGpuFrameTime->update();
+    m_pChartFrameRate->update();
 }
 
 void DashboardUI::updateLabels(const FrameHandler::frameStats &information) {
@@ -255,13 +255,13 @@ void DashboardUI::updateFrameTimeConsistencyGraph(const QList<float>& newFrameTi
         }
     }
 
-    m_barSetFrameTimeConsistencyFast->remove(0, count);
-    m_barSetFrameTimeConsistencyMedium->remove(0, count);
-    m_barSetFrameTimeConsistencySlow->remove(0, count);
+    m_pBarSetFrameTimeConsistencyFast->remove(0, count);
+    m_pBarSetFrameTimeConsistencyMedium->remove(0, count);
+    m_pBarSetFrameTimeConsistencySlow->remove(0, count);
 
-    m_barSetFrameTimeConsistencyFast->append(fastList);
-    m_barSetFrameTimeConsistencyMedium->append(mediumList);
-    m_barSetFrameTimeConsistencySlow->append(slowList);
+    m_pBarSetFrameTimeConsistencyFast->append(fastList);
+    m_pBarSetFrameTimeConsistencyMedium->append(mediumList);
+    m_pBarSetFrameTimeConsistencySlow->append(slowList);
 }
 
 void DashboardUI::updateGpuFrameTimeGraph(const QList<float>& newFrameTimes) {
@@ -294,13 +294,13 @@ void DashboardUI::updateGpuFrameTimeGraph(const QList<float>& newFrameTimes) {
         }
     }
 
-    m_barSetGpuFrameTimeFast->remove(0, count);
-    m_barSetGpuFrameTimeMedium->remove(0, count);
-    m_barSetGpuFrameTimeSlow->remove(0, count);
+    m_pBarSetGpuFrameTimeFast->remove(0, count);
+    m_pBarSetGpuFrameTimeMedium->remove(0, count);
+    m_pBarSetGpuFrameTimeSlow->remove(0, count);
 
-    m_barSetGpuFrameTimeFast->append(fastList);
-    m_barSetGpuFrameTimeMedium->append(mediumList);
-    m_barSetGpuFrameTimeSlow->append(slowList);
+    m_pBarSetGpuFrameTimeFast->append(fastList);
+    m_pBarSetGpuFrameTimeMedium->append(mediumList);
+    m_pBarSetGpuFrameTimeSlow->append(slowList);
 }
 
 void DashboardUI::updateCpuFrameTimeGraph(const QList<float>& newFrameTimes) {
@@ -344,15 +344,15 @@ void DashboardUI::updateCpuFrameTimeGraph(const QList<float>& newFrameTimes) {
         }
     }
 
-    m_barSetCpuFrameTimeFast->remove(0, count);
-    m_barSetCpuFrameTimeMedium->remove(0, count);
-    m_barSetCpuFrameTimeSlow->remove(0, count);
-    m_barSetCpuFrameTimeDropped->remove(0, count);
+    m_pBarSetCpuFrameTimeFast->remove(0, count);
+    m_pBarSetCpuFrameTimeMedium->remove(0, count);
+    m_pBarSetCpuFrameTimeSlow->remove(0, count);
+    m_pBarSetCpuFrameTimeDropped->remove(0, count);
 
-    m_barSetCpuFrameTimeFast->append(fastList);
-    m_barSetCpuFrameTimeMedium->append(mediumList);
-    m_barSetCpuFrameTimeSlow->append(slowList);
-    m_barSetCpuFrameTimeDropped->append(droppedList);
+    m_pBarSetCpuFrameTimeFast->append(fastList);
+    m_pBarSetCpuFrameTimeMedium->append(mediumList);
+    m_pBarSetCpuFrameTimeSlow->append(slowList);
+    m_pBarSetCpuFrameTimeDropped->append(droppedList);
 }
 
 void DashboardUI::updateFrameRateGraph(const QList<float>& newFrameRates) {
@@ -382,13 +382,13 @@ void DashboardUI::updateFrameRateGraph(const QList<float>& newFrameRates) {
         }
     }
 
-    m_barSetFrameRateFast->remove(0, count);
-    m_barSetFrameRateMedium->remove(0, count);
-    m_barSetFrameRateSlow->remove(0, count);
+    m_pBarSetFrameRateFast->remove(0, count);
+    m_pBarSetFrameRateMedium->remove(0, count);
+    m_pBarSetFrameRateSlow->remove(0, count);
 
-    m_barSetFrameRateFast->append(fastList);
-    m_barSetFrameRateMedium->append(mediumList);
-    m_barSetFrameRateSlow->append(slowList);
+    m_pBarSetFrameRateFast->append(fastList);
+    m_pBarSetFrameRateMedium->append(mediumList);
+    m_pBarSetFrameRateSlow->append(slowList);
 }
 
 void DashboardUI::updateSystemResources(const SystemResourcesHandler::systemResources& systemResources) {
@@ -452,178 +452,178 @@ Ui::DashboardUI *DashboardUI::getUi() const {
 
 void DashboardUI::setUpCharts() {
     for (int i = 0; i < MAX_GRAPH_POINTS; ++i) {
-        m_categoriesFrameTimeConsistency.append(QString::number(i));
+        m_pCategoriesFrameTimeConsistency.append(QString::number(i));
         m_categoriesCpuFrameTime.append(QString::number(i));
         m_categoriesGpuFrameTime.append(QString::number(i));
         m_categoriesFrameRate.append(QString::number(i));
     }
 
-    m_axisXFrameTimeConsistency->append(m_categoriesFrameTimeConsistency);
-    m_axisXFrameTimeConsistency->setVisible(false); // This hides the labels
+    m_pAxisXFrameTimeConsistency->append(m_pCategoriesFrameTimeConsistency);
+    m_pAxisXFrameTimeConsistency->setVisible(false); // This hides the labels
 
-    m_axisXCpuFrameTime->append(m_categoriesFrameTimeConsistency);
-    m_axisXCpuFrameTime->setVisible(false);
+    m_pAxisXCpuFrameTime->append(m_pCategoriesFrameTimeConsistency);
+    m_pAxisXCpuFrameTime->setVisible(false);
 
-    m_axisXGpuFrameTime->append(m_categoriesFrameTimeConsistency);
-    m_axisXGpuFrameTime->setVisible(false);
+    m_pAxisXGpuFrameTime->append(m_pCategoriesFrameTimeConsistency);
+    m_pAxisXGpuFrameTime->setVisible(false);
 
-    m_axisXFrameRate->append(m_categoriesFrameTimeConsistency);
-    m_axisXFrameRate->setVisible(false);
+    m_pAxisXFrameRate->append(m_pCategoriesFrameTimeConsistency);
+    m_pAxisXFrameRate->setVisible(false);
 
-    m_barSetFrameTimeConsistencyFast = new QBarSet("NormalTOTAL");
-    m_barSetFrameTimeConsistencyFast->setColor(QColor("#1092BF"));
-    m_barSetFrameTimeConsistencyFast->setBorderColor(Qt::transparent);
+    m_pBarSetFrameTimeConsistencyFast = new QBarSet("NormalTOTAL");
+    m_pBarSetFrameTimeConsistencyFast->setColor(QColor("#1092BF"));
+    m_pBarSetFrameTimeConsistencyFast->setBorderColor(Qt::transparent);
 
-    m_barSetFrameTimeConsistencyMedium = new QBarSet("MediumTOTAL");
-    m_barSetFrameTimeConsistencyMedium->setColor(QColorConstants::Svg::orange);
-    m_barSetFrameTimeConsistencyMedium->setBorderColor(Qt::transparent);
+    m_pBarSetFrameTimeConsistencyMedium = new QBarSet("MediumTOTAL");
+    m_pBarSetFrameTimeConsistencyMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetFrameTimeConsistencyMedium->setBorderColor(Qt::transparent);
 
-    m_barSetFrameTimeConsistencySlow = new QBarSet("SlowTOTAL");
-    m_barSetFrameTimeConsistencySlow->setColor(QColorConstants::Svg::red);
-    m_barSetFrameTimeConsistencySlow->setBorderColor(Qt::transparent);
+    m_pBarSetFrameTimeConsistencySlow = new QBarSet("SlowTOTAL");
+    m_pBarSetFrameTimeConsistencySlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetFrameTimeConsistencySlow->setBorderColor(Qt::transparent);
 
-    m_seriesFrameTimeConsistency = new QStackedBarSeries();
-    m_seriesFrameTimeConsistency->setBarWidth(1.0);
-    m_seriesFrameTimeConsistency->append(m_barSetFrameTimeConsistencyFast);
-    m_seriesFrameTimeConsistency->append(m_barSetFrameTimeConsistencySlow);
-    m_seriesFrameTimeConsistency->append(m_barSetFrameTimeConsistencyMedium);
+    m_pSeriesFrameTimeConsistency = new QStackedBarSeries();
+    m_pSeriesFrameTimeConsistency->setBarWidth(1.0);
+    m_pSeriesFrameTimeConsistency->append(m_pBarSetFrameTimeConsistencyFast);
+    m_pSeriesFrameTimeConsistency->append(m_pBarSetFrameTimeConsistencySlow);
+    m_pSeriesFrameTimeConsistency->append(m_pBarSetFrameTimeConsistencyMedium);
 
-    m_barSetCpuFrameTimeFast = new QBarSet("NormalCPU");
-    m_barSetCpuFrameTimeFast->setColor(QColor("#1092BF"));
-    m_barSetCpuFrameTimeFast->setBorderColor(Qt::transparent);
+    m_pBarSetCpuFrameTimeFast = new QBarSet("NormalCPU");
+    m_pBarSetCpuFrameTimeFast->setColor(QColor("#1092BF"));
+    m_pBarSetCpuFrameTimeFast->setBorderColor(Qt::transparent);
 
-    m_barSetCpuFrameTimeMedium = new QBarSet("MediumCPU");
-    m_barSetCpuFrameTimeMedium->setColor(QColorConstants::Svg::orange);
-    m_barSetCpuFrameTimeMedium->setBorderColor(Qt::transparent);
+    m_pBarSetCpuFrameTimeMedium = new QBarSet("MediumCPU");
+    m_pBarSetCpuFrameTimeMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetCpuFrameTimeMedium->setBorderColor(Qt::transparent);
 
-    m_barSetCpuFrameTimeSlow = new QBarSet("SlowCPU");
-    m_barSetCpuFrameTimeSlow->setColor(QColorConstants::Svg::red);
-    m_barSetCpuFrameTimeSlow->setBorderColor(Qt::transparent);
+    m_pBarSetCpuFrameTimeSlow = new QBarSet("SlowCPU");
+    m_pBarSetCpuFrameTimeSlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetCpuFrameTimeSlow->setBorderColor(Qt::transparent);
 
-    m_barSetCpuFrameTimeDropped = new QBarSet("SlowCPU");
-    m_barSetCpuFrameTimeDropped->setColor(QColorConstants::Svg::purple);
-    m_barSetCpuFrameTimeDropped->setBorderColor(Qt::transparent);
+    m_pBarSetCpuFrameTimeDropped = new QBarSet("SlowCPU");
+    m_pBarSetCpuFrameTimeDropped->setColor(QColorConstants::Svg::purple);
+    m_pBarSetCpuFrameTimeDropped->setBorderColor(Qt::transparent);
 
-    m_seriesCpuFrameTime = new QStackedBarSeries();
-    m_seriesCpuFrameTime->setBarWidth(1.0);
-    m_seriesCpuFrameTime->append(m_barSetCpuFrameTimeFast);
-    m_seriesCpuFrameTime->append(m_barSetCpuFrameTimeSlow);
-    m_seriesCpuFrameTime->append(m_barSetCpuFrameTimeMedium);
-    m_seriesCpuFrameTime->append(m_barSetCpuFrameTimeDropped);
+    m_pSeriesCpuFrameTime = new QStackedBarSeries();
+    m_pSeriesCpuFrameTime->setBarWidth(1.0);
+    m_pSeriesCpuFrameTime->append(m_pBarSetCpuFrameTimeFast);
+    m_pSeriesCpuFrameTime->append(m_pBarSetCpuFrameTimeSlow);
+    m_pSeriesCpuFrameTime->append(m_pBarSetCpuFrameTimeMedium);
+    m_pSeriesCpuFrameTime->append(m_pBarSetCpuFrameTimeDropped);
 
-    m_barSetGpuFrameTimeFast = new QBarSet("NormalGPU");
-    m_barSetGpuFrameTimeFast->setColor(QColor("#1092BF"));
-    m_barSetGpuFrameTimeFast->setBorderColor(Qt::transparent);
+    m_pBarSetGpuFrameTimeFast = new QBarSet("NormalGPU");
+    m_pBarSetGpuFrameTimeFast->setColor(QColor("#1092BF"));
+    m_pBarSetGpuFrameTimeFast->setBorderColor(Qt::transparent);
 
-    m_barSetGpuFrameTimeMedium = new QBarSet("MediumGPU");
-    m_barSetGpuFrameTimeMedium->setColor(QColorConstants::Svg::orange);
-    m_barSetGpuFrameTimeMedium->setBorderColor(Qt::transparent);
+    m_pBarSetGpuFrameTimeMedium = new QBarSet("MediumGPU");
+    m_pBarSetGpuFrameTimeMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetGpuFrameTimeMedium->setBorderColor(Qt::transparent);
 
-    m_barSetGpuFrameTimeSlow = new QBarSet("SlowGPU");
-    m_barSetGpuFrameTimeSlow->setColor(QColorConstants::Svg::red);
-    m_barSetGpuFrameTimeSlow->setBorderColor(Qt::transparent);
+    m_pBarSetGpuFrameTimeSlow = new QBarSet("SlowGPU");
+    m_pBarSetGpuFrameTimeSlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetGpuFrameTimeSlow->setBorderColor(Qt::transparent);
 
-    m_seriesGpuFrameTime = new QStackedBarSeries();
-    m_seriesGpuFrameTime->setBarWidth(1.0);
-    m_seriesGpuFrameTime->append(m_barSetGpuFrameTimeFast);
-    m_seriesGpuFrameTime->append(m_barSetGpuFrameTimeSlow);
-    m_seriesGpuFrameTime->append(m_barSetGpuFrameTimeMedium);
+    m_pSeriesGpuFrameTime = new QStackedBarSeries();
+    m_pSeriesGpuFrameTime->setBarWidth(1.0);
+    m_pSeriesGpuFrameTime->append(m_pBarSetGpuFrameTimeFast);
+    m_pSeriesGpuFrameTime->append(m_pBarSetGpuFrameTimeSlow);
+    m_pSeriesGpuFrameTime->append(m_pBarSetGpuFrameTimeMedium);
 
-    m_barSetFrameRateFast = new QBarSet("NormalFPS");
-    m_barSetFrameRateFast->setColor(QColor("#1092BF"));
-    m_barSetFrameRateFast->setBorderColor(Qt::transparent);
+    m_pBarSetFrameRateFast = new QBarSet("NormalFPS");
+    m_pBarSetFrameRateFast->setColor(QColor("#1092BF"));
+    m_pBarSetFrameRateFast->setBorderColor(Qt::transparent);
 
-    m_barSetFrameRateMedium = new QBarSet("MediumFPS");
-    m_barSetFrameRateMedium->setColor(QColorConstants::Svg::orange);
-    m_barSetFrameRateMedium->setBorderColor(Qt::transparent);
+    m_pBarSetFrameRateMedium = new QBarSet("MediumFPS");
+    m_pBarSetFrameRateMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetFrameRateMedium->setBorderColor(Qt::transparent);
 
-    m_barSetFrameRateSlow = new QBarSet("SlowFPS");
-    m_barSetFrameRateSlow->setColor(QColorConstants::Svg::red);
-    m_barSetFrameRateSlow->setBorderColor(Qt::transparent);
+    m_pBarSetFrameRateSlow = new QBarSet("SlowFPS");
+    m_pBarSetFrameRateSlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetFrameRateSlow->setBorderColor(Qt::transparent);
 
-    m_seriesFrameRate = new QStackedBarSeries();
-    m_seriesFrameRate->setBarWidth(1.0);
-    m_seriesFrameRate->append(m_barSetFrameRateFast);
-    m_seriesFrameRate->append(m_barSetFrameRateSlow);
-    m_seriesFrameRate->append(m_barSetFrameRateMedium);
+    m_pSeriesFrameRate = new QStackedBarSeries();
+    m_pSeriesFrameRate->setBarWidth(1.0);
+    m_pSeriesFrameRate->append(m_pBarSetFrameRateFast);
+    m_pSeriesFrameRate->append(m_pBarSetFrameRateSlow);
+    m_pSeriesFrameRate->append(m_pBarSetFrameRateMedium);
 
-    m_chartFrameTimeConsistency = new QChart();
-    m_chartFrameTimeConsistency->addSeries(m_seriesFrameTimeConsistency);
-    m_chartFrameTimeConsistency->addAxis(m_axisXFrameTimeConsistency, Qt::AlignBottom);
-    m_seriesFrameTimeConsistency->attachAxis(m_axisXFrameTimeConsistency);
+    m_pChartFrameTimeConsistency = new QChart();
+    m_pChartFrameTimeConsistency->addSeries(m_pSeriesFrameTimeConsistency);
+    m_pChartFrameTimeConsistency->addAxis(m_pAxisXFrameTimeConsistency, Qt::AlignBottom);
+    m_pSeriesFrameTimeConsistency->attachAxis(m_pAxisXFrameTimeConsistency);
 
-    m_chartCpuFrameTime = new QChart();
-    m_chartCpuFrameTime->addSeries(m_seriesCpuFrameTime);
-    m_chartCpuFrameTime->addAxis(m_axisXCpuFrameTime, Qt::AlignBottom);
-    m_seriesCpuFrameTime->attachAxis(m_axisXCpuFrameTime);
+    m_pChartCpuFrameTime = new QChart();
+    m_pChartCpuFrameTime->addSeries(m_pSeriesCpuFrameTime);
+    m_pChartCpuFrameTime->addAxis(m_pAxisXCpuFrameTime, Qt::AlignBottom);
+    m_pSeriesCpuFrameTime->attachAxis(m_pAxisXCpuFrameTime);
 
-    m_chartGpuFrameTime = new QChart();
-    m_chartGpuFrameTime->addSeries(m_seriesGpuFrameTime);
-    m_chartGpuFrameTime->addAxis(m_axisXGpuFrameTime, Qt::AlignBottom);
-    m_seriesGpuFrameTime->attachAxis(m_axisXGpuFrameTime);
+    m_pChartGpuFrameTime = new QChart();
+    m_pChartGpuFrameTime->addSeries(m_pSeriesGpuFrameTime);
+    m_pChartGpuFrameTime->addAxis(m_pAxisXGpuFrameTime, Qt::AlignBottom);
+    m_pSeriesGpuFrameTime->attachAxis(m_pAxisXGpuFrameTime);
 
-    m_chartFrameRate = new QChart();
-    m_chartFrameRate->addSeries(m_seriesFrameRate);
-    m_chartFrameRate->addAxis(m_axisXFrameRate, Qt::AlignBottom);
-    m_seriesFrameRate->attachAxis(m_axisXFrameRate);
+    m_pChartFrameRate = new QChart();
+    m_pChartFrameRate->addSeries(m_pSeriesFrameRate);
+    m_pChartFrameRate->addAxis(m_pAxisXFrameRate, Qt::AlignBottom);
+    m_pSeriesFrameRate->attachAxis(m_pAxisXFrameRate);
 
-    m_chartFrameTimeConsistency->legend()->hide();
-    m_chartFrameTimeConsistency->setAnimationOptions(QChart::NoAnimation);
-    m_chartFrameTimeConsistency->setBackgroundRoundness(0); // Remove internal rounding
-    m_chartFrameTimeConsistency->setBackgroundBrush(Qt::transparent); // Let the view's background show
+    m_pChartFrameTimeConsistency->legend()->hide();
+    m_pChartFrameTimeConsistency->setAnimationOptions(QChart::NoAnimation);
+    m_pChartFrameTimeConsistency->setBackgroundRoundness(0); // Remove internal rounding
+    m_pChartFrameTimeConsistency->setBackgroundBrush(Qt::transparent); // Let the view's background show
 
-    m_chartCpuFrameTime->legend()->hide();
-    m_chartCpuFrameTime->setAnimationOptions(QChart::NoAnimation);
-    m_chartCpuFrameTime->setBackgroundRoundness(0);
-    m_chartCpuFrameTime->setBackgroundBrush(Qt::transparent);
+    m_pChartCpuFrameTime->legend()->hide();
+    m_pChartCpuFrameTime->setAnimationOptions(QChart::NoAnimation);
+    m_pChartCpuFrameTime->setBackgroundRoundness(0);
+    m_pChartCpuFrameTime->setBackgroundBrush(Qt::transparent);
 
-    m_chartGpuFrameTime->legend()->hide();
-    m_chartGpuFrameTime->setAnimationOptions(QChart::NoAnimation);
-    m_chartGpuFrameTime->setBackgroundRoundness(0);
-    m_chartGpuFrameTime->setBackgroundBrush(Qt::transparent);
+    m_pChartGpuFrameTime->legend()->hide();
+    m_pChartGpuFrameTime->setAnimationOptions(QChart::NoAnimation);
+    m_pChartGpuFrameTime->setBackgroundRoundness(0);
+    m_pChartGpuFrameTime->setBackgroundBrush(Qt::transparent);
 
-    m_chartFrameRate->legend()->hide();
-    m_chartFrameRate->setAnimationOptions(QChart::NoAnimation);
-    m_chartFrameRate->setBackgroundRoundness(0);
-    m_chartFrameRate->setBackgroundBrush(Qt::transparent);
+    m_pChartFrameRate->legend()->hide();
+    m_pChartFrameRate->setAnimationOptions(QChart::NoAnimation);
+    m_pChartFrameRate->setBackgroundRoundness(0);
+    m_pChartFrameRate->setBackgroundBrush(Qt::transparent);
 
     // Makes the charts sit at the bottom of the chartView
-    m_chartFrameTimeConsistency->setMargins(QMargins(0, 20, 0, 0));
-    m_chartCpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
-    m_chartGpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
-    m_chartFrameRate->setMargins(QMargins(0, 20, 0, 0));
+    m_pChartFrameTimeConsistency->setMargins(QMargins(0, 20, 0, 0));
+    m_pChartCpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
+    m_pChartGpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
+    m_pChartFrameRate->setMargins(QMargins(0, 20, 0, 0));
 
-    m_axisYFrameTimeConsistency = new QValueAxis();
-    m_axisYFrameTimeConsistency->setRange(0, m_headsetRefreshRate + 10);
-    m_axisYFrameTimeConsistency->setLabelsVisible(false);
-    m_axisYFrameTimeConsistency->setLineVisible(false);
-    m_axisYFrameTimeConsistency->setGridLineVisible(false);
-    m_chartFrameTimeConsistency->addAxis(m_axisYFrameTimeConsistency, Qt::AlignLeft);
-    m_seriesFrameTimeConsistency->attachAxis(m_axisYFrameTimeConsistency);
+    m_pAxisYFrameTimeConsistency = new QValueAxis();
+    m_pAxisYFrameTimeConsistency->setRange(0, m_headsetRefreshRate + 10);
+    m_pAxisYFrameTimeConsistency->setLabelsVisible(false);
+    m_pAxisYFrameTimeConsistency->setLineVisible(false);
+    m_pAxisYFrameTimeConsistency->setGridLineVisible(false);
+    m_pChartFrameTimeConsistency->addAxis(m_pAxisYFrameTimeConsistency, Qt::AlignLeft);
+    m_pSeriesFrameTimeConsistency->attachAxis(m_pAxisYFrameTimeConsistency);
 
-    m_axisYCpuFrameTime = new QValueAxis();
-    m_axisYCpuFrameTime->setRange(0, m_headsetRefreshRate + 10);
-    m_axisYCpuFrameTime->setLabelsVisible(false);
-    m_axisYCpuFrameTime->setLineVisible(false);
-    m_axisYCpuFrameTime->setGridLineVisible(false);
-    m_chartCpuFrameTime->addAxis(m_axisYCpuFrameTime, Qt::AlignLeft);
-    m_seriesCpuFrameTime->attachAxis(m_axisYCpuFrameTime);
+    m_pAxisYCpuFrameTime = new QValueAxis();
+    m_pAxisYCpuFrameTime->setRange(0, m_headsetRefreshRate + 10);
+    m_pAxisYCpuFrameTime->setLabelsVisible(false);
+    m_pAxisYCpuFrameTime->setLineVisible(false);
+    m_pAxisYCpuFrameTime->setGridLineVisible(false);
+    m_pChartCpuFrameTime->addAxis(m_pAxisYCpuFrameTime, Qt::AlignLeft);
+    m_pSeriesCpuFrameTime->attachAxis(m_pAxisYCpuFrameTime);
 
-    m_axisYGpuFrameTime = new QValueAxis();
-    m_axisYGpuFrameTime->setRange(0, m_headsetRefreshRate + 10);
-    m_axisYGpuFrameTime->setLabelsVisible(false);
-    m_axisYGpuFrameTime->setLineVisible(false);
-    m_axisYGpuFrameTime->setGridLineVisible(false);
-    m_chartGpuFrameTime->addAxis(m_axisYGpuFrameTime, Qt::AlignLeft);
-    m_seriesGpuFrameTime->attachAxis(m_axisYGpuFrameTime);
+    m_pAxisYGpuFrameTime = new QValueAxis();
+    m_pAxisYGpuFrameTime->setRange(0, m_headsetRefreshRate + 10);
+    m_pAxisYGpuFrameTime->setLabelsVisible(false);
+    m_pAxisYGpuFrameTime->setLineVisible(false);
+    m_pAxisYGpuFrameTime->setGridLineVisible(false);
+    m_pChartGpuFrameTime->addAxis(m_pAxisYGpuFrameTime, Qt::AlignLeft);
+    m_pSeriesGpuFrameTime->attachAxis(m_pAxisYGpuFrameTime);
 
-    m_axisYFrameRate = new QValueAxis();
-    m_axisYFrameRate->setRange(0, m_targetFrameRate + 10);
-    m_axisYFrameRate->setLabelsVisible(false);
-    m_axisYFrameRate->setLineVisible(false);
-    m_axisYFrameRate->setGridLineVisible(false);
-    m_chartFrameRate->addAxis(m_axisYFrameRate, Qt::AlignLeft);
-    m_seriesFrameRate->attachAxis(m_axisYFrameRate);
+    m_pAxisYFrameRate = new QValueAxis();
+    m_pAxisYFrameRate->setRange(0, m_targetFrameRate + 10);
+    m_pAxisYFrameRate->setLabelsVisible(false);
+    m_pAxisYFrameRate->setLineVisible(false);
+    m_pAxisYFrameRate->setGridLineVisible(false);
+    m_pChartFrameRate->addAxis(m_pAxisYFrameRate, Qt::AlignLeft);
+    m_pSeriesFrameRate->attachAxis(m_pAxisYFrameRate);
 
     QPen targetPen(QColor("#232424"));
     targetPen.setWidth(2);
@@ -635,47 +635,47 @@ void DashboardUI::setUpCharts() {
     targetLineTotal->append(0, m_headsetRefreshRate);
     targetLineTotal->append(MAX_GRAPH_POINTS - 1, m_headsetRefreshRate);
     targetLineTotal->setPen(targetPen);
-    m_chartFrameTimeConsistency->addSeries(targetLineTotal);
-    targetLineTotal->attachAxis(m_axisXFrameTimeConsistency);
-    targetLineTotal->attachAxis(m_axisYFrameTimeConsistency);
+    m_pChartFrameTimeConsistency->addSeries(targetLineTotal);
+    targetLineTotal->attachAxis(m_pAxisXFrameTimeConsistency);
+    targetLineTotal->attachAxis(m_pAxisYFrameTimeConsistency);
 
     QLineSeries *targetLineCpu = new QLineSeries();
     targetLineCpu->append(0, m_headsetRefreshRate);
     targetLineCpu->append(MAX_GRAPH_POINTS - 1, m_headsetRefreshRate);
     targetLineCpu->setPen(targetPen);
-    m_chartCpuFrameTime->addSeries(targetLineCpu);
-    targetLineCpu->attachAxis(m_axisXCpuFrameTime);
-    targetLineCpu->attachAxis(m_axisYCpuFrameTime);
+    m_pChartCpuFrameTime->addSeries(targetLineCpu);
+    targetLineCpu->attachAxis(m_pAxisXCpuFrameTime);
+    targetLineCpu->attachAxis(m_pAxisYCpuFrameTime);
 
     QLineSeries *targetLineGpu = new QLineSeries();
     targetLineGpu->append(0, m_headsetRefreshRate);
     targetLineGpu->append(MAX_GRAPH_POINTS - 1, m_headsetRefreshRate);
     targetLineGpu->setPen(targetPen);
-    m_chartGpuFrameTime->addSeries(targetLineGpu);
-    targetLineGpu->attachAxis(m_axisXGpuFrameTime);
-    targetLineGpu->attachAxis(m_axisYGpuFrameTime);
+    m_pChartGpuFrameTime->addSeries(targetLineGpu);
+    targetLineGpu->attachAxis(m_pAxisXGpuFrameTime);
+    targetLineGpu->attachAxis(m_pAxisYGpuFrameTime);
 
     // Initialize with empty data
     for(int i = 0; i < MAX_GRAPH_POINTS; ++i) {
-        *m_barSetFrameTimeConsistencyFast << 0;
-        *m_barSetFrameTimeConsistencyMedium << 0;
-        *m_barSetFrameTimeConsistencySlow << 0;
-        *m_barSetCpuFrameTimeFast << 0;
-        *m_barSetCpuFrameTimeMedium << 0;
-        *m_barSetCpuFrameTimeDropped << 0;
-        *m_barSetCpuFrameTimeSlow << 0;
-        *m_barSetGpuFrameTimeFast << 0;
-        *m_barSetGpuFrameTimeMedium << 0;
-        *m_barSetGpuFrameTimeSlow << 0;
-        *m_barSetFrameRateFast << 0;
-        *m_barSetFrameRateMedium << 0;
-        *m_barSetFrameRateSlow << 0;
+        *m_pBarSetFrameTimeConsistencyFast << 0;
+        *m_pBarSetFrameTimeConsistencyMedium << 0;
+        *m_pBarSetFrameTimeConsistencySlow << 0;
+        *m_pBarSetCpuFrameTimeFast << 0;
+        *m_pBarSetCpuFrameTimeMedium << 0;
+        *m_pBarSetCpuFrameTimeDropped << 0;
+        *m_pBarSetCpuFrameTimeSlow << 0;
+        *m_pBarSetGpuFrameTimeFast << 0;
+        *m_pBarSetGpuFrameTimeMedium << 0;
+        *m_pBarSetGpuFrameTimeSlow << 0;
+        *m_pBarSetFrameRateFast << 0;
+        *m_pBarSetFrameRateMedium << 0;
+        *m_pBarSetFrameRateSlow << 0;
     }
 
-    m_chartViewFrameTimeConsistency->setChart(m_chartFrameTimeConsistency);
-    //m_chartViewFrameTimeConsistency->setRenderHint(QPainter::Antialiasing);
-    m_chartViewFrameTimeConsistency->setObjectName("chartViewTotalFrameTime");
-    m_chartViewFrameTimeConsistency->setStyleSheet("#chartViewTotalFrameTime { "
+    m_pChartViewFrameTimeConsistency->setChart(m_pChartFrameTimeConsistency);
+    //m_pChartViewFrameTimeConsistency->setRenderHint(QPainter::Antialiasing);
+    m_pChartViewFrameTimeConsistency->setObjectName("chartViewTotalFrameTime");
+    m_pChartViewFrameTimeConsistency->setStyleSheet("#chartViewTotalFrameTime { "
                             "background-color: #FFFFFF; "
                             "border-top-left-radius: 45px; "
                             "border-top-right-radius: 45px; "
@@ -684,10 +684,10 @@ void DashboardUI::setUpCharts() {
                             "}"
                             );
 
-    m_chartViewCpuFrameTime->setChart(m_chartCpuFrameTime);
-    //m_chartViewCpuFrameTime->setRenderHint(QPainter::Antialiasing);
-    m_chartViewCpuFrameTime->setObjectName("chartViewCpuFrameTime");
-    m_chartViewCpuFrameTime->setStyleSheet("#chartViewCpuFrameTime { "
+    m_pChartViewCpuFrameTime->setChart(m_pChartCpuFrameTime);
+    //m_pChartViewCpuFrameTime->setRenderHint(QPainter::Antialiasing);
+    m_pChartViewCpuFrameTime->setObjectName("chartViewCpuFrameTime");
+    m_pChartViewCpuFrameTime->setStyleSheet("#chartViewCpuFrameTime { "
                             "background-color: #FFFFFF; "
                             "border-top-left-radius: 45px; "
                             "border-top-right-radius: 45px; "
@@ -696,10 +696,10 @@ void DashboardUI::setUpCharts() {
                             "}"
                             );
 
-    m_chartViewGpuFrameTime->setChart(m_chartGpuFrameTime);
-    //m_chartViewGpuFrameTime->setRenderHint(QPainter::Antialiasing);
-    m_chartViewGpuFrameTime->setObjectName("chartViewGpuFrameTime");
-    m_chartViewGpuFrameTime->setStyleSheet("#chartViewGpuFrameTime { "
+    m_pChartViewGpuFrameTime->setChart(m_pChartGpuFrameTime);
+    //m_pChartViewGpuFrameTime->setRenderHint(QPainter::Antialiasing);
+    m_pChartViewGpuFrameTime->setObjectName("chartViewGpuFrameTime");
+    m_pChartViewGpuFrameTime->setStyleSheet("#chartViewGpuFrameTime { "
                             "background-color: #FFFFFF; "
                             "border-top-left-radius: 45px; "
                             "border-top-right-radius: 45px; "
@@ -708,10 +708,10 @@ void DashboardUI::setUpCharts() {
                             "}"
                             );
 
-    m_chartViewFrameRate->setChart(m_chartFrameRate);
-    //m_chartViewFrameRate->setRenderHint(QPainter::Antialiasing);
-    m_chartViewFrameRate->setObjectName("chartViewFrameRate");
-    m_chartViewFrameRate->setStyleSheet("#chartViewFrameRate { "
+    m_pChartViewFrameRate->setChart(m_pChartFrameRate);
+    //m_pChartViewFrameRate->setRenderHint(QPainter::Antialiasing);
+    m_pChartViewFrameRate->setObjectName("chartViewFrameRate");
+    m_pChartViewFrameRate->setStyleSheet("#chartViewFrameRate { "
                             "background-color: #FFFFFF; "
                             "border-top-left-radius: 45px; "
                             "border-top-right-radius: 45px; "
@@ -721,18 +721,18 @@ void DashboardUI::setUpCharts() {
                             );
 
 
-    m_chartViewCpuFrameTime->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_chartViewCpuFrameTime, 0, 1, true);
+    m_pChartViewCpuFrameTime->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewCpuFrameTime, 0, 1, true);
 
-    m_chartViewGpuFrameTime->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_chartViewGpuFrameTime, 0,0, false);
+    m_pChartViewGpuFrameTime->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewGpuFrameTime, 0,0, false);
 
     /*
-    m_chartViewFrameTimeConsistency->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_chartViewFrameTimeConsistency, 2, 0, true);
+    m_pChartViewFrameTimeConsistency->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameTimeConsistency, 2, 0, true);
 
-    m_chartViewFrameRate->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_chartViewFrameRate, 2, 1, false);
+    m_pChartViewFrameRate->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameRate, 2, 1, false);
     */
 
     // Add spacers
@@ -762,9 +762,9 @@ void DashboardUI::setUpCharts() {
     // SPacer height
     ui->mainGridLayout->setRowMinimumHeight(2, 20);
 
-    m_chartViewFrameTimeConsistency->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_chartViewFrameTimeConsistency, 3, 0, true);
+    m_pChartViewFrameTimeConsistency->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameTimeConsistency, 3, 0, true);
 
-    m_chartViewFrameRate->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_chartViewFrameRate, 3, 1, false);
+    m_pChartViewFrameRate->setParent(this);
+    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameRate, 3, 1, false);
 }
