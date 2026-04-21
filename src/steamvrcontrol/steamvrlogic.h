@@ -149,6 +149,8 @@ private:
     Qt::MouseButtons m_lastMouseButtons;
     QSettings m_settings;
 
+    int m_bindToControllerAttemps = 0;
+
 signals:
     void saveOpacity();
     void restoreOpacity();

@@ -297,6 +297,9 @@ void SteamVRLogic::saveSession() {
 }
 
 void SteamVRLogic::savePosition() {
+	// Attaching to HMD is just a fallback if no controller can be found. We don't want to save that as the last
+	// known position
+	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd) return;
 	vr::VROverlayTransformType transformType;
 	vr::VROverlayError typeError = vr::VROverlay()->GetOverlayTransformType(m_ulOverlayHandle, &transformType);
 	if (typeError) return;
@@ -378,7 +381,8 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
 
 	bool mainVisible = m_mainSceneDirty
 		&& m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
-		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle);
+		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle)
+		&& m_lastAlpha > 0.01f;
 
 	bool panicVisible = m_panicSceneDirty
 		&& m_ulPanicOverlayHandle != vr::k_ulOverlayHandleInvalid
@@ -393,7 +397,7 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
 	if (mainVisible && m_pFbo) {
 		m_pFbo->bind();
 		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		f->glClear(GL_COLOR_BUFFER_BIT);
 
 		QOpenGLPaintDevice device(m_pFbo->size());
 		QPainter painter(&device);
@@ -412,7 +416,7 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
 	if (panicVisible && m_PanicpFbo) {
 		m_PanicpFbo->bind();
 		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		f->glClear(GL_COLOR_BUFFER_BIT);
 
 		QOpenGLPaintDevice panicDevice(m_PanicpFbo->size());
 		QPainter panicPainter(&panicDevice);
@@ -429,71 +433,6 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
 	}
 }
 
-/*
-void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
-	if (!vr::VROverlay()) return;
-
-	bool mainVisible = m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
-		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle);
-
-	if (!mainVisible) return;
-
-	m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
-
-	QOpenGLFunctions *f = m_pOpenGLContext->functions();
-
-	// Render scene into main FBO
-	if (m_pFbo) {
-		m_pFbo->bind();
-		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		QOpenGLPaintDevice device(m_pFbo->size());
-		QPainter painter(&device);
-		m_pScene->render(&painter);
-		painter.end();
-		m_pFbo->release();
-
-		GLuint unTexture = m_pFbo->texture();
-		if (unTexture != 0) {
-			vr::Texture_t texture = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
-			vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texture);
-		}
-	}
-}
-
-void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>&) {
-	if (!vr::VROverlay()) return;
-
-	bool panicVisible = m_ulPanicOverlayHandle != vr::k_ulOverlayHandleInvalid
-		&& vr::VROverlay()->IsOverlayVisible(m_ulPanicOverlayHandle);
-
-	if (!panicVisible) return;
-
-	m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
-
-	QOpenGLFunctions *f = m_pOpenGLContext->functions();
-
-	if (m_PanicpFbo) {
-		m_PanicpFbo->bind();
-		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		f->glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		QOpenGLPaintDevice panicDevice(m_PanicpFbo->size());
-		QPainter panicPainter(&panicDevice);
-		m_pPanicScene->render(&panicPainter);
-		panicPainter.end();
-		m_PanicpFbo->release();
-
-		GLuint unPanicTexture = m_PanicpFbo->texture();
-		if (unPanicTexture != 0) {
-			vr::Texture_t texture = {(void*)(uintptr_t)unPanicTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
-			vr::VROverlay()->SetOverlayTexture(m_ulPanicOverlayHandle, &texture);
-		}
-	}
-}
-*/
-
 void SteamVRLogic::OnTimeoutPumpEvents()
 {
     if( !vr::VRSystem() )
@@ -502,7 +441,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	// During autostart, controllers may not be enumerated when Init() runs.
 	// VREvent_TrackedDeviceActivated is missed because the overlay doesn't exist yet when
 	// controllers first connect. Poll here until we get a valid attachment.
-	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid && m_bindToControllerAttemps <= 10) {
 		if (m_leftController == vr::k_unTrackedDeviceIndexInvalid)
 			m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		if (m_rightController == vr::k_unTrackedDeviceIndexInvalid)
@@ -516,7 +455,13 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				AttachToDevice(fallback);
 			}
 		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		if (m_bindToControllerAttemps >= 10) {
+			AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
+		}
+		++m_bindToControllerAttemps;
 	}
+
 
 	vr::VREvent_t vrEvent;
 
@@ -623,14 +568,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 						m_rightController = newDeviceIndex;
 					}
 					// Re-attach if overlay was on this role but device index changed
-					if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+					if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid ||
+						m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd && m_leftController != vr::k_unTrackedDeviceIndexInvalid ||
+						m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd && m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
 						restoreSession();
-						// If restoreSession didn't attach,
-						// fall back to the left controller so the overlay always gets a transform.
-						if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid &&
-							m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
-							AttachToDevice(m_leftController);
-							}
 					}
 				}
 				break;
@@ -656,7 +597,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
 		// Query only up to the highest index we need (HMD=0, controller=small index).
 		// This avoids filling all 64 pose slots when only 2 are read.
-		uint32_t poseCount = static_cast<uint32_t>(m_deviceOverlayIsAttachedTo) + 1;
+		uint32_t poseCount = m_deviceOverlayIsAttachedTo + 1;
 		m_pVRSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, poses, poseCount);
 
 		const vr::TrackedDevicePose_t& hmdPose    = poses[vr::k_unTrackedDeviceIndex_Hmd];
@@ -664,49 +605,61 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 		if (hmdPose.bPoseIsValid && devicePose.bPoseIsValid)
 		{
-			// Build the overlay's world transform: deviceWorld * overlayRelative
-			const vr::HmdMatrix34_t& dw = devicePose.mDeviceToAbsoluteTracking;
-			const vr::HmdMatrix34_t& rel = m_overlayPositionMatrix;
+			// When attached to the HMD the overlay is always facing the user; angle-based
+			// fading does not apply. devicePose == hmdPose (both index 0), so the
+			// overlay-to-HMD vector is near zero and would yield a spurious alpha of 0.
+			// Apply base alpha directly and skip the angle computation.
+			if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd)
+			{
+				if (std::abs(m_baseAlpha - m_lastAlpha) > 0.005f)
+				{
+					vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, m_baseAlpha);
+					m_lastAlpha = m_baseAlpha;
+				}
+			}
+			else {
+				// Build the overlay's world transform: deviceWorld * overlayRelative
+				const vr::HmdMatrix34_t& dw = devicePose.mDeviceToAbsoluteTracking;
+				const vr::HmdMatrix34_t& rel = m_overlayPositionMatrix;
 
-			// World position of overlay (translation column of dw * rel)
-			float ox = dw.m[0][0]*rel.m[0][3] + dw.m[0][1]*rel.m[1][3] + dw.m[0][2]*rel.m[2][3] + dw.m[0][3];
-			float oy = dw.m[1][0]*rel.m[0][3] + dw.m[1][1]*rel.m[1][3] + dw.m[1][2]*rel.m[2][3] + dw.m[1][3];
-			float oz = dw.m[2][0]*rel.m[0][3] + dw.m[2][1]*rel.m[1][3] + dw.m[2][2]*rel.m[2][3] + dw.m[2][3];
+				// World position of overlay (translation column of dw * rel)
+				float ox = dw.m[0][0]*rel.m[0][3] + dw.m[0][1]*rel.m[1][3] + dw.m[0][2]*rel.m[2][3] + dw.m[0][3];
+				float oy = dw.m[1][0]*rel.m[0][3] + dw.m[1][1]*rel.m[1][3] + dw.m[1][2]*rel.m[2][3] + dw.m[1][3];
+				float oz = dw.m[2][0]*rel.m[0][3] + dw.m[2][1]*rel.m[1][3] + dw.m[2][2]*rel.m[2][3] + dw.m[2][3];
 
-			// Z-axis of overlay in world space (third column of the 3x3 rotation block of dw * rel)
-			float wzx = dw.m[0][0]*rel.m[0][2] + dw.m[0][1]*rel.m[1][2] + dw.m[0][2]*rel.m[2][2];
-			float wzy = dw.m[1][0]*rel.m[0][2] + dw.m[1][1]*rel.m[1][2] + dw.m[1][2]*rel.m[2][2];
-			float wzz = dw.m[2][0]*rel.m[0][2] + dw.m[2][1]*rel.m[1][2] + dw.m[2][2]*rel.m[2][2];
+				// Z-axis of overlay in world space (third column of the 3x3 rotation block of dw * rel)
+				float wzx = dw.m[0][0]*rel.m[0][2] + dw.m[0][1]*rel.m[1][2] + dw.m[0][2]*rel.m[2][2];
+				float wzy = dw.m[1][0]*rel.m[0][2] + dw.m[1][1]*rel.m[1][2] + dw.m[1][2]*rel.m[2][2];
+				float wzz = dw.m[2][0]*rel.m[0][2] + dw.m[2][1]*rel.m[1][2] + dw.m[2][2]*rel.m[2][2];
 
-			// The visible (front) face of an OpenVR overlay faces in the +Z direction of its local frame
-			float nx = wzx, ny = wzy, nz = wzz;
-			float nLen = std::sqrt(nx*nx + ny*ny + nz*nz);
-			if (nLen > 0.0001f) { nx /= nLen; ny /= nLen; nz /= nLen; }
+				// The visible (front) face of an OpenVR overlay faces in the +Z direction of its local frame
+				float nx = wzx, ny = wzy, nz = wzz;
+				float nLen = std::sqrt(nx*nx + ny*ny + nz*nz);
+				if (nLen > 0.0001f) { nx /= nLen; ny /= nLen; nz /= nLen; }
 
-			// Vector from overlay centre to HMD
-			float dx = hmdPose.mDeviceToAbsoluteTracking.m[0][3] - ox;
-			float dy = hmdPose.mDeviceToAbsoluteTracking.m[1][3] - oy;
-			float dz = hmdPose.mDeviceToAbsoluteTracking.m[2][3] - oz;
-			float dLen = std::sqrt(dx*dx + dy*dy + dz*dz);
-			if (dLen > 0.0001f) { dx /= dLen; dy /= dLen; dz /= dLen; }
+				// Vector from overlay centre to HMD
+				float dx = hmdPose.mDeviceToAbsoluteTracking.m[0][3] - ox;
+				float dy = hmdPose.mDeviceToAbsoluteTracking.m[1][3] - oy;
+				float dz = hmdPose.mDeviceToAbsoluteTracking.m[2][3] - oz;
+				float dLen = std::sqrt(dx*dx + dy*dy + dz*dz);
+				if (dLen > 0.0001f) { dx /= dLen; dy /= dLen; dz /= dLen; }
 
-			// cosAngle = 1 when facing head-on, 0 at 90 degrees (edge-on)
-			float cosAngle = nx*dx + ny*dy + nz*dz;
+				// cosAngle = 1 when facing head-on, 0 at 90 degrees (edge-on)
+				float cosAngle = nx*dx + ny*dy + nz*dz;
 
-			// Full opacity within 40 degrees, fades to zero at 70 degrees
-			constexpr float fadeStartDeg = 40.0f;
-			constexpr float fadeEndDeg   = 70.0f;
-			constexpr float cosStart = 0.766044f; // cos(40°)
-			constexpr float cosEnd   = 0.342020f; // cos(70°)
-			float angleFactor = (cosAngle - cosEnd) / (cosStart - cosEnd);
-			angleFactor = std::max(0.0f, std::min(1.0f, angleFactor));
+				// Full opacity within 40 degrees, fades to zero at 70 degrees
+				constexpr float cosStart = 0.766044f; // cos(40°)
+				constexpr float cosEnd   = 0.342020f; // cos(70°)
+				float angleFactor = (cosAngle - cosEnd) / (cosStart - cosEnd);
+				angleFactor = std::max(0.0f, std::min(1.0f, angleFactor));
 
-			// Only call the API if the alpha actually changed, to avoid redundant
-			// OpenVR calls every 20ms when the viewing angle is stable.
-			float newAlpha = m_baseAlpha * angleFactor;
-			if (std::abs(newAlpha - m_lastAlpha) > 0.005f) {
-				vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, newAlpha);
-				m_lastAlpha = newAlpha;
+				// Only call the API if the alpha actually changed, to avoid redundant
+				// OpenVR calls every 20ms when the viewing angle is stable.
+				float newAlpha = m_baseAlpha * angleFactor;
+				if (std::abs(newAlpha - m_lastAlpha) > 0.005f) {
+					vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, newAlpha);
+					m_lastAlpha = newAlpha;
+				}
 			}
 		}
 	}
@@ -732,7 +685,15 @@ void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
 	AXy AYy AZy Ty
 	AXz AYz AZz Tz
 	*/
-	vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &m_overlayPositionMatrix);
+	if (device == vr::k_unTrackedDeviceIndex_Hmd) {
+		vr::HmdMatrix34_t hmdMatrix = {
+			1.0f, 0.0f, 0.0f,  0.0f,  /*Left and right*/
+			0.0f, 1.0f, 0.0f, -0.2f,  /*Up and down*/
+			0.0f, 0.0f, 1.0f, -0.5f   /*Closer and farther (-Z is forward in HMD space)*/
+		};
+		vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &hmdMatrix);
+	}
+	else vr::VROverlay()->SetOverlayTransformTrackedDeviceRelative(m_ulOverlayHandle, device, &m_overlayPositionMatrix);
 	m_deviceOverlayIsAttachedTo = device;
 }
 
