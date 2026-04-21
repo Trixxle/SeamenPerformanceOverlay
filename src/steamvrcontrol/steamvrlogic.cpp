@@ -41,9 +41,9 @@ m_ePanicOverlayError( vr::VRInitError_None ),
 m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid ),
 m_ulPanicOverlayHandle( vr::k_ulOverlayHandleInvalid ),
 m_overlayPositionMatrix({
-		1.0f, /*Stretches horizontally*/ 0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
-		0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
-		0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
+	1.0f, /*Stretches horizontally*/	0.0f,    /*Horizontal Shear*/			0.0f,   /*Unknown*/			0.0f,  /*Left and right*/
+	0.0f, /*Vertical Shear*/			0.866f,  /*Stretches vertically*/		0.5f,   /*Tilt top away*/	0.1f,  /*Up and down*/
+	0.0f, /*Rotation vertical axis*/	-0.5f,   /*Rotation horizontal axis*/	0.866f, /*Stretches depth*/	-0.08f  /*Closer and farther*/
 	}),
 m_Widget(NULL),
 m_strVRDriver("No Driver"),
@@ -260,12 +260,14 @@ void SteamVRLogic::updateOverlayWidthInMeters() {
 
 void SteamVRLogic::resetOverlayToDefault() {
 	m_overlayPositionMatrix = {
-		1.0f, /*Stretches horizontally*/ 	0.0f, /*Horizontal Shear*/			0.0f, /*Unknown*/			0.0f, /*Left and right*/
-		0.0f, /*Vertical Shear*/			1.0f, /*Stretches vertically*/		0.0f, /*Unknown*/			0.1f, /*Up and down*/
-		0.0f, /*Rotation vertical axis*/	0.0f, /*Rotation horizontal axis*/	1.0f, /*Stretches depth*/	0.08f /*Closer and farther*/
+		1.0f, /*Stretches horizontally*/	0.0f,    /*Horizontal Shear*/			0.0f,   /*Unknown*/			0.0f,  /*Left and right*/
+		0.0f, /*Vertical Shear*/			0.866f,  /*Stretches vertically*/		0.5f,   /*Tilt top away*/	0.1f,  /*Up and down*/
+		0.0f, /*Rotation vertical axis*/	-0.5f,   /*Rotation horizontal axis*/	0.866f, /*Stretches depth*/	-0.08f  /*Closer and farther*/
 	};
 	m_overlayWidthInMeters = 0.2f;
-	AttachToDevice(m_leftController);
+	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_leftController);
+	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_rightController);
+	else AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
 	updateOverlayWidthInMeters();
 }
 
@@ -326,7 +328,7 @@ void SteamVRLogic::saveController() {
 	}
 }
 
-// IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is run before the widget exists
+// IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is ran before the widget exists
 void SteamVRLogic::restoreSession() {
 	if (!vr::VROverlay() || !m_pVRSystem) return;
 

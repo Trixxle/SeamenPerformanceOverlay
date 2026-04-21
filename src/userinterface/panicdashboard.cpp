@@ -16,6 +16,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "panicdashboard.h"
+
+#include <QApplication>
+#include <QPushButton>
+
 #include "ui_panicDashboard.h"
 
 
@@ -24,6 +28,7 @@ panicDashboard::panicDashboard(QWidget *parent) : QWidget(parent), ui(new Ui::pa
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
     connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::panicButtonClicked);
+    connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
 }
 
 panicDashboard::~panicDashboard() {
