@@ -1,5 +1,37 @@
 /*
-Copyright (C) 2026 Jorn ten Kate, The Seamen
+Original work Copyright (c) 2015, Valve Corporation. All rights reserved.
+Modified work Copyright (C) 2026 Jorn ten Kate, The Seamen.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1. Redistributions of source code must retain the above copyright notice, this
+list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright notice,
+this list of conditions and the following disclaimer in the documentation and/or
+other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+may be used to endorse or promote products derived from this software without
+specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+-------------------------------------------------------------------------------
+
+This program is also licensed under the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the License,
+or (at your option) any later version.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,10 +49,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "steamvrlogic.h"
 
-#include <qdialogbuttonbox.h>
-#include <qmessagebox.h>
-#include <bits/regex_constants.h>
-
 SteamVRLogic *s_pSharedSteamVRLogic= NULL;
 
 SteamVRLogic *SteamVRLogic::SharedInstance()
@@ -33,7 +61,6 @@ SteamVRLogic *SteamVRLogic::SharedInstance()
 }
 
 SteamVRLogic::SteamVRLogic():
-BaseClass(),
 m_eLastHmdError(vr::VRInitError_None),
 m_eCompositorError( vr::VRInitError_None ),
 m_eOverlayError( vr::VRInitError_None ),
@@ -41,9 +68,9 @@ m_ePanicOverlayError( vr::VRInitError_None ),
 m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid ),
 m_ulPanicOverlayHandle( vr::k_ulOverlayHandleInvalid ),
 m_overlayPositionMatrix({
-	1.0f, /*Stretches horizontally*/	0.0f,    /*Horizontal Shear*/			0.0f,   /*Unknown*/			0.0f,  /*Left and right*/
-	0.0f, /*Vertical Shear*/			0.866f,  /*Stretches vertically*/		0.5f,   /*Tilt top away*/	0.1f,  /*Up and down*/
-	0.0f, /*Rotation vertical axis*/	-0.5f,   /*Rotation horizontal axis*/	0.866f, /*Stretches depth*/	-0.08f  /*Closer and farther*/
+	1.0f, 0.0f, 0.0f, 0.0f,
+	0.0f, 0.866f, 0.5f, 0.1f,
+	0.0f, -0.5f, 0.866f, -0.08f
 	}),
 m_pWidget(NULL),
 m_strVRDriver("No Driver"),
@@ -92,7 +119,6 @@ bool SteamVRLogic::Init() {
     m_pOpenGLContext->setFormat( format );
     bSuccess = m_pOpenGLContext->create();
     if( !bSuccess ) {
-    	//QMessageBox::critical( this, "Error", "Failed to create OpenGL context" );
 		std::cout << "Failed to initialize OpenGL context." << std::endl;
     	return false;
     }
@@ -206,7 +232,6 @@ bool SteamVRLogic::Init() {
 		}
 
 		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
-		//vr::VROverlay()->ShowOverlay(m_ulPanicOverlayHandle);
 
 		m_pPumpEventsTimer = new QTimer( this );
 		m_pRenderTimer = new QTimer( this );
@@ -216,7 +241,7 @@ bool SteamVRLogic::Init() {
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
 
-		// The quickest updating UI element is the text, which happens at 100ms.
+		// The quickest updating UI element is the text, which happens at 100ms intervals.
 		// Rendering above that frequency would be wasted performance
 		// Yes, this makes the buttons slightly less responsive but at 100ms interval they still feel fine, it is worth the
 		// Trade-off
@@ -260,9 +285,9 @@ void SteamVRLogic::updateOverlayWidthInMeters() {
 
 void SteamVRLogic::resetOverlayToDefault() {
 	m_overlayPositionMatrix = {
-		1.0f, /*Stretches horizontally*/	0.0f,    /*Horizontal Shear*/			0.0f,   /*Unknown*/			0.0f,  /*Left and right*/
-		0.0f, /*Vertical Shear*/			0.866f,  /*Stretches vertically*/		0.5f,   /*Tilt top away*/	0.1f,  /*Up and down*/
-		0.0f, /*Rotation vertical axis*/	-0.5f,   /*Rotation horizontal axis*/	0.866f, /*Stretches depth*/	-0.08f  /*Closer and farther*/
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.866f, 0.5f, 0.1f,
+		0.0f, -0.5f, 0.866f, -0.08f
 	};
 	m_overlayWidthInMeters = 0.2f;
 	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_leftController);
@@ -283,7 +308,6 @@ void SteamVRLogic::Shutdown() {
 
 	if( m_pOpenGLContext )
 	{
-		//		m_pOpenGLContext->destroy();
 		delete m_pOpenGLContext;
 		m_pOpenGLContext = NULL;
 	}
@@ -365,7 +389,7 @@ void SteamVRLogic::restoreSession() {
 void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
 	// Just mark dirty. The actual GPU render is batched in OnTimeoutPumpEvents
 	// to prevent multiple FBO renders per timer tick when the UI updates several
-	// items at once (labels, charts, etc.).
+	// items at once, like labels, charts, etc.
 	m_mainSceneDirty = true;
 }
 
@@ -374,10 +398,10 @@ void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>&) {
 	m_panicSceneDirty = true;
 }
 
-// Performs the actual OpenGL FBO render and texture upload to OpenVR for any
+// Performs the OpenGL FBO render and texture upload to OpenVR for any
 // scene that has been marked dirty since the last render update tick.
 // Called once per timer tick so that multiple scene-changed signals within a
-// single tick collapse into one GPU render instead of mtwo, as there are two overlays
+// single tick collapse into one GPU render instead of two, as there are two overlays
 void SteamVRLogic::RenderDirtyOverlayScenes() {
 	if (!vr::VROverlay()) return;
 
@@ -457,13 +481,14 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				AttachToDevice(fallback);
 			}
 		}
+		// Wait 250ms and try to find a controller again
 		std::this_thread::sleep_for(std::chrono::milliseconds(250));
+		// If no controller has been found after 10 tries, just attach to the HMD
 		if (m_bindToControllerAttempts >= 10) {
 			AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
 		}
 		++m_bindToControllerAttempts;
 	}
-
 
 	vr::VREvent_t vrEvent;
 
@@ -569,7 +594,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 					if (role == vr::TrackedControllerRole_RightHand) {
 						m_rightController = newDeviceIndex;
 					}
-					// Re-attach if overlay was on this role but device index changed
+					// Check if the overlay is not attached to anything, or if it is attached to the HMD (fallback) and
+					// the left controller is now not invalid, or if it is attached to HMD (fallback) and the right
+					// controller is now not invalid. If any of these is true, restore the session and attach to the
+					// controller saved from previous session
 					if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid ||
 						m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd && m_leftController != vr::k_unTrackedDeviceIndexInvalid ||
 						m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd && m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
@@ -587,8 +615,6 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 	processOverlayEvents( m_ulOverlayHandle, m_pScene, m_pWidget );
 	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene, m_pPanicWidget );
-
-	// The below code is made almost entirely made by Claude. I was too lazy to refresh my math on matrices
 
 	// Update overlay alpha based on the viewing angle so the overlay fades when seen edge-on
 	if (vr::VROverlay()
@@ -680,13 +706,17 @@ void SteamVRLogic::OnTimeoutPumpEvents()
     }
 }
 
-// False for left, true for right
 void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
+	// For reference, matrix format:
 	/*
 	AXx AYx AZx Tx
 	AXy AYy AZy Ty
 	AXz AYz AZz Tz
 	*/
+
+	// Overlay will default to attaching to HMD if no controllers are found, but the restored matrix in m_overlayPositionMatrix
+	// is almost certainly from a controller and we don't want to overwrite the restored value in case a controller
+	// connects. This if statement is therefore needed to use a temporary fallback matrix transform to attach with.
 	if (device == vr::k_unTrackedDeviceIndex_Hmd) {
 		vr::HmdMatrix34_t hmdMatrix = {
 			1.0f, 0.0f, 0.0f,  0.0f,  /*Left and right*/
@@ -700,7 +730,8 @@ void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
 }
 
 void SteamVRLogic::switchController() {
-	// Ensure we actually have a valid device that clicked the button
+	// Ensure we actually have a valid device that clicked the button if by some miracle the user happens to somehow
+	// click the button with an invalid device
 	if (m_unLastInteractingDevice != vr::k_unTrackedDeviceIndexInvalid) {
 		// Attach the overlay to the controller that triggered the click
 		mirrorMatrix();
@@ -708,7 +739,8 @@ void SteamVRLogic::switchController() {
 
 		m_isMoving = false;
 	} else {
-		std::cerr << "Warning: Attempted to move overlay, but no interacting device was found." << std::endl;
+		std::cerr << "Warning: You have somehow done something that should be impossible. You clicked the switch controller"
+		" button with an invalid device." << std::endl;
 	}
 }
 
@@ -742,7 +774,6 @@ void SteamVRLogic::startMove() {
 		AttachToDevice(m_leftController);
 		m_isMoving = true;
 	}
-
 }
 
 void SteamVRLogic::stopMove() {
@@ -765,6 +796,9 @@ void SteamVRLogic::mirrorMatrix() {
 	m_overlayPositionMatrix.m[1][0] = -m_overlayPositionMatrix.m[1][0];
 	m_overlayPositionMatrix.m[2][0] = -m_overlayPositionMatrix.m[2][0];
 }
+
+
+// -- NOTE: The below code is made almost entirely made by Claude. I was too lazy to refresh my math on matrices -- //
 
 // Calculates the relative transform between the overlay and the passed device
 vr::HmdMatrix34_t SteamVRLogic::calculateRelativeTransform(vr::TrackedDeviceIndex_t device) {
@@ -859,6 +893,7 @@ vr::HmdMatrix34_t SteamVRLogic::calculateRelativeTransform(vr::TrackedDeviceInde
     // Convert back to OpenVR format and return
     return toVrMatrix(newRelativeTransform);
 }
+// -- END NOTE BOUNDARY -- //
 
 bool SteamVRLogic::ConnectToVRRuntime() {
 	m_eLastHmdError = vr::VRInitError_None;
@@ -895,10 +930,7 @@ QString SteamVRLogic::GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDev
     {
         return QString( "Error Getting String: " ) + pHmd->GetPropErrorNameFromEnum( err );
     }
-    else
-    {
-        return buf;
-    }
+	return buf;
 }
 
 void SteamVRLogic::SetWidget( QWidget *pWidget) {
@@ -910,7 +942,7 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
     	QGraphicsProxyWidget *proxy = m_pScene->addWidget( pWidget );
 
     	// This forces Qt to render the whole overlay as a single texture, meaning one draw call. This massively improves GPU usage.
-    	// Going from 20% to 1.5% GPU usage on my system
+    	// Going from 20% to 1.5% GPU usage on my system (weak laptop)
     	proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
     }
     m_pWidget = pWidget;
@@ -975,7 +1007,8 @@ QString SteamVRLogic::GetVRDisplayString()
 	return m_strVRDisplay;
 }
 
-// Given in ms
+// Given in ms, 11.(1) ms for 90 hz (yes this is confusing)
+// TODO: Refactor this and all of the wrongly named variables that pull from this function
 float SteamVRLogic::GetHeadsetRefreshRate()
 {
 	vr::ETrackedPropertyError err;

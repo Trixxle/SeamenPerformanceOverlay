@@ -73,8 +73,6 @@ public:
 
     void insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int targetRow, int targetColumn, bool toShiftDown);
 
-    [[nodiscard]] Ui::DashboardUI *getUi() const;
-
 public slots:
     void updateGraphs(const FrameHandler::FrameStatsList& informationList);
     void updateLabels(const FrameHandler::frameStats& information);
@@ -150,7 +148,6 @@ signals:
     void requestMoveBegin();
     void requestScaleUp();
     void requestScaleDown();
-    //void requestMoveEnd();
 };
 
 

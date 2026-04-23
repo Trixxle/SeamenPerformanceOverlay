@@ -42,7 +42,6 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 {
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
-    //this->setStyleSheet("background: transparent;");
 
     ui->setupUi(this);
 
@@ -176,7 +175,8 @@ float DashboardUI::roundFloat(float number, int decimalCases) {
     return roundf(number * 100) / (decimalCases * 50);
 }
 
-// This is required as for some reason Qt is refusing to atumatocally apply the underlying QPaintEvent function
+// This is required as for some reason Qt is refusing to atumatocally apply the underlying QPaintEvent function and thus
+// renders the overlay wrong.
 void DashboardUI::paintEvent(QPaintEvent *event) {
     QStyleOption opt;
     opt.initFrom(this);
@@ -184,6 +184,10 @@ void DashboardUI::paintEvent(QPaintEvent *event) {
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
 }
 
+// This function was made as I was not at all comfortable using Qt's Widget Designer program. It would be
+// 100 times easier to just add these in the widget designer instead of through code but this works and I am too lazy
+// to reimplement the same functionality through the designer. I'll do it some other time, it is low priority
+// TODO: What is explained above
 void DashboardUI::insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int targetRow, int targetColumn, bool toShiftDown) {
     newWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     newWidget->setMinimumHeight(150);
@@ -445,11 +449,6 @@ void DashboardUI::setSystemVram(float systemVram) {
     ui->totalVramLabel->setText(tr("/") + QString::number(roundFloat(systemVram, 2)) + tr(" GB"));
 }
 
-// TODO: Delete this but check if it is used anywhere first
-Ui::DashboardUI *DashboardUI::getUi() const {
-    return ui;
-}
-
 void DashboardUI::setUpCharts() {
     for (int i = 0; i < MAX_GRAPH_POINTS; ++i) {
         m_pCategoriesFrameTimeConsistency.append(QString::number(i));
@@ -673,7 +672,6 @@ void DashboardUI::setUpCharts() {
     }
 
     m_pChartViewFrameTimeConsistency->setChart(m_pChartFrameTimeConsistency);
-    //m_pChartViewFrameTimeConsistency->setRenderHint(QPainter::Antialiasing);
     m_pChartViewFrameTimeConsistency->setObjectName("chartViewTotalFrameTime");
     m_pChartViewFrameTimeConsistency->setStyleSheet("#chartViewTotalFrameTime { "
                             "background-color: #FFFFFF; "
@@ -685,7 +683,6 @@ void DashboardUI::setUpCharts() {
                             );
 
     m_pChartViewCpuFrameTime->setChart(m_pChartCpuFrameTime);
-    //m_pChartViewCpuFrameTime->setRenderHint(QPainter::Antialiasing);
     m_pChartViewCpuFrameTime->setObjectName("chartViewCpuFrameTime");
     m_pChartViewCpuFrameTime->setStyleSheet("#chartViewCpuFrameTime { "
                             "background-color: #FFFFFF; "
@@ -697,7 +694,6 @@ void DashboardUI::setUpCharts() {
                             );
 
     m_pChartViewGpuFrameTime->setChart(m_pChartGpuFrameTime);
-    //m_pChartViewGpuFrameTime->setRenderHint(QPainter::Antialiasing);
     m_pChartViewGpuFrameTime->setObjectName("chartViewGpuFrameTime");
     m_pChartViewGpuFrameTime->setStyleSheet("#chartViewGpuFrameTime { "
                             "background-color: #FFFFFF; "
@@ -709,7 +705,6 @@ void DashboardUI::setUpCharts() {
                             );
 
     m_pChartViewFrameRate->setChart(m_pChartFrameRate);
-    //m_pChartViewFrameRate->setRenderHint(QPainter::Antialiasing);
     m_pChartViewFrameRate->setObjectName("chartViewFrameRate");
     m_pChartViewFrameRate->setStyleSheet("#chartViewFrameRate { "
                             "background-color: #FFFFFF; "
@@ -726,14 +721,6 @@ void DashboardUI::setUpCharts() {
 
     m_pChartViewGpuFrameTime->setParent(this);
     insertWidgetAtRow(ui->mainGridLayout, m_pChartViewGpuFrameTime, 0,0, false);
-
-    /*
-    m_pChartViewFrameTimeConsistency->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameTimeConsistency, 2, 0, true);
-
-    m_pChartViewFrameRate->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameRate, 2, 1, false);
-    */
 
     // Add spacers
     struct LayoutShiftItem {
@@ -759,7 +746,7 @@ void DashboardUI::setUpCharts() {
         ui->mainGridLayout->addItem(si.item, si.r + 1, si.c, si.rs, si.cs);
     }
 
-    // SPacer height
+    // Spacer height
     ui->mainGridLayout->setRowMinimumHeight(2, 20);
 
     m_pChartViewFrameTimeConsistency->setParent(this);
