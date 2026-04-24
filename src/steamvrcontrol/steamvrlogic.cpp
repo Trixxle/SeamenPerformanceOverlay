@@ -153,7 +153,7 @@ bool SteamVRLogic::Init() {
 
 	// Check the app is installed to SteamVR already. If not, add it and turn on autostart
 	if (vr::VRApplications()) {
-		std::string sKey = "com.seamen.overlay";
+		std::string sKey = "steam.app.4666560";
 
 		if (!vr::VRApplications()->IsApplicationInstalled(sKey.c_str())) {
 
