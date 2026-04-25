@@ -151,6 +151,8 @@ bool SteamVRLogic::Init() {
 		}
 	}
 
+	// The following only really applies if ths app is sideloaded. When downloading from steam the app will
+	// automatically be added to SteamVR.
 	// Check if the app is installed to SteamVR already. If not, add it and turn on autostart
 	if (vr::VRApplications()) {
 		std::string sKey = "steam.overlay.4666560";
@@ -181,15 +183,14 @@ bool SteamVRLogic::Init() {
 		}
 	}
 
-
     bSuccess = vr::VRCompositor() != NULL;
 
 	if (!bSuccess) std::cerr << "Failed to initialize Compositor." << std::endl;
 
     if( vr::VROverlay() )
     {
-        std::string sKey = std::string( "com.seamen.overlay." ) + m_strOverlayName.toStdString();
-    	std::string sPanicKey = sKey + ".panic";
+        std::string sPanicKey = std::string( "steam.overlay.4666560" ); // + m_strOverlayName.toStdString();
+    	std::string sKey = sPanicKey + ".nonPanic";
 
 		vr::VROverlayError overlayErrorPanic = vr::VROverlay()->CreateDashboardOverlay( sPanicKey.c_str(),
 			"Seamen Performance Overlay", &m_ulPanicOverlayHandle, &m_ulOverlayThumbnailHandle );
