@@ -145,6 +145,7 @@ private:
     void savePosition();
     void saveController();
     void RenderDirtyOverlayScenes();
+    void checkClosestControllerForRole();
 
     bool m_isMoving = false;
     float m_overlayWidthInMeters;
@@ -181,6 +182,7 @@ private:
     QSettings m_settings;
 
     int m_bindToControllerAttempts = 0;
+    int m_proximityCheckCounter = 0;
 
 signals:
     void saveOpacity();
