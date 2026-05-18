@@ -67,6 +67,7 @@ Some graphs will also display a dotted line, this line represents the value the 
 ## Known bugs:
   - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
   - When scaling the overlay to an impractical size the fading based on viewing angle stops working correctly
+  - The overlay does not know how to handle more than 2 controllers
 
 ## Planned features:
   - Linux support (I need a Linux distro to test with)
