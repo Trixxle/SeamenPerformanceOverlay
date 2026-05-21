@@ -289,6 +289,7 @@ void SteamVRLogic::resetOverlayToDefault() {
 	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_rightController);
 	else AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
 	updateOverlayWidthInMeters();
+	emit restoreDistanceFade(m_distanceFadeOn);
 }
 
 void SteamVRLogic::Shutdown() {
