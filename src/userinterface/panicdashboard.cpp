@@ -29,6 +29,11 @@ panicDashboard::panicDashboard(QWidget *parent) : QWidget(parent), ui(new Ui::pa
     this->setAttribute(Qt::WA_TranslucentBackground);
     connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::panicButtonClicked);
     connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
+    connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &panicDashboard::distanceCheckboxToggled);
+}
+
+void panicDashboard::setDistanceFadeChecked(bool checked) {
+    ui->distanceFadeCheck->setChecked(checked);
 }
 
 panicDashboard::~panicDashboard() {

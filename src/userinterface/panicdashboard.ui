@@ -70,6 +70,62 @@ button here for people like you.</string>
      <item>
       <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
+        <widget class="QCheckBox" name="distanceFadeCheck">
+         <property name="minimumSize">
+          <size>
+           <width>400</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>400</width>
+           <height>80</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>35</pointsize>
+           <italic>false</italic>
+           <underline>false</underline>
+          </font>
+         </property>
+         <property name="layoutDirection">
+          <enum>Qt::LayoutDirection::LeftToRight</enum>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">	QCheckBox::indicator {
+    	 width: 40px;
+     	height: 40px;
+ 	}
+
+    QCheckBox {
+        color: white;
+		border-radius: 25px;
+    }
+
+    QCheckBox:hover {
+        background-color: #262626;
+    }
+
+    QCheckBox:pressed {
+        background-color: #1EAEED;
+        border-color: #1EAEED;
+        color: black;
+    }</string>
+         </property>
+         <property name="text">
+          <string>Distance Fade</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+         <property name="tristate">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <widget class="QPushButton" name="panicQuitButton">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">

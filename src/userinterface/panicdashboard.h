@@ -37,11 +37,15 @@ public:
 
     ~panicDashboard() override;
 
+public slots:
+    void setDistanceFadeChecked(bool checked);
+
 private:
     Ui::panicDashboard *ui;
 
 signals:
     void panicButtonClicked();
+    void distanceCheckboxToggled(bool checked);
 };
 
 

@@ -283,6 +283,8 @@ void SteamVRLogic::resetOverlayToDefault() {
 		0.0f, -0.5f, 0.866f, -0.08f
 	};
 	m_overlayWidthInMeters = 0.2f;
+	m_distanceFadeStart = 0.4f;
+	m_distanceFadeOn = false;
 	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_leftController);
 	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_rightController);
 	else AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
@@ -312,6 +314,8 @@ void SteamVRLogic::saveSession() {
 	saveSize();
 	saveController();
 	savePosition();
+	saveDistanceFadeStart();
+	saveDistanceFade();
 	emit saveOpacity();
 }
 
@@ -345,6 +349,19 @@ void SteamVRLogic::saveController() {
 	}
 }
 
+void SteamVRLogic::saveDistanceFadeStart() {
+	m_settings.setValue("DistanceFadeStart", m_distanceFadeStart);
+}
+
+void SteamVRLogic::setDistanceFade(bool enabled) {
+	m_distanceFadeOn = enabled;
+	saveDistanceFade();
+}
+
+void SteamVRLogic::saveDistanceFade() {
+	m_settings.setValue("DistanceFadeOn", m_distanceFadeOn);
+}
+
 // IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is ran before the widget exists
 void SteamVRLogic::restoreSession() {
 	if (!vr::VROverlay() || !m_pVRSystem) return;
@@ -376,6 +393,17 @@ void SteamVRLogic::restoreSession() {
 	if (!m_settings.value("Size").isNull()) {
 		m_overlayWidthInMeters = m_settings.value("Size").toFloat();
 		updateOverlayWidthInMeters();
+	}
+
+	// Restore distance fade start
+	if (!m_settings.value("DistanceFadeStart").isNull()) {
+		m_distanceFadeStart = m_settings.value("DistanceFadeStart").toFloat();
+	}
+
+	// Restore distance fade
+	if (!m_settings.value("DistanceFadeOn").isNull()) {
+		m_distanceFadeOn = m_settings.value("DistanceFadeOn").toBool();
+		emit restoreDistanceFade(m_distanceFadeOn);
 	}
 }
 
@@ -511,6 +539,36 @@ void SteamVRLogic::checkClosestControllerForRole() {
 		if (attachedRole == vr::TrackedControllerRole_LeftHand) m_leftController = closestDevice;
 		else m_rightController = closestDevice;
 	}
+}
+
+// Unused but could be useful in the future
+float SteamVRLogic::calculateOverlayDistance() {
+	if (!m_pVRSystem || m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid)
+		return -1.0f;
+
+	vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+	uint32_t poseCount = std::max<uint32_t>(m_deviceOverlayIsAttachedTo + 1, 1);
+	m_pVRSystem->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0.0f, poses, poseCount);
+
+	const vr::TrackedDevicePose_t& hmdPose = poses[vr::k_unTrackedDeviceIndex_Hmd];
+	const vr::TrackedDevicePose_t& devicePose = poses[m_deviceOverlayIsAttachedTo];
+
+	if (!hmdPose.bPoseIsValid || !devicePose.bPoseIsValid)
+		return -1.0f;
+
+	// Compute overlay world position: deviceWorld * overlayRelative
+	const vr::HmdMatrix34_t& dw = devicePose.mDeviceToAbsoluteTracking;
+	const vr::HmdMatrix34_t& rel = m_overlayPositionMatrix;
+
+	float ox = dw.m[0][0]*rel.m[0][3] + dw.m[0][1]*rel.m[1][3] + dw.m[0][2]*rel.m[2][3] + dw.m[0][3];
+	float oy = dw.m[1][0]*rel.m[0][3] + dw.m[1][1]*rel.m[1][3] + dw.m[1][2]*rel.m[2][3] + dw.m[1][3];
+	float oz = dw.m[2][0]*rel.m[0][3] + dw.m[2][1]*rel.m[1][3] + dw.m[2][2]*rel.m[2][3] + dw.m[2][3];
+
+	float dx = hmdPose.mDeviceToAbsoluteTracking.m[0][3] - ox;
+	float dy = hmdPose.mDeviceToAbsoluteTracking.m[1][3] - oy;
+	float dz = hmdPose.mDeviceToAbsoluteTracking.m[2][3] - oz;
+
+	return std::sqrt(dx*dx + dy*dy + dz*dz);
 }
 
 void SteamVRLogic::OnTimeoutPumpEvents()
@@ -746,9 +804,19 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				float angleFactor = (cosAngle - cosEnd) / (cosStart - cosEnd);
 				angleFactor = std::max(0.0f, std::min(1.0f, angleFactor));
 
+				// Distance-based fade: full opacity up to the use defined setting, fades to 0% over the next 10cm
+				float distanceFactor = 1.0f;
+				if (m_distanceFadeOn) {
+					if (dLen > m_distanceFadeStart) {
+						constexpr float distFadeRange = 0.10f;
+						distanceFactor = 1.0f - (dLen - m_distanceFadeStart) / distFadeRange;
+						distanceFactor = std::max(0.0f, std::min(1.0f, distanceFactor));
+					}
+				}
+
 				// Only call the API if the alpha actually changed, to avoid redundant
 				// OpenVR calls every 20ms when the viewing angle is stable.
-				float newAlpha = m_baseAlpha * angleFactor;
+				float newAlpha = m_baseAlpha * angleFactor * distanceFactor;
 				if (std::abs(newAlpha - m_lastAlpha) > 0.005f) {
 					vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, newAlpha);
 					m_lastAlpha = newAlpha;

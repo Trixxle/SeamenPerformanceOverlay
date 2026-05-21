@@ -117,6 +117,7 @@ public slots:
     // This alpha is only used to calculate the fade in and out when the viewing angle is steep.
     void setBaseAlpha(float alpha);
     void resetOverlayToDefault();
+    void setDistanceFade(bool enabled);
 
 private:
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
@@ -144,15 +145,20 @@ private:
     void saveSize();
     void savePosition();
     void saveController();
+    void saveDistanceFadeStart();
+    void saveDistanceFade();
     void RenderDirtyOverlayScenes();
     void checkClosestControllerForRole();
+    float calculateOverlayDistance();
 
     bool m_isMoving = false;
+    float m_distanceFadeStart = 0.4f;
     float m_overlayWidthInMeters;
     float m_baseAlpha = 1.0f;
     float m_lastAlpha = -1.0f;  // Cached alpha to avoid redundant SetOverlayAlpha calls
     bool m_mainSceneDirty = false;   // Dirty flags: set on scene change, cleared after FBO render
     bool m_panicSceneDirty = false;
+    bool m_distanceFadeOn = false;
 
     vr::HmdMatrix34_t m_overlayPositionMatrix;
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
@@ -187,6 +193,7 @@ private:
 signals:
     void saveOpacity();
     void restoreOpacity();
+    void restoreDistanceFade(bool enabled);
 };
 
 

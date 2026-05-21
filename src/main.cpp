@@ -114,6 +114,9 @@ int main(int argc, char *argv[])
     QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked,pDashboardUI, &DashboardUI::resetOpacityToDefault);
     QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked, SteamVRLogic::SharedInstance(), &SteamVRLogic::resetOverlayToDefault);
 
+    QObject::connect(pPanicDashboard, &panicDashboard::distanceCheckboxToggled, SteamVRLogic::SharedInstance(), &SteamVRLogic::setDistanceFade);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::restoreDistanceFade, pPanicDashboard, &panicDashboard::setDistanceFadeChecked);
+
     frameThread->start();
     systemResourcesThread->start();
 
