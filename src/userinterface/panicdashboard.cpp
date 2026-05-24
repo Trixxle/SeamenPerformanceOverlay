@@ -27,10 +27,29 @@ panicDashboard::panicDashboard(QWidget *parent) :
     ui->setupUi(this);
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
+
     connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::panicButtonClicked);
     connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
     connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &panicDashboard::distanceCheckboxToggled);
+    connect(ui->PlusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleUp);
+    connect(ui->MinusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleDown);
+    connect(ui->PlusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityUp);
+    connect(ui->MinusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityDown);
+
     restoreDistanceFadeState();
+}
+
+void panicDashboard::setOpacityValue(float newOpacity) {
+    float opacityPercent = newOpacity * 100.0;
+    ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
+}
+
+void panicDashboard::setScaleValue(float newScale) {
+    ui->ScaleVar->setText(QString::number(newScale));
+}
+
+void panicDashboard::setDistanceFadeValue(float newDistanceFadeValue) {
+    ui->DistanceFadeVar->setText(QString::number(newDistanceFadeValue));
 }
 
 void panicDashboard::restoreDistanceFadeState() {

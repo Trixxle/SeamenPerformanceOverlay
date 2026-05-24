@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1177</width>
-    <height>805</height>
+    <width>990</width>
+    <height>628</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,211 +17,724 @@
    <double>1.000000000000000</double>
   </property>
   <property name="styleSheet">
-   <string notr="true">                           background-color: #232424; 
-                            border-radius: 60px; 
-                            border: 4px solid #1092BF;
-                            margin: 4px; </string>
+   <string notr="true"/>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout" stretch="0">
    <property name="spacing">
-    <number>0</number>
+    <number>6</number>
    </property>
-   <property name="sizeConstraint">
-    <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+   <property name="leftMargin">
+    <number>9</number>
+   </property>
+   <property name="topMargin">
+    <number>9</number>
+   </property>
+   <property name="bottomMargin">
+    <number>9</number>
    </property>
    <item>
-    <layout class="QVBoxLayout" name="mainLayout">
-     <property name="spacing">
-      <number>0</number>
+    <widget class="QFrame" name="MainFrame">
+     <property name="styleSheet">
+      <string notr="true">/* --- Main Window Background --- */
+#MainFrame {
+    background-color: #232424;
+    border-radius: 30px;
+    border: 4px solid #1092BF; 
+}
+
+/* --- Top Blue Header --- */
+#TitleFrame {
+    background-color: #1092BF; 
+    border-top-left-radius: 25px;
+    border-top-right-radius: 25px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+#settingsTitle {
+    font-size: 35px;
+    font-weight: bold;
+}
+
+/* --- The Interaction Frame --- */
+#InteractionFrame {
+    border-radius: 30px;
+}
+
+
+/* --- The 4 Inner Grid Panels --- */
+#ScaleFrame, #OpacityFrame, #DistanceFadeFrame, #ResetFrame {
+    background-color: rgb(50, 50, 50);
+    border-radius: 30px;
+}
+
+#ScaleTitle, #OpacityTitle, #DistanceFadeTitle, #LostOrBrokeTitle {
+	font-size: 25px;
+}
+
+#DistanceFadeTitleFrame, #ScaleTitleFrame, #OpacityTitleFrame, #LostOrBrokeTitleFrame {
+    background-color: #454545;
+    border-top-left-radius: 30px;
+    border-top-right-radius: 30px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+#DistanceFadeInteractionFrame, #panicButtonFrame{
+	background-color: transparent;
+	border: none;
+}
+
+/* --- Checkbox Container --- */
+#distanceFadeCheck {
+	font-size: 20px;
+    spacing: 12px; /* Pushes the 'Enable' text away from the box */
+    color: white;
+}
+
+/* --- The Unchecked State (Empty Circle) --- */
+#distanceFadeCheck::indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px; /* Setting radius to half the width makes a perfect circle */
+    background-color: #232424; /* Matches your darkest background */
+    border: 2px solid #454545; /* Subtle grey ring */
+}
+
+/* --- Hover State --- */
+#distanceFadeCheck::indicator:hover {
+    border: 2px solid #1092BF; /* Glows blue when hovered */
+}
+
+/* --- The Checked State (Filled Blue Circle) --- */
+#distanceFadeCheck::indicator:checked {
+    background-color: #1092BF; 
+    border: 2px solid #232424;
+    image: none; /* Prevents standard Qt checkmark from drawing over it */
+}
+
+/*--- Global QLabel --- */
+QLabel {
+	font-size: 20px;
+}
+
+/* --- Global Button Styling (+, -, Quit) --- */
+QPushButton {
+    background-color: transparent;
+    color: white;
+    border-radius: 8px;
+    font-size: 40px;
+    font-weight: bold;
+    padding: 2px 10px; /* Adjust padding to fit your preferred height */
+}
+
+QPushButton:hover {
+    background-color: #555555;
+}
+
+QPushButton:pressed {
+    background-color: #1092BF;
+}
+
+/* --- Specific Button Overrides --- */
+#panicQuitButton {
+    background-color: #232424; /* Darker background for the quit button */
+    font-size: 18px;
+    border: 1px solid #454545;
+    border-radius: 15px;
+}
+
+#panicButton {
+    background-color: #ff0000;
+    font-size: 20px;
+    padding: 8px;
+    border-radius: 20px;
+}
+
+#panicButton:hover {
+    background-color: #cc0000;
+}</string>
      </property>
-     <property name="sizeConstraint">
-      <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
      </property>
-     <property name="leftMargin">
-      <number>0</number>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
      </property>
-     <item>
-      <widget class="QLabel" name="panicMessageTitle">
-       <property name="font">
-        <font>
-         <pointsize>35</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Did you accidentally make the overlay invisible and
-you can no longer find the - opacity button? :(
-
-Or maybe you made it so small you can't click
-the - scale button anymore? :(
-
-Or maybe you just lost the overlay? :(
-
-Now imagine I had not placed this convenient
-button here for people like you.</string>
-       </property>
-       <property name="alignment">
-        <set>Qt::AlignmentFlag::AlignCenter</set>
-       </property>
-       <property name="margin">
-        <number>23</number>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <layout class="QHBoxLayout" name="horizontalLayout">
-       <item>
-        <widget class="QCheckBox" name="distanceFadeCheck">
-         <property name="minimumSize">
-          <size>
-           <width>400</width>
-           <height>80</height>
-          </size>
+     <layout class="QVBoxLayout" name="verticalLayout_6">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QFrame" name="TitleFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="font">
+         <font>
+          <bold>false</bold>
+         </font>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Raised</enum>
+        </property>
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,0,1,0">
+         <property name="leftMargin">
+          <number>40</number>
          </property>
-         <property name="maximumSize">
-          <size>
-           <width>400</width>
-           <height>80</height>
-          </size>
+         <property name="topMargin">
+          <number>9</number>
          </property>
-         <property name="font">
-          <font>
-           <pointsize>35</pointsize>
-           <italic>false</italic>
-           <underline>false</underline>
-          </font>
+         <property name="rightMargin">
+          <number>40</number>
          </property>
-         <property name="layoutDirection">
-          <enum>Qt::LayoutDirection::LeftToRight</enum>
+         <item>
+          <spacer name="LeftSideTitle">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="settingsTitle">
+           <property name="font">
+            <font>
+             <pointsize>-1</pointsize>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Settings</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignmentFlag::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="RightSideTitle">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeType">
+            <enum>QSizePolicy::Policy::Maximum</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>305</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QPushButton" name="panicQuitButton">
+           <property name="text">
+            <string>Quit</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="InteractionFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::Shape::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Shadow::Raised</enum>
+        </property>
+        <layout class="QGridLayout" name="gridLayout" rowstretch="4,6">
+         <property name="sizeConstraint">
+          <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
          </property>
-         <property name="styleSheet">
-          <string notr="true">	QCheckBox::indicator {
-    	 width: 40px;
-     	height: 40px;
- 	}
-
-    QCheckBox {
-        color: white;
-		border-radius: 25px;
-    }
-
-    QCheckBox:hover {
-        background-color: #262626;
-    }
-
-    QCheckBox:pressed {
-        background-color: #1EAEED;
-        border-color: #1EAEED;
-        color: black;
-    }</string>
+         <property name="leftMargin">
+          <number>50</number>
          </property>
-         <property name="text">
-          <string>Distance Fade</string>
+         <property name="topMargin">
+          <number>50</number>
          </property>
-         <property name="checked">
-          <bool>false</bool>
+         <property name="rightMargin">
+          <number>50</number>
          </property>
-         <property name="tristate">
-          <bool>false</bool>
+         <property name="bottomMargin">
+          <number>50</number>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="panicQuitButton">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
+         <property name="spacing">
+          <number>80</number>
          </property>
-         <property name="minimumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>35</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">    QPushButton {
-        color: white;
-		border-radius: 25px;
-    }
-
-    QPushButton:hover {
-        background-color: #262626;
-    }
-
-    QPushButton:pressed {
-        background-color: #1EAEED;
-        border-color: #1EAEED;
-        color: black;
-    }</string>
-         </property>
-         <property name="text">
-          <string>Exit</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="panicButton">
-         <property name="enabled">
-          <bool>true</bool>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>300</width>
-           <height>80</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>35</pointsize>
-           <bold>true</bold>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">    QPushButton {
-        color: white;
-		border-radius: 25px;
-    }
-
-    QPushButton:hover {
-        background-color: #262626;
-    }
-
-    QPushButton:pressed {
-        background-color: #1EAEED;
-        border-color: #1EAEED;
-        color: black;
-    }</string>
-         </property>
-         <property name="text">
-          <string>SAVE ME!</string>
-         </property>
-         <property name="flat">
-          <bool>false</bool>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </item>
-    </layout>
+         <item row="0" column="1">
+          <widget class="QFrame" name="OpacityFrame">
+           <property name="frameShape">
+            <enum>QFrame::Shape::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Shadow::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_3" stretch="0,4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QFrame" name="OpacityTitleFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
+               <item>
+                <widget class="QLabel" name="OpacityTitle">
+                 <property name="font">
+                  <font>
+                   <family>Segoe UI</family>
+                   <pointsize>-1</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Opacity</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="OpacityButtonsLayout">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>20</number>
+              </property>
+              <property name="topMargin">
+               <number>10</number>
+              </property>
+              <property name="rightMargin">
+               <number>20</number>
+              </property>
+              <property name="bottomMargin">
+               <number>10</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="MinusOpacity">
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="OpacityVar">
+                <property name="text">
+                 <string>Error</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="PlusOpacity">
+                <property name="text">
+                 <string>+</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QFrame" name="ScaleFrame">
+           <property name="frameShape">
+            <enum>QFrame::Shape::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Shadow::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QFrame" name="ScaleTitleFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_8">
+               <item>
+                <widget class="QLabel" name="ScaleTitle">
+                 <property name="font">
+                  <font>
+                   <family>Segoe UI</family>
+                   <pointsize>-1</pointsize>
+                   <bold>false</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Scale</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                 <property name="indent">
+                  <number>-1</number>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <layout class="QHBoxLayout" name="ScaleButtonsLayout">
+              <property name="spacing">
+               <number>10</number>
+              </property>
+              <property name="leftMargin">
+               <number>20</number>
+              </property>
+              <property name="topMargin">
+               <number>10</number>
+              </property>
+              <property name="rightMargin">
+               <number>20</number>
+              </property>
+              <property name="bottomMargin">
+               <number>10</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="MinusScale">
+                <property name="text">
+                 <string>-</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="ScaleVar">
+                <property name="text">
+                 <string>Error</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="PlusScale">
+                <property name="text">
+                 <string>+</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QFrame" name="DistanceFadeFrame">
+           <property name="frameShape">
+            <enum>QFrame::Shape::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Shadow::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_5" stretch="0,4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QFrame" name="DistanceFadeTitleFrame">
+              <property name="styleSheet">
+               <string notr="true"/>
+              </property>
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_7">
+               <item>
+                <widget class="QLabel" name="DistanceFadeTitle">
+                 <property name="font">
+                  <font>
+                   <family>Segoe UI</family>
+                   <pointsize>-1</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Distance Fade</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="DistanceFadeInteractionFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_12" stretch="2,0">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>20</number>
+               </property>
+               <property name="topMargin">
+                <number>25</number>
+               </property>
+               <property name="rightMargin">
+                <number>20</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QCheckBox" name="distanceFadeCheck">
+                 <property name="text">
+                  <string>Enable</string>
+                 </property>
+                 <property name="tristate">
+                  <bool>false</bool>
+                 </property>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="DistanceFadeButtonsLayout">
+                 <property name="spacing">
+                  <number>10</number>
+                 </property>
+                 <property name="leftMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="topMargin">
+                  <number>10</number>
+                 </property>
+                 <property name="rightMargin">
+                  <number>0</number>
+                 </property>
+                 <property name="bottomMargin">
+                  <number>10</number>
+                 </property>
+                 <item>
+                  <widget class="QPushButton" name="MinusDistanceFade">
+                   <property name="text">
+                    <string>-</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QLabel" name="DistanceFadeVar">
+                   <property name="text">
+                    <string>Error</string>
+                   </property>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
+                   </property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="PlusDistanceFade">
+                   <property name="text">
+                    <string>+</string>
+                   </property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QFrame" name="ResetFrame">
+           <property name="frameShape">
+            <enum>QFrame::Shape::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Shadow::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QFrame" name="LostOrBrokeTitleFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_10">
+               <item>
+                <widget class="QLabel" name="LostOrBrokeTitle">
+                 <property name="font">
+                  <font>
+                   <family>Segoe UI</family>
+                   <pointsize>-1</pointsize>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Lost or broke the overlay?</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="panicButtonFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>100</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>100</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="panicButton">
+                 <property name="font">
+                  <font>
+                   <pointsize>-1</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true"/>
+                 </property>
+                 <property name="text">
+                  <string>RESET</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>

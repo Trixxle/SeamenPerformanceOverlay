@@ -88,6 +88,7 @@ void DashboardUI::restoreOpacity() {
     if (!m_settings.value("Opacity", m_opacity).isNull()) {
         m_opacity = m_settings.value("Opacity", m_opacity).toFloat();
         updateOpacity();
+        emit opacityChanged(m_opacity);
     }
 }
 
@@ -95,17 +96,18 @@ void DashboardUI::updateOpacity() {
     this->setWindowOpacity(m_opacity);
     // Workaround to properly save opacity.
     saveOpacity();
+    emit opacityChanged(m_opacity);
 }
 
 void DashboardUI::increaseOpacityButtonClicked() {
-    if (m_opacity == 1.0) return;
-    m_opacity += 0.05;
+    if (m_opacity >= 1.0) return;
+    m_opacity = qBound(0.0, m_opacity + 0.05, 1.0);
     updateOpacity();
 }
 
 void DashboardUI::decreaseOpacityButtonClicked() {
-    if (m_opacity == 0.0) return;
-    m_opacity -= 0.05;
+    if (m_opacity <= 0.0) return;
+    m_opacity = qBound(0.0, m_opacity - 0.05, 1.0);
     updateOpacity();
 }
 

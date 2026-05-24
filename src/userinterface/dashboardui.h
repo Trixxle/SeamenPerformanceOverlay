@@ -81,11 +81,11 @@ public slots:
     void saveOpacity();
     void restoreOpacity();
     void resetOpacityToDefault();
+    void increaseOpacityButtonClicked();
+    void decreaseOpacityButtonClicked();
 
 private slots:
     void onExitButtonClicked();
-    void increaseOpacityButtonClicked();
-    void decreaseOpacityButtonClicked();
 
 private:
     void setUpCharts();
@@ -148,6 +148,8 @@ signals:
     void requestMoveBegin();
     void requestScaleUp();
     void requestScaleDown();
+
+    void opacityChanged(float newOpacity);
 };
 
 
