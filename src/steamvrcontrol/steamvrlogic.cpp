@@ -245,6 +245,9 @@ bool SteamVRLogic::Init() {
 		std::cerr << "Failed to initialize VR overlay." << std::endl;
 	}
     std::cout << "bSucces: " << bSuccess << std::endl;
+
+	restoreSession();
+
     return bSuccess;
 }
 
@@ -257,7 +260,7 @@ void SteamVRLogic::setBaseAlpha(float alpha)
 void SteamVRLogic::increaseOverlayScale() {
 	m_overlayWidthInMeters += 0.01;
 	updateOverlayWidthInMeters();
-	saveSize();
+	//saveSize();
 }
 
 // Unfortuantely, we do have to limit this to stop users from being too stupid
@@ -269,7 +272,7 @@ void SteamVRLogic::decreaseOverlayScale() {
 	else m_overlayWidthInMeters -= 0.01;
 
 	updateOverlayWidthInMeters();
-	saveSize();
+	//saveSize();
 }
 
 void SteamVRLogic::updateOverlayWidthInMeters() {
@@ -356,7 +359,7 @@ void SteamVRLogic::saveDistanceFadeStart() {
 
 void SteamVRLogic::setDistanceFade(bool enabled) {
 	m_distanceFadeOn = enabled;
-	saveDistanceFade();
+	//saveDistanceFade();
 }
 
 void SteamVRLogic::saveDistanceFade() {
@@ -383,8 +386,8 @@ void SteamVRLogic::restoreSession() {
 	// Restore controller attached to
 	if (!m_settings.value("AttachedRole").isNull()) {
 		int savedRole = m_settings.value("AttachedRole").toInt();
-		vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(
-			static_cast<vr::ETrackedControllerRole>(savedRole));
+		m_savedRole = static_cast<vr::ETrackedControllerRole>(savedRole);
+		vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(m_savedRole);
 		if (device != vr::k_unTrackedDeviceIndexInvalid) {
 			AttachToDevice(device);
 		}
@@ -572,6 +575,42 @@ float SteamVRLogic::calculateOverlayDistance() {
 	return std::sqrt(dx*dx + dy*dy + dz*dz);
 }
 
+void SteamVRLogic::attemptControllerBind() {
+	if (m_leftController == vr::k_unTrackedDeviceIndexInvalid)
+		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+	if (m_rightController == vr::k_unTrackedDeviceIndexInvalid)
+		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+
+	// Try to bind to left controller if that is the saved role
+	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
+		if (m_savedRole != vr::TrackedControllerRole_Invalid && m_savedRole == vr::TrackedControllerRole_LeftHand) AttachToDevice(m_leftController);
+	}
+
+	// If the overlay is still not attached try to bind to right controller if that is the saved role
+	if (m_rightController != vr::k_unTrackedDeviceIndexInvalid && m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+		if (m_savedRole != vr::TrackedControllerRole_Invalid && m_savedRole == vr::TrackedControllerRole_RightHand) AttachToDevice(m_rightController);
+	}
+
+	// So far we failed to bind to the saved controller. As a last ditch effort attempt to bind to other controller
+	// if we attempted 9 times already
+	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid && m_bindToControllerAttempts <= 9) {
+		if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
+			mirrorMatrix();
+			AttachToDevice(m_leftController);
+		}
+		else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
+			mirrorMatrix();
+			AttachToDevice(m_rightController);
+		}
+	}
+	// Wait 250ms and try to find a controller again
+	std::this_thread::sleep_for(std::chrono::milliseconds(250));
+	// If no controller has been found after 10 tries, just attach to the HMD
+	if (m_bindToControllerAttempts >= 10) {
+		AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
+	}
+}
+
 void SteamVRLogic::OnTimeoutPumpEvents()
 {
     if( !vr::VRSystem() )
@@ -581,30 +620,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	// VREvent_TrackedDeviceActivated is missed because the overlay doesn't exist yet when
 	// controllers first connect. Poll here until we get a valid attachment.
 	if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid && m_bindToControllerAttempts <= 10) {
-		if (m_leftController == vr::k_unTrackedDeviceIndexInvalid)
-			m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-		if (m_rightController == vr::k_unTrackedDeviceIndexInvalid)
-			m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
-
-		if (m_leftController != vr::k_unTrackedDeviceIndexInvalid || m_rightController != vr::k_unTrackedDeviceIndexInvalid) restoreSession();
-
-		// So far we failed to bind to the saved controller. As a last ditch effort attempt to bind to other controller
-		if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid && m_bindToControllerAttempts <= 9) {
-			if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
-				mirrorMatrix();
-				AttachToDevice(m_leftController);
-			}
-			else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
-				mirrorMatrix();
-				AttachToDevice(m_rightController);
-			}
-		}
-		// Wait 250ms and try to find a controller again
-		std::this_thread::sleep_for(std::chrono::milliseconds(250));
-		// If no controller has been found after 10 tries, just attach to the HMD
-		if (m_bindToControllerAttempts >= 10) {
-			AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
-		}
+		attemptControllerBind();
 		++m_bindToControllerAttempts;
 	}
 
@@ -714,18 +730,26 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 					if (role == vr::TrackedControllerRole_LeftHand) {
 						m_leftController = newDeviceIndex;
+						if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd || m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+							if (vr::TrackedControllerRole_LeftHand != m_savedRole) mirrorMatrix();
+							AttachToDevice(m_leftController);
+						}
+						else if (m_savedRole != m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(m_deviceOverlayIsAttachedTo)) {
+							if (vr::TrackedControllerRole_LeftHand == m_savedRole) mirrorMatrix();
+							AttachToDevice(m_leftController);
+						}
 					}
-					if (role == vr::TrackedControllerRole_RightHand) {
+
+					else if (role == vr::TrackedControllerRole_RightHand) {
 						m_rightController = newDeviceIndex;
-					}
-					// Check if the overlay is not attached to anything, or if it is attached to the HMD (fallback) and
-					// the left controller is now valid, or if it is attached to HMD (fallback) and the right
-					// controller is now valid. If any of these is true, restore the session and attach to the
-					// controller saved from previous session
-					if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid ||
-						m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd && m_leftController != vr::k_unTrackedDeviceIndexInvalid ||
-						m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd && m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
-						restoreSession();
+						if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd || m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
+							if (vr::TrackedControllerRole_RightHand != m_savedRole) mirrorMatrix();
+							AttachToDevice(m_rightController);
+						}
+						else if (m_savedRole != m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(m_deviceOverlayIsAttachedTo)) {
+							if (vr::TrackedControllerRole_RightHand == m_savedRole) mirrorMatrix();
+							AttachToDevice(m_rightController);
+						}
 					}
 				}
 				break;
@@ -919,8 +943,8 @@ void SteamVRLogic::stopMove() {
 		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
 		AttachToDevice(m_rightController);
 	}
-	savePosition();
-	saveController();
+	//savePosition();
+	//saveController();
 }
 
 void SteamVRLogic::mirrorMatrix() {

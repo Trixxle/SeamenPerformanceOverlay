@@ -94,7 +94,7 @@ void DashboardUI::restoreOpacity() {
 void DashboardUI::updateOpacity() {
     this->setWindowOpacity(m_opacity);
     SteamVRLogic::SharedInstance()->setBaseAlpha(m_opacity);
-    saveOpacity();
+    //saveOpacity();
 }
 
 void DashboardUI::increaseOpacityButtonClicked() {

@@ -125,6 +125,7 @@ private:
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
+    vr::ETrackedControllerRole m_savedRole;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
     vr::EVRInitError m_eOverlayError;
@@ -149,6 +150,7 @@ private:
     void saveDistanceFade();
     void RenderDirtyOverlayScenes();
     void checkClosestControllerForRole();
+    void attemptControllerBind();
     float calculateOverlayDistance();
 
     bool m_isMoving = false;
