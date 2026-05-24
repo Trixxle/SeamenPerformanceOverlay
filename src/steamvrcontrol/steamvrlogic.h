@@ -112,11 +112,12 @@ public slots:
     void stopMove();
     void increaseOverlayScale();
     void decreaseOverlayScale();
+    void increaseFadeDistanceStart();
+    void decreaseFadeDistanceStart();
     // IMPORTANT: The alpha value changed here is NOT is overlay's main opacity.
     // The overlay's main opacity is handled by Qt in the dashboard class.
     void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
-    void getDistanceFade();
 
 private:
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
@@ -195,6 +196,8 @@ signals:
     void saveDistanceFade(bool enabled);
     void restoreOpacity();
     void restoreDistanceFade(bool enabled);
+    void overlayScaleChanged(float newScale);
+    void distanceFadeValueChanged(float newValue);
 };
 
 

@@ -256,7 +256,6 @@ bool SteamVRLogic::Init() {
 void SteamVRLogic::increaseOverlayScale() {
 	m_overlayWidthInMeters += 0.01;
 	updateOverlayWidthInMeters();
-	//saveSize();
 }
 
 // Unfortuantely, we do have to limit this to stop users from being too stupid
@@ -268,11 +267,22 @@ void SteamVRLogic::decreaseOverlayScale() {
 	else m_overlayWidthInMeters -= 0.01;
 
 	updateOverlayWidthInMeters();
-	//saveSize();
+}
+
+void SteamVRLogic::increaseFadeDistanceStart() {
+	m_distanceFadeStart += 0.01;
+	emit distanceFadeValueChanged(m_distanceFadeStart);
+}
+
+void SteamVRLogic::decreaseFadeDistanceStart() {
+	if (m_distanceFadeStart <= 0.0) return;
+	m_distanceFadeStart = qBound(0.0, m_distanceFadeStart - 0.01, 100.0);
+	emit distanceFadeValueChanged(m_distanceFadeStart);
 }
 
 void SteamVRLogic::updateOverlayWidthInMeters() {
 	vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, m_overlayWidthInMeters );
+	emit overlayScaleChanged(m_overlayWidthInMeters);
 }
 
 void SteamVRLogic::resetOverlayToDefault() {
@@ -290,6 +300,7 @@ void SteamVRLogic::resetOverlayToDefault() {
 	updateOverlayWidthInMeters();
 	emit restoreDistanceFade(m_distanceFadeOn);
 	emit restoreOpacity();
+	emit distanceFadeValueChanged(m_distanceFadeStart);
 }
 
 void SteamVRLogic::Shutdown() {
@@ -356,10 +367,6 @@ void SteamVRLogic::saveDistanceFadeStart() {
 
 void SteamVRLogic::setDistanceFade(bool enabled) {
 	m_distanceFadeOn = enabled;
-}
-
-void SteamVRLogic::getDistanceFade() {
-	emit restoreDistanceFade(m_distanceFadeOn);
 }
 
 // IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is ran before the widget exists

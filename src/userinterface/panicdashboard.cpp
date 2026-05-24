@@ -35,8 +35,37 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->MinusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleDown);
     connect(ui->PlusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityUp);
     connect(ui->MinusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityDown);
+    connect(ui->PlusDistanceFade, &QPushButton::clicked, this, &panicDashboard::requestDistanceFadeStartUp);
+    connect(ui->MinusDistanceFade, &QPushButton::clicked, this, &panicDashboard::requestDistanceFadeStartDown);
 
     restoreDistanceFadeState();
+    restoreScale();
+    restoreOpacity();
+    restoreDistanceFadeValue();
+}
+
+void panicDashboard::restoreScale() {
+    if (!m_settings.value("Size").isNull()) {
+        setScaleValue(m_settings.value("Size").toFloat());
+    }
+}
+
+void panicDashboard::restoreOpacity() {
+    if (!m_settings.value("Opacity").isNull()) {
+        setOpacityValue(m_settings.value("Opacity").toFloat());
+    }
+}
+
+void panicDashboard::restoreDistanceFadeValue() {
+    if (!m_settings.value("DistanceFadeStart").isNull()) {
+        setDistanceFadeValue(m_settings.value("DistanceFadeStart").toFloat());
+    }
+}
+
+void panicDashboard::restoreDistanceFadeState() {
+    if (!m_settings.value("DistanceFadeOn").isNull()) {
+        ui->distanceFadeCheck->setChecked(m_settings.value("DistanceFadeOn").toBool());
+    }
 }
 
 void panicDashboard::setOpacityValue(float newOpacity) {
@@ -49,14 +78,8 @@ void panicDashboard::setScaleValue(float newScale) {
 }
 
 void panicDashboard::setDistanceFadeValue(float newDistanceFadeValue) {
-    ui->DistanceFadeVar->setText(QString::number(newDistanceFadeValue));
-}
-
-void panicDashboard::restoreDistanceFadeState() {
-    bool savedSetting = false;
-    if (!m_settings.value("DistanceFadeOn", savedSetting).isNull()) {
-            ui->distanceFadeCheck->setChecked(m_settings.value("DistanceFadeOn", savedSetting).toBool());
-    }
+    float distanceInCms = newDistanceFadeValue * 100.0;
+    ui->DistanceFadeVar->setText(QString::number(distanceInCms) + "cm");
 }
 
 void panicDashboard::saveDistanceFadeState(bool state) {

@@ -48,6 +48,10 @@ public slots:
     void setScaleValue(float newScale);
     void setDistanceFadeValue(float newDistanceFadeValue);
 
+    void restoreScale();
+    void restoreDistanceFadeValue();
+    void restoreOpacity();
+
 private:
     Ui::panicDashboard *ui;
     QSettings m_settings;
@@ -56,6 +60,8 @@ signals:
     void panicButtonClicked();
     void distanceCheckboxToggled(bool checked);
 
+    void requestDistanceFadeStartUp();
+    void requestDistanceFadeStartDown();
     void requestScaleUp();
     void requestScaleDown();
     void requestOpacityUp();

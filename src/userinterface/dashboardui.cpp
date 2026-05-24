@@ -88,7 +88,6 @@ void DashboardUI::restoreOpacity() {
     if (!m_settings.value("Opacity", m_opacity).isNull()) {
         m_opacity = m_settings.value("Opacity", m_opacity).toFloat();
         updateOpacity();
-        emit opacityChanged(m_opacity);
     }
 }
 

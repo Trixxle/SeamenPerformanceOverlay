@@ -104,6 +104,8 @@ int main(int argc, char *argv[])
     QObject::connect(frameHandler, &FrameHandler::updateLabels, pDashboardUI, &DashboardUI::updateLabels);
     QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResources, pDashboardUI, &DashboardUI::updateSystemResources);
     QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResourceUsage, pDashboardUI, &DashboardUI::updateSystemResourceUsage);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeValueChanged, pPanicDashboard, &panicDashboard::setDistanceFadeValue);
 
     // Connects for front end to backend communication (overlay to backend)
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, SteamVRLogic::SharedInstance(), &SteamVRLogic::switchController);
@@ -116,6 +118,8 @@ int main(int argc, char *argv[])
     QObject::connect(pPanicDashboard, &panicDashboard::requestScaleDown, SteamVRLogic::SharedInstance(), &SteamVRLogic::decreaseOverlayScale);
     QObject::connect(pPanicDashboard, &panicDashboard::requestOpacityUp, pDashboardUI, &DashboardUI::increaseOpacityButtonClicked);
     QObject::connect(pPanicDashboard, &panicDashboard::requestOpacityDown, pDashboardUI, &DashboardUI::decreaseOpacityButtonClicked);
+    QObject::connect(pPanicDashboard, &panicDashboard::requestDistanceFadeStartUp, SteamVRLogic::SharedInstance(), &SteamVRLogic::increaseFadeDistanceStart);
+    QObject::connect(pPanicDashboard, &panicDashboard::requestDistanceFadeStartDown, SteamVRLogic::SharedInstance(), &SteamVRLogic::decreaseFadeDistanceStart);
     QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked,pDashboardUI, &DashboardUI::resetOpacityToDefault);
     QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked, SteamVRLogic::SharedInstance(), &SteamVRLogic::resetOverlayToDefault);
     QObject::connect(pPanicDashboard, &panicDashboard::distanceCheckboxToggled, SteamVRLogic::SharedInstance(), &SteamVRLogic::setDistanceFade);
