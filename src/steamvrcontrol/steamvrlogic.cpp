@@ -251,10 +251,6 @@ bool SteamVRLogic::Init() {
     return bSuccess;
 }
 
-void SteamVRLogic::setBaseAlpha(float alpha)
-{
-	m_baseAlpha = std::max(0.0f, std::min(1.0f, alpha));
-}
 
 // Why limit this? Allow the user to increase it as much as they want, let them be free. They will play themselves
 void SteamVRLogic::increaseOverlayScale() {
@@ -293,6 +289,7 @@ void SteamVRLogic::resetOverlayToDefault() {
 	else AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
 	updateOverlayWidthInMeters();
 	emit restoreDistanceFade(m_distanceFadeOn);
+	emit restoreOpacity();
 }
 
 void SteamVRLogic::Shutdown() {
@@ -319,7 +316,7 @@ void SteamVRLogic::saveSession() {
 	saveController();
 	savePosition();
 	saveDistanceFadeStart();
-	saveDistanceFade();
+	emit saveDistanceFade(m_distanceFadeOn);
 	emit saveOpacity();
 }
 
@@ -359,11 +356,10 @@ void SteamVRLogic::saveDistanceFadeStart() {
 
 void SteamVRLogic::setDistanceFade(bool enabled) {
 	m_distanceFadeOn = enabled;
-	//saveDistanceFade();
 }
 
-void SteamVRLogic::saveDistanceFade() {
-	m_settings.setValue("DistanceFadeOn", m_distanceFadeOn);
+void SteamVRLogic::getDistanceFade() {
+	emit restoreDistanceFade(m_distanceFadeOn);
 }
 
 // IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is ran before the widget exists
@@ -407,7 +403,11 @@ void SteamVRLogic::restoreSession() {
 	// Restore distance fade
 	if (!m_settings.value("DistanceFadeOn").isNull()) {
 		m_distanceFadeOn = m_settings.value("DistanceFadeOn").toBool();
-		emit restoreDistanceFade(m_distanceFadeOn);
+
+		// Emitting here will do nothing as the panic dashboard is almost certainly not yet initiated. Instead, the
+		// dashboard will request the value when it initiates. So we can just save the setting in a variable for now
+		// to send it off later to the panic dashboard.
+		//emit restoreDistanceFade(m_distanceFadeOn);
 	}
 }
 

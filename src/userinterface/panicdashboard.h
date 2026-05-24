@@ -18,8 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef PERFORMANCEVR_PANICDASHBOARD_H
 #define PERFORMANCEVR_PANICDASHBOARD_H
 
+#include <QSettings>
 #include <QWidget>
-
+#include <QApplication>
+#include <QPushButton>
 
 QT_BEGIN_NAMESPACE
 
@@ -39,9 +41,12 @@ public:
 
 public slots:
     void setDistanceFadeChecked(bool checked);
+    void restoreDistanceFadeState();
+    void saveDistanceFadeState(bool state);
 
 private:
     Ui::panicDashboard *ui;
+    QSettings m_settings;
 
 signals:
     void panicButtonClicked();

@@ -114,10 +114,9 @@ public slots:
     void decreaseOverlayScale();
     // IMPORTANT: The alpha value changed here is NOT is overlay's main opacity.
     // The overlay's main opacity is handled by Qt in the dashboard class.
-    // This alpha is only used to calculate the fade in and out when the viewing angle is steep.
-    void setBaseAlpha(float alpha);
     void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
+    void getDistanceFade();
 
 private:
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
@@ -147,7 +146,6 @@ private:
     void savePosition();
     void saveController();
     void saveDistanceFadeStart();
-    void saveDistanceFade();
     void RenderDirtyOverlayScenes();
     void checkClosestControllerForRole();
     void attemptControllerBind();
@@ -194,6 +192,7 @@ private:
 
 signals:
     void saveOpacity();
+    void saveDistanceFade(bool enabled);
     void restoreOpacity();
     void restoreDistanceFade(bool enabled);
 };
