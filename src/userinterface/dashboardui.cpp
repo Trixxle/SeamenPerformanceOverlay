@@ -50,7 +50,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     this->setStyleSheet("#DashboardUI { "
                             "background-color: #232424; "
                             "border-radius: 60px; "
-                            "border: 4px solid #1092BF; "
+                            "border: 4px solid rgb(16, 146, 191); "
                             "margin: 4px; "
                             "}"
                             );
@@ -471,7 +471,7 @@ void DashboardUI::setUpCharts() {
     m_pAxisXFrameRate->setVisible(false);
 
     m_pBarSetFrameTimeConsistencyFast = new QBarSet("NormalTOTAL");
-    m_pBarSetFrameTimeConsistencyFast->setColor(QColor("#1092BF"));
+    m_pBarSetFrameTimeConsistencyFast->setColor(QColor(16, 146, 191));
     m_pBarSetFrameTimeConsistencyFast->setBorderColor(Qt::transparent);
 
     m_pBarSetFrameTimeConsistencyMedium = new QBarSet("MediumTOTAL");
@@ -489,7 +489,7 @@ void DashboardUI::setUpCharts() {
     m_pSeriesFrameTimeConsistency->append(m_pBarSetFrameTimeConsistencyMedium);
 
     m_pBarSetCpuFrameTimeFast = new QBarSet("NormalCPU");
-    m_pBarSetCpuFrameTimeFast->setColor(QColor("#1092BF"));
+    m_pBarSetCpuFrameTimeFast->setColor(QColor(16, 146, 191));
     m_pBarSetCpuFrameTimeFast->setBorderColor(Qt::transparent);
 
     m_pBarSetCpuFrameTimeMedium = new QBarSet("MediumCPU");
@@ -512,7 +512,7 @@ void DashboardUI::setUpCharts() {
     m_pSeriesCpuFrameTime->append(m_pBarSetCpuFrameTimeDropped);
 
     m_pBarSetGpuFrameTimeFast = new QBarSet("NormalGPU");
-    m_pBarSetGpuFrameTimeFast->setColor(QColor("#1092BF"));
+    m_pBarSetGpuFrameTimeFast->setColor(QColor(16, 146, 191));
     m_pBarSetGpuFrameTimeFast->setBorderColor(Qt::transparent);
 
     m_pBarSetGpuFrameTimeMedium = new QBarSet("MediumGPU");
@@ -530,7 +530,7 @@ void DashboardUI::setUpCharts() {
     m_pSeriesGpuFrameTime->append(m_pBarSetGpuFrameTimeMedium);
 
     m_pBarSetFrameRateFast = new QBarSet("NormalFPS");
-    m_pBarSetFrameRateFast->setColor(QColor("#1092BF"));
+    m_pBarSetFrameRateFast->setColor(QColor(16, 146, 191));
     m_pBarSetFrameRateFast->setBorderColor(Qt::transparent);
 
     m_pBarSetFrameRateMedium = new QBarSet("MediumFPS");
