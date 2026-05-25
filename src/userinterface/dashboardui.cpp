@@ -98,8 +98,8 @@ void DashboardUI::animateButtonZoom(bool zoomIn)
     animation->setEasingCurve(QEasingCurve::OutQuad); // Adds a nice smooth deceleration
 
     // How many pixels you want the bar to grow by
-    int growWidth = 500;
-    int growHeight = 20;
+    int growWidth = 900;
+    int growHeight = 80;
 
     // Calculate the zoomed rectangle, keeping the center point exactly the same
     QRect zoomedRect(

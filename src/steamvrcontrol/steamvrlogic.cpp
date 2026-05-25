@@ -740,6 +740,33 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				}
 				break;
 
+			case vr::VREvent_FocusLeave:
+				{
+					// When the laser pointer leaves the overlay, send a mouse move
+					// to an off-screen position so Qt generates proper leave/hover-out
+					// events for any widget that was under the cursor. Without this,
+					// a fast-moving laser can exit the overlay without a final MouseMove
+					// inside its bounds, leaving buttons stuck in hover state.
+					QPointF ptOffScreen( -1.0f, -1.0f );
+					QPoint ptGlobal = ptOffScreen.toPoint();
+					QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseMove );
+					mouseEvent.setWidget( NULL );
+					mouseEvent.setPos( ptOffScreen );
+					mouseEvent.setScenePos( ptGlobal );
+					mouseEvent.setScreenPos( ptGlobal );
+					mouseEvent.setLastPos( m_tLastMouse );
+					mouseEvent.setLastScenePos( widget->mapToGlobal( m_tLastMouse.toPoint() ) );
+					mouseEvent.setLastScreenPos( widget->mapToGlobal( m_tLastMouse.toPoint() ) );
+					mouseEvent.setButtons( m_lastMouseButtons );
+					mouseEvent.setButton( Qt::NoButton );
+					mouseEvent.setModifiers( (Qt::KeyboardModifiers)0 );
+					mouseEvent.setAccepted( false );
+
+					m_tLastMouse = ptOffScreen;
+					QApplication::sendEvent( scene, &mouseEvent );
+				}
+					break;
+
 			case vr::VREvent_OverlayShown:
 				widget->repaint();
 				break;
