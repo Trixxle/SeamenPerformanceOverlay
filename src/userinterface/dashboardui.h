@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define PERFORMANCEVR_DASHBOARDUI_H
 
 #include <QWidget>
-
 #include <QChartView>
 #include <QBarSeries>
 #include <QBarSet>
@@ -35,6 +34,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QLineSeries>
 #include <QPainter>
 #include <QStyleOption>
+#include <QPropertyAnimation>
+#include <QMainWindow>
+#include <QEvent>
 #include "frameHandler.h"
 #include "systemResourcesHandler.h"
 
@@ -86,15 +88,21 @@ public slots:
 
 private slots:
     void onExitButtonClicked();
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
     void setUpCharts();
     void paintEvent(QPaintEvent *event) override;
     float roundFloat(float number, int decimalCases);
     void updateOpacity();
+    void animateButtonZoom(bool zoomIn);
 
     Ui::DashboardUI *ui;
     const int MAX_GRAPH_POINTS = 250;
+
+    QRect m_baseMoveBarGeometry;
+    bool m_geometryCached = false;
 
     float m_headsetRefreshRate;
     float m_targetFrameRate;

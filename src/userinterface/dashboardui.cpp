@@ -45,15 +45,8 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
     ui->setupUi(this);
 
-    this->setObjectName("DashboardUI");
-
-    this->setStyleSheet("#DashboardUI { "
-                            "background-color: #232424; "
-                            "border-radius: 60px; "
-                            "border: 4px solid rgb(16, 146, 191); "
-                            "margin: 4px; "
-                            "}"
-                            );
+    ui->moveButtonFrame->setAttribute(Qt::WA_Hover, true);
+    ui->moveButtonFrame->installEventFilter(this);
 
     setUpCharts();
 
@@ -73,6 +66,60 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
 DashboardUI::~DashboardUI() {
     delete ui;
+}
+
+bool DashboardUI::eventFilter(QObject *watched, QEvent *event)
+{
+    // Check if the event is coming from your specific frame
+    if (watched == ui->moveButtonFrame) {
+        if (event->type() == QEvent::Enter) {
+            // Mouse entered the frame -> Zoom IN
+            if (!m_geometryCached) {
+                m_baseMoveBarGeometry = ui->moveButton->geometry();
+                m_geometryCached = true;
+            }
+            animateButtonZoom(true);
+            return true; // We handled the event
+        }
+        else if (event->type() == QEvent::Leave) {
+            // Mouse left the frame -> Zoom OUT
+            animateButtonZoom(false);
+            return true;
+        }
+    }
+    // Pass all other events to the base class
+    return QWidget::eventFilter(watched, event);
+}
+
+void DashboardUI::animateButtonZoom(bool zoomIn)
+{
+    QPropertyAnimation *animation = new QPropertyAnimation(ui->moveButton, "geometry");
+    animation->setDuration(150);
+    animation->setEasingCurve(QEasingCurve::OutQuad); // Adds a nice smooth deceleration
+
+    // How many pixels you want the bar to grow by
+    int growWidth = 500;
+    int growHeight = 20;
+
+    // Calculate the zoomed rectangle, keeping the center point exactly the same
+    QRect zoomedRect(
+        m_baseMoveBarGeometry.x() - (growWidth / 2),
+        m_baseMoveBarGeometry.y() - (growHeight / 2),
+        m_baseMoveBarGeometry.width() + growWidth,
+        m_baseMoveBarGeometry.height() + growHeight
+    );
+
+    // Always start from the CURRENT geometry so it doesn't stutter
+    // if the user moves the mouse in and out quickly mid-animation
+    animation->setStartValue(ui->moveButton->geometry());
+
+    if (zoomIn) {
+        animation->setEndValue(zoomedRect);
+    } else {
+        animation->setEndValue(m_baseMoveBarGeometry);
+    }
+
+    animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
 void DashboardUI::resetOpacityToDefault() {
