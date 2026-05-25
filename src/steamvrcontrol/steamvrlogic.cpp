@@ -221,8 +221,11 @@ bool SteamVRLogic::Init() {
 		vr::VROverlay()->SetOverlayInputMethod( m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse );
 		vr::VROverlay()->SetOverlayInputMethod( m_ulPanicOverlayHandle, vr::VROverlayInputMethod_Mouse );
 
-		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
-		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+		//m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		//m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+
+		m_leftController = findDeviceForRole(vr::TrackedControllerRole_LeftHand);
+		m_rightController = findDeviceForRole(vr::TrackedControllerRole_RightHand);
 
 		vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
 
@@ -390,7 +393,8 @@ void SteamVRLogic::restoreSession() {
 	if (!m_settings.value("AttachedRole").isNull()) {
 		int savedRole = m_settings.value("AttachedRole").toInt();
 		m_savedRole = static_cast<vr::ETrackedControllerRole>(savedRole);
-		vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(m_savedRole);
+		//vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(m_savedRole);
+		vr::TrackedDeviceIndex_t device = findDeviceForRole(m_savedRole);
 		if (device != vr::k_unTrackedDeviceIndexInvalid) {
 			AttachToDevice(device);
 		}
@@ -501,14 +505,21 @@ void SteamVRLogic::checkClosestControllerForRole() {
 	// Don't switch controllers while the user is moving the overlay
 	if (m_isMoving) return;
 
-	vr::ETrackedControllerRole attachedRole = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(m_deviceOverlayIsAttachedTo);
+	//vr::ETrackedControllerRole attachedRole = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(m_deviceOverlayIsAttachedTo);
+	vr::ETrackedControllerRole attachedRole = getRoleForDevice(m_deviceOverlayIsAttachedTo);
 	if (attachedRole != vr::TrackedControllerRole_LeftHand && attachedRole != vr::TrackedControllerRole_RightHand) return;
 
 	// Collect all controllers with the same role
+	// Collect all controllers and hand tracking devices with the same role
 	std::vector<vr::TrackedDeviceIndex_t> sameRoleControllers;
 	for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
-		if (m_pVRSystem->GetTrackedDeviceClass(i) != vr::TrackedDeviceClass_Controller) continue;
-		if (m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(i) == attachedRole) {
+		//if (m_pVRSystem->GetTrackedDeviceClass(i) != vr::TrackedDeviceClass_Controller) continue;
+		//if (m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(i) == attachedRole) {
+		vr::ETrackedDeviceClass devClass = m_pVRSystem->GetTrackedDeviceClass(i);
+		if (devClass == vr::TrackedDeviceClass_Invalid) continue;
+		if (devClass == vr::TrackedDeviceClass_TrackingReference) continue;
+		if (devClass == vr::TrackedDeviceClass_HMD) continue;
+		if (getRoleForDevice(i) == attachedRole) {
 			sameRoleControllers.push_back(i);
 		}
 	}
@@ -584,9 +595,12 @@ float SteamVRLogic::calculateOverlayDistance() {
 
 void SteamVRLogic::attemptControllerBind() {
 	if (m_leftController == vr::k_unTrackedDeviceIndexInvalid)
-		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		//m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		m_leftController = findDeviceForRole(vr::TrackedControllerRole_LeftHand);
 	if (m_rightController == vr::k_unTrackedDeviceIndexInvalid)
-		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+		//m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+		m_rightController = findDeviceForRole(vr::TrackedControllerRole_RightHand);
+
 
 	// Try to bind to left controller if that is the saved role
 	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
@@ -733,7 +747,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_TrackedDeviceActivated:
 				{
 					vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;
-					vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
+					//vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(newDeviceIndex);
+					vr::ETrackedControllerRole role = getRoleForDevice(newDeviceIndex);
 
 					if (role == vr::TrackedControllerRole_LeftHand) {
 						m_leftController = newDeviceIndex;
@@ -914,11 +929,14 @@ void SteamVRLogic::startMove() {
 	if (m_isMoving) return;
 
 	// Re-query controller indices — they may have been invalid at init time during SteamVR autostart
+	// Re-query controller/hand indices — they may have been invalid at init time during SteamVR autostart
 	if (m_leftController == vr::k_unTrackedDeviceIndexInvalid) {
-		m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		//m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
+		m_leftController = findDeviceForRole(vr::TrackedControllerRole_LeftHand);
 	}
 	if (m_rightController == vr::k_unTrackedDeviceIndexInvalid) {
-		m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+		//m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
+		m_rightController = findDeviceForRole(vr::TrackedControllerRole_RightHand);
 	}
 
 	if (m_deviceOverlayIsAttachedTo == m_leftController) {
@@ -1059,6 +1077,43 @@ vr::HmdMatrix34_t SteamVRLogic::calculateRelativeTransform(vr::TrackedDeviceInde
     return toVrMatrix(newRelativeTransform);
 }
 // -- END NOTE BOUNDARY -- //
+
+// Finds a tracked device for the given hand role. First tries the standard controller
+// role API, then falls back to scanning all tracked devices by their role hint property.
+// This ensures hand tracking devices are found even when they are not classified as controllers.
+vr::TrackedDeviceIndex_t SteamVRLogic::findDeviceForRole(vr::ETrackedControllerRole role) {
+	vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(role);
+	if (device != vr::k_unTrackedDeviceIndexInvalid) return device;
+
+	for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
+		vr::ETrackedDeviceClass devClass = m_pVRSystem->GetTrackedDeviceClass(i);
+		if (devClass == vr::TrackedDeviceClass_Invalid) continue;
+		if (devClass == vr::TrackedDeviceClass_TrackingReference) continue;
+		if (devClass == vr::TrackedDeviceClass_HMD) continue;
+
+		vr::ETrackedPropertyError propError;
+		int32_t deviceRole = m_pVRSystem->GetInt32TrackedDeviceProperty(i, vr::Prop_ControllerRoleHint_Int32, &propError);
+		if (propError == vr::TrackedProp_Success && static_cast<vr::ETrackedControllerRole>(deviceRole) == role) {
+			return i;
+		}
+	}
+	return vr::k_unTrackedDeviceIndexInvalid;
+}
+
+// Returns the hand role for a device. First tries the standard controller role API,
+// then falls back to the role hint property to support hand tracking devices.
+vr::ETrackedControllerRole SteamVRLogic::getRoleForDevice(vr::TrackedDeviceIndex_t device) {
+	vr::ETrackedControllerRole role = m_pVRSystem->GetControllerRoleForTrackedDeviceIndex(device);
+	if (role == vr::TrackedControllerRole_LeftHand || role == vr::TrackedControllerRole_RightHand) return role;
+
+	vr::ETrackedPropertyError propError;
+	int32_t roleHint = m_pVRSystem->GetInt32TrackedDeviceProperty(device, vr::Prop_ControllerRoleHint_Int32, &propError);
+	if (propError == vr::TrackedProp_Success) {
+		vr::ETrackedControllerRole hintRole = static_cast<vr::ETrackedControllerRole>(roleHint);
+		if (hintRole == vr::TrackedControllerRole_LeftHand || hintRole == vr::TrackedControllerRole_RightHand) return hintRole;
+	}
+	return vr::TrackedControllerRole_Invalid;
+}
 
 bool SteamVRLogic::ConnectToVRRuntime() {
 	m_eLastHmdError = vr::VRInitError_None;

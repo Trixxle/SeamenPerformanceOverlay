@@ -140,6 +140,8 @@ private:
     void saveSession();
     void restoreSession();
     void AttachToDevice(const vr::TrackedDeviceIndex_t& device);
+    vr::TrackedDeviceIndex_t findDeviceForRole(vr::ETrackedControllerRole role);
+    vr::ETrackedControllerRole getRoleForDevice(vr::TrackedDeviceIndex_t device);
     vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
     void mirrorMatrix();
     void updateOverlayWidthInMeters();
