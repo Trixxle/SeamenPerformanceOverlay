@@ -209,7 +209,10 @@ QPushButton:pressed {
         <property name="frameShadow">
          <enum>QFrame::Shadow::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="30,0,23,0">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="30,0,19,0,0">
+         <property name="spacing">
+          <number>0</number>
+         </property>
          <property name="leftMargin">
           <number>40</number>
          </property>
@@ -220,7 +223,7 @@ QPushButton:pressed {
           <number>40</number>
          </property>
          <property name="bottomMargin">
-          <number>6</number>
+          <number>0</number>
          </property>
          <item>
           <spacer name="LeftSideTitle">
@@ -270,9 +273,22 @@ QPushButton:pressed {
          <item>
           <widget class="QPushButton" name="panicQuitButton">
            <property name="text">
-            <string>Quit</string>
+            <string>Exit</string>
            </property>
           </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
          </item>
         </layout>
        </widget>
