@@ -231,7 +231,7 @@ bool SteamVRLogic::Init() {
 
 		m_pPumpEventsTimer = new QTimer( this );
 		m_pRenderTimer = new QTimer( this );
-		m_pRenderTimer->setTimerType(Qt::CoarseTimer);
+		m_pRenderTimer->setTimerType(Qt::PreciseTimer);
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		connect(m_pRenderTimer, &QTimer::timeout, this, &SteamVRLogic::RenderDirtyOverlayScenes);
 		m_pPumpEventsTimer->setInterval( 20 );
@@ -243,7 +243,7 @@ bool SteamVRLogic::Init() {
 		// Trade-off
 
 		// EXPERIMENTAL SLOWER UI UPDATE, SET BACK TO 100ms AT SOME POINT
-		m_pRenderTimer->setInterval(250);
+		m_pRenderTimer->setInterval(500);
 		m_pRenderTimer->start();
 	}
 	else {
@@ -842,12 +842,14 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_DashboardActivated:
 				{
 					emit hideUi(false);
+					m_pRenderTimer->setInterval(33);
 				}
 				break;
 
 			case vr::VREvent_DashboardDeactivated:
 				{
 					emit hideUi(true);
+					m_pRenderTimer->setInterval(500);
 				}
 				break;
 
