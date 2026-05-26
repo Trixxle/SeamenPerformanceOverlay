@@ -85,6 +85,7 @@ public slots:
     void resetOpacityToDefault();
     void increaseOpacityButtonClicked();
     void decreaseOpacityButtonClicked();
+    void hideMoveBar(bool hide);
 
 private slots:
     void onExitButtonClicked();

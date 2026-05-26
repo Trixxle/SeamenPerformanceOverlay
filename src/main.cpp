@@ -106,6 +106,7 @@ int main(int argc, char *argv[])
     QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResourceUsage, pDashboardUI, &DashboardUI::updateSystemResourceUsage);
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeValueChanged, pPanicDashboard, &panicDashboard::setDistanceFadeValue);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::hideMoveBar, pDashboardUI, &DashboardUI::hideMoveBar);
 
     // Connects for front end to backend communication (overlay to backend)
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, SteamVRLogic::SharedInstance(), &SteamVRLogic::switchController);

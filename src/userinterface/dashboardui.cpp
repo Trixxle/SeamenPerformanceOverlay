@@ -61,6 +61,9 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
 
+    // Hide the move bar by default
+    ui->moveButton->hide();
+
     restoreOpacity();
 }
 
@@ -68,8 +71,16 @@ DashboardUI::~DashboardUI() {
     delete ui;
 }
 
-bool DashboardUI::eventFilter(QObject *watched, QEvent *event)
-{
+void DashboardUI::hideMoveBar(bool hide) {
+    if (hide) {
+        ui->moveButton->hide();
+    }
+    else {
+        ui->moveButton->show();
+    }
+}
+
+bool DashboardUI::eventFilter(QObject *watched, QEvent *event){
     // Check if the event is coming from your specific frame
     if (watched == ui->moveButtonFrame) {
         if (event->type() == QEvent::Enter) {
@@ -91,8 +102,7 @@ bool DashboardUI::eventFilter(QObject *watched, QEvent *event)
     return QWidget::eventFilter(watched, event);
 }
 
-void DashboardUI::animateButtonZoom(bool zoomIn)
-{
+void DashboardUI::animateButtonZoom(bool zoomIn) {
     QPropertyAnimation *animation = new QPropertyAnimation(ui->moveButton, "geometry");
     animation->setDuration(150);
     animation->setEasingCurve(QEasingCurve::OutQuad); // Adds a nice smooth deceleration

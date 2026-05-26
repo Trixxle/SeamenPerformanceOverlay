@@ -837,6 +837,18 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				}
 				break;
 
+			case vr::VREvent_DashboardActivated:
+				{
+					emit hideMoveBar(false);
+				}
+				break;
+
+			case vr::VREvent_DashboardDeactivated:
+				{
+					emit hideMoveBar(true);
+				}
+				break;
+
 			case vr::VREvent_FocusLeave:
 				{
 					// When the laser pointer leaves the overlay, send a mouse move
@@ -862,7 +874,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 					m_tLastMouse = ptOffScreen;
 					QApplication::sendEvent( scene, &mouseEvent );
 				}
-					break;
+				break;
 
 			case vr::VREvent_OverlayShown:
 				widget->repaint();
@@ -884,7 +896,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 							AttachToDevice(m_leftController);
 						}
 						else if (currentAttachedRole == vr::TrackedControllerRole_LeftHand) {
-							// Already on a left-hand device (e.g. switching controller <-> hand tracking).
+							// Already on a left-hand device, user probably changed device for same
+							// role like hand tracking <-> controller
 							// Preserve world position without mirroring — same hand, different device.
 							m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
 							m_matrixForRole = vr::TrackedControllerRole_LeftHand;
