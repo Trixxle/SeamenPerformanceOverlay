@@ -125,7 +125,8 @@ private:
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
-    vr::ETrackedControllerRole m_savedRole;
+    vr::ETrackedControllerRole m_savedRole = vr::TrackedControllerRole_Invalid;
+    vr::ETrackedControllerRole m_matrixForRole = vr::TrackedControllerRole_LeftHand;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
     vr::EVRInitError m_eOverlayError;
@@ -192,6 +193,7 @@ private:
 
     int m_bindToControllerAttempts = 0;
     int m_proximityCheckCounter = 0;
+    int m_poseCheckCounter = 0;
 
 signals:
     void saveOpacity();

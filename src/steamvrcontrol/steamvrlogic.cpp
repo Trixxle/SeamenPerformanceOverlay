@@ -294,12 +294,25 @@ void SteamVRLogic::resetOverlayToDefault() {
 		0.0f, 0.866f, 0.5f, 0.1f,
 		0.0f, -0.5f, 0.866f, -0.08f
 	};
+	m_matrixForRole = vr::TrackedControllerRole_LeftHand;
 	m_overlayWidthInMeters = 0.2f;
 	m_distanceFadeStart = 0.4f;
 	m_distanceFadeOn = false;
-	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_leftController);
-	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) AttachToDevice(m_rightController);
-	else AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
+
+	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
+		AttachToDevice(m_leftController);
+		m_savedRole = vr::TrackedControllerRole_LeftHand;
+	}
+	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
+		AttachToDevice(m_rightController);
+		m_savedRole = vr::TrackedControllerRole_RightHand;
+		mirrorMatrix();
+	}
+	else {
+		AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
+		m_savedRole = vr::TrackedControllerRole_Invalid;
+	}
+
 	updateOverlayWidthInMeters();
 	emit restoreDistanceFade(m_distanceFadeOn);
 	emit restoreOpacity();
@@ -393,6 +406,7 @@ void SteamVRLogic::restoreSession() {
 	if (!m_settings.value("AttachedRole").isNull()) {
 		int savedRole = m_settings.value("AttachedRole").toInt();
 		m_savedRole = static_cast<vr::ETrackedControllerRole>(savedRole);
+		m_matrixForRole = m_savedRole;
 		//vr::TrackedDeviceIndex_t device = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(m_savedRole);
 		vr::TrackedDeviceIndex_t device = findDeviceForRole(m_savedRole);
 		if (device != vr::k_unTrackedDeviceIndexInvalid) {
@@ -555,6 +569,7 @@ void SteamVRLogic::checkClosestControllerForRole() {
 	if (closestDevice != m_deviceOverlayIsAttachedTo) {
 		// Recalculate the relative transform so the overlay stays in the same world position
 		m_overlayPositionMatrix = calculateRelativeTransform(closestDevice);
+		m_matrixForRole = attachedRole;
 		AttachToDevice(closestDevice);
 
 		// Update our cached controller index for the role
@@ -651,6 +666,88 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	if (++m_proximityCheckCounter >= 500) {
 		m_proximityCheckCounter = 0;
 		checkClosestControllerForRole();
+	}
+
+	// Every ~500ms, check if the attached device has a valid pose and if the preferred
+	// device is available. Hand tracking devices stay "active" but lose their pose when
+	// the hand leaves the camera's view, so VREvent_TrackedDeviceDeactivated never fires.
+	if (++m_poseCheckCounter >= 25) {
+		m_poseCheckCounter = 0;
+
+		if (m_pVRSystem && vr::VROverlay() && !m_isMoving) {
+			vr::TrackedDevicePose_t poses[vr::k_unMaxTrackedDeviceCount];
+			m_pVRSystem->GetDeviceToAbsoluteTrackingPose(
+				vr::TrackingUniverseStanding, 0.0f, poses, vr::k_unMaxTrackedDeviceCount);
+
+			bool onDevice = m_deviceOverlayIsAttachedTo != vr::k_unTrackedDeviceIndexInvalid
+						 && m_deviceOverlayIsAttachedTo != vr::k_unTrackedDeviceIndex_Hmd;
+			bool attachedPoseValid = onDevice && poses[m_deviceOverlayIsAttachedTo].bPoseIsValid;
+
+			vr::ETrackedControllerRole preferredRole = (m_savedRole != vr::TrackedControllerRole_Invalid)
+				? m_savedRole : vr::TrackedControllerRole_LeftHand;
+			vr::ETrackedControllerRole otherRole = (preferredRole == vr::TrackedControllerRole_LeftHand)
+				? vr::TrackedControllerRole_RightHand : vr::TrackedControllerRole_LeftHand;
+
+			// Find a device for a given role that currently has a valid (tracked) pose
+			auto findTrackedDevice = [&](vr::ETrackedControllerRole role) -> vr::TrackedDeviceIndex_t {
+				for (vr::TrackedDeviceIndex_t i = 0; i < vr::k_unMaxTrackedDeviceCount; ++i) {
+					if (!poses[i].bPoseIsValid) continue;
+					vr::ETrackedDeviceClass devClass = m_pVRSystem->GetTrackedDeviceClass(i);
+					if (devClass == vr::TrackedDeviceClass_Invalid
+						|| devClass == vr::TrackedDeviceClass_TrackingReference
+						|| devClass == vr::TrackedDeviceClass_HMD) continue;
+					if (getRoleForDevice(i) == role) return i;
+				}
+				return vr::k_unTrackedDeviceIndexInvalid;
+			};
+
+			vr::TrackedDeviceIndex_t preferredDev = findTrackedDevice(preferredRole);
+
+			// Priority 1: Switch to the preferred-role device if it's tracked and we're not on it
+			if (preferredDev != vr::k_unTrackedDeviceIndexInvalid
+				&& preferredDev != m_deviceOverlayIsAttachedTo) {
+
+				if (onDevice && attachedPoseValid) {
+					// Both devices tracked — preserve world position
+					m_overlayPositionMatrix = calculateRelativeTransform(preferredDev);
+					m_matrixForRole = preferredRole;
+				} else if (m_matrixForRole != preferredRole
+						   && m_matrixForRole != vr::TrackedControllerRole_Invalid) {
+					// Coming from HMD or untracked device — mirror if matrix is for wrong hand
+					mirrorMatrix();
+				}
+
+				AttachToDevice(preferredDev);
+				if (preferredRole == vr::TrackedControllerRole_LeftHand) m_leftController = preferredDev;
+				else m_rightController = preferredDev;
+			}
+			// Priority 2: Current device lost tracking, preferred not available — try other hand
+			else if ((!onDevice || !attachedPoseValid)
+					 && preferredDev == vr::k_unTrackedDeviceIndexInvalid) {
+
+				vr::TrackedDeviceIndex_t otherDev = findTrackedDevice(otherRole);
+
+				if (otherDev != vr::k_unTrackedDeviceIndexInvalid
+					&& otherDev != m_deviceOverlayIsAttachedTo) {
+
+					if (onDevice && attachedPoseValid) {
+						m_overlayPositionMatrix = calculateRelativeTransform(otherDev);
+						m_matrixForRole = otherRole;
+					} else if (m_matrixForRole != otherRole
+							   && m_matrixForRole != vr::TrackedControllerRole_Invalid) {
+						mirrorMatrix();
+					}
+
+					AttachToDevice(otherDev);
+					if (otherRole == vr::TrackedControllerRole_LeftHand) m_leftController = otherDev;
+					else m_rightController = otherDev;
+				}
+				// Priority 3: No tracked hand at all — fall back to HMD
+				else if (onDevice && !attachedPoseValid) {
+					AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
+				}
+			}
+		}
 	}
 
 	// Process events for one overlay, dispatching mouse events to the given scene and widget
@@ -783,13 +880,14 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 						m_leftController = newDeviceIndex;
 						if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd || m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
 							// Overlay is on HMD/unattached — move to this hand
-							if (vr::TrackedControllerRole_LeftHand != m_savedRole) mirrorMatrix();
+							if (vr::TrackedControllerRole_LeftHand != m_matrixForRole) mirrorMatrix();
 							AttachToDevice(m_leftController);
 						}
 						else if (currentAttachedRole == vr::TrackedControllerRole_LeftHand) {
 							// Already on a left-hand device (e.g. switching controller <-> hand tracking).
 							// Preserve world position without mirroring — same hand, different device.
 							m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
+							m_matrixForRole = vr::TrackedControllerRole_LeftHand;
 							AttachToDevice(m_leftController);
 						}
 						else if (m_savedRole != currentAttachedRole) {
@@ -803,13 +901,14 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 						m_rightController = newDeviceIndex;
 						if (m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndex_Hmd || m_deviceOverlayIsAttachedTo == vr::k_unTrackedDeviceIndexInvalid) {
 							// Overlay is on HMD/unattached — move to this hand
-							if (vr::TrackedControllerRole_RightHand != m_savedRole) mirrorMatrix();
+							if (vr::TrackedControllerRole_RightHand != m_matrixForRole) mirrorMatrix();
 							AttachToDevice(m_rightController);
 						}
 						else if (currentAttachedRole == vr::TrackedControllerRole_RightHand) {
-							// Already on a right-hand device (e.g. switching controller <-> hand tracking).
+							// Already on a right-hand device
 							// Preserve world position without mirroring — same hand, different device.
 							m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
+							m_matrixForRole = vr::TrackedControllerRole_RightHand;
 							AttachToDevice(m_rightController);
 						}
 						else if (m_savedRole != currentAttachedRole) {
@@ -821,7 +920,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				}
 				break;
 
-				case vr::VREvent_TrackedDeviceDeactivated:
+			case vr::VREvent_TrackedDeviceDeactivated:
 				{
 					vr::TrackedDeviceIndex_t deactivatedDevice = vrEvent.trackedDeviceIndex;
 
@@ -838,24 +937,43 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 					// If the overlay was attached to this device, find a replacement
 					if (m_deviceOverlayIsAttachedTo == deactivatedDevice) {
+						vr::TrackedDeviceIndex_t replacement = vr::k_unTrackedDeviceIndexInvalid;
+
+						// Try same role first
 						if (deactivatedRole != vr::TrackedControllerRole_Invalid) {
-							// Try to find another device with the same role (e.g. hand tracking when controller disconnects)
-							vr::TrackedDeviceIndex_t replacement = findDeviceForRole(deactivatedRole);
+							replacement = findDeviceForRole(deactivatedRole);
 							if (replacement != vr::k_unTrackedDeviceIndexInvalid) {
 								m_overlayPositionMatrix = calculateRelativeTransform(replacement);
+								m_matrixForRole = deactivatedRole;
 								AttachToDevice(replacement);
 								if (deactivatedRole == vr::TrackedControllerRole_LeftHand) m_leftController = replacement;
 								else m_rightController = replacement;
-							} else {
-								// No same-role replacement available, fall back to HMD
-								AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
 							}
-						} else {
+						}
+
+						// Try the other hand
+						if (replacement == vr::k_unTrackedDeviceIndexInvalid) {
+							vr::ETrackedControllerRole otherRole = (deactivatedRole == vr::TrackedControllerRole_LeftHand)
+								? vr::TrackedControllerRole_RightHand : vr::TrackedControllerRole_LeftHand;
+							if (deactivatedRole != vr::TrackedControllerRole_Invalid) {
+								replacement = findDeviceForRole(otherRole);
+								if (replacement != vr::k_unTrackedDeviceIndexInvalid) {
+									m_overlayPositionMatrix = calculateRelativeTransform(replacement);
+									m_matrixForRole = otherRole;
+									AttachToDevice(replacement);
+									if (otherRole == vr::TrackedControllerRole_LeftHand) m_leftController = replacement;
+									else m_rightController = replacement;
+								}
+							}
+						}
+
+						// No replacement found, fall back to HMD
+						if (replacement == vr::k_unTrackedDeviceIndexInvalid) {
 							AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
 						}
 					}
 				}
-					break;
+				break;
 
 			case vr::VREvent_Quit:
 				QApplication::exit();
@@ -1032,6 +1150,7 @@ void SteamVRLogic::startMove() {
 			return;
 		}
 		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
+		m_matrixForRole = vr::TrackedControllerRole_RightHand;
 		AttachToDevice(m_rightController);
 		m_isMoving = true;
 	}
@@ -1041,6 +1160,7 @@ void SteamVRLogic::startMove() {
 			return;
 		}
 		m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
+		m_matrixForRole = vr::TrackedControllerRole_LeftHand;
 		AttachToDevice(m_leftController);
 		m_isMoving = true;
 	}
@@ -1049,10 +1169,12 @@ void SteamVRLogic::startMove() {
 void SteamVRLogic::stopMove() {
 	if (m_deviceOverlayIsAttachedTo == m_rightController) {
 		m_overlayPositionMatrix = calculateRelativeTransform(m_leftController);
+		m_matrixForRole = vr::TrackedControllerRole_LeftHand;
 		AttachToDevice(m_leftController);
 	}
 	else {
 		m_overlayPositionMatrix = calculateRelativeTransform(m_rightController);
+		m_matrixForRole = vr::TrackedControllerRole_RightHand;
 		AttachToDevice(m_rightController);
 	}
 	//savePosition();
@@ -1065,6 +1187,11 @@ void SteamVRLogic::mirrorMatrix() {
 	m_overlayPositionMatrix.m[0][2] = -m_overlayPositionMatrix.m[0][2];
 	m_overlayPositionMatrix.m[1][0] = -m_overlayPositionMatrix.m[1][0];
 	m_overlayPositionMatrix.m[2][0] = -m_overlayPositionMatrix.m[2][0];
+
+	if (m_matrixForRole == vr::TrackedControllerRole_LeftHand)
+		m_matrixForRole = vr::TrackedControllerRole_RightHand;
+	else if (m_matrixForRole == vr::TrackedControllerRole_RightHand)
+		m_matrixForRole = vr::TrackedControllerRole_LeftHand;
 }
 
 
