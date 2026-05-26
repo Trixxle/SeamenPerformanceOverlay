@@ -82,10 +82,14 @@ public slots:
     void updateSystemResourceUsage(const SystemResourcesHandler::systemResourceUsage& systemResourceUsage);
     void saveOpacity();
     void restoreOpacity();
+    void restoreDistanceFadeValue();
+    void restoreDistanceFadeState();
+    void setOpacityValue(float newValue);
+    void setDistanceFadeValue(float newValue);
     void resetOpacityToDefault();
     void increaseOpacityButtonClicked();
     void decreaseOpacityButtonClicked();
-    void hideMoveBar(bool hide);
+    void hideUi(bool hide);
 
 private slots:
     void onExitButtonClicked();
@@ -97,13 +101,14 @@ private:
     void paintEvent(QPaintEvent *event) override;
     float roundFloat(float number, int decimalCases);
     void updateOpacity();
-    void animateButtonZoom(bool zoomIn);
+    void animateButtonZoom(bool zoomIn, QPushButton *button, int growWidth, int growHeight);
 
     Ui::DashboardUI *ui;
     const int MAX_GRAPH_POINTS = 250;
 
     QRect m_baseMoveBarGeometry;
-    bool m_geometryCached = false;
+    bool m_geometryCachedMove = false;
+    bool m_geometryCachedBar = false;
 
     float m_headsetRefreshRate;
     float m_targetFrameRate;

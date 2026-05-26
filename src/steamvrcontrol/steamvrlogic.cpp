@@ -241,7 +241,9 @@ bool SteamVRLogic::Init() {
 		// Rendering above that frequency would be wasted performance
 		// Yes, this makes the buttons slightly less responsive but at 100ms interval they still feel fine, it is worth the
 		// Trade-off
-		m_pRenderTimer->setInterval(100);
+
+		// EXPERIMENTAL SLOWER UI UPDATE, SET BACK TO 100ms AT SOME POINT
+		m_pRenderTimer->setInterval(250);
 		m_pRenderTimer->start();
 	}
 	else {
@@ -839,13 +841,13 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 			case vr::VREvent_DashboardActivated:
 				{
-					emit hideMoveBar(false);
+					emit hideUi(false);
 				}
 				break;
 
 			case vr::VREvent_DashboardDeactivated:
 				{
-					emit hideMoveBar(true);
+					emit hideUi(true);
 				}
 				break;
 

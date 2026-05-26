@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1364</width>
-    <height>779</height>
+    <width>1471</width>
+    <height>817</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>dashboardui</string>
   </property>
   <property name="windowOpacity">
-   <double>0.950000000000000</double>
+   <double>1.000000000000000</double>
   </property>
   <property name="styleSheet">
    <string notr="true">/* --- Main Window ---*/
@@ -22,16 +22,65 @@
 	background-color: #232424; 
 	border-radius: 60px; 
 	border: 4px solid rgb(16, 146, 191); 
-	margin: 4px; 
 }
 
-/*--- Bottom Tool Bar ---*/
+/*--- Upper Option bar ---*/
+#optionBar {
+	background-color: rgb(50, 50, 50);
+	border-top-left-radius: 55px;   
+	border-top-right-radius: 55px;  
+	border-bottom-left-radius: 0px; 
+	border-bottom-right-radius: 0px;
+}
+
+#optionBar QLabel{
+	font-size: 30px;
+}
+
+#optionBar QCheckBox {
+	font-size: 30px;
+    spacing: 20px; /* Pushes the 'Enable' text away from the box */
+    color: white;
+}
+
+#optionBar QCheckBox::indicator {
+    width: 30px;
+    height: 30px;
+    border-radius: 16px; /* Setting radius to half the width makes a perfect circle */
+    background-color: #232424; /* Matches your darkest background */
+    border: 2px solid #454545; /* Subtle grey ring */
+}
+
+#optionBar QCheckBox::indicator:hover {
+    border: 2px solid rgb(16, 146, 191); /* Glows blue when hovered */
+}
+
+#optionBar QCheckBox::indicator:checked {
+    background-color: rgb(16, 146, 191); 
+    border: 2px solid #232424;
+    image: none; /* Prevents standard Qt checkmark from drawing over it */
+}
+
+#optionBar QPushButton {
+	font-size: 50px;
+}
+
+#optionBar #switchControllerButton {
+	font-size: 30px;
+	border-top-right-radius: 55px;
+}
+
+/*--- Bottom Information Bar ---*/
 #interactionFrame{
 	background-color: rgb(50, 50, 50);
 	border-top-left-radius: 0px;   
 	border-top-right-radius: 0px;  
 	border-bottom-left-radius: 55px; 
 	border-bottom-right-radius: 55px;
+}
+
+#interactionFrame QLabel {
+	font-size: 30px;
 }
 
 /*--- Global Buttons ---*/
@@ -66,6 +115,16 @@ QPushButton:pressed {
     border-bottom-right-radius: 45px;
 }
 
+/*--- Scale Bar ---*/
+#scaleButton{
+	background-color: rgb(125, 125, 125);
+	border-radius: 8px;
+}
+
+#scaleButton:pressed{
+	background-color: rgb(255, 255, 255);
+}
+
 /*--- Move Bar ---*/
 #moveButton{
 	background-color: rgb(125, 125, 125);
@@ -76,16 +135,13 @@ QPushButton:pressed {
 	background-color: rgb(255, 255, 255);
 }
 
-/*--- Move Bar Frame ---*/
-#moveButtonFrame{
+/*--- Move Bar and Scale Bar Frames ---*/
+#moveButtonFrame, #scaleFrame{
 	background-color: transparent;
 	border: none;
 }</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout_2" stretch="0,0">
-   <property name="spacing">
-    <number>0</number>
-   </property>
+  <layout class="QGridLayout" name="gridLayout_4">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -98,7 +154,10 @@ QPushButton:pressed {
    <property name="bottomMargin">
     <number>0</number>
    </property>
-   <item>
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <item row="1" column="0">
     <widget class="QFrame" name="mainFrame">
      <property name="enabled">
       <bool>true</bool>
@@ -151,7 +210,7 @@ QPushButton:pressed {
         <property name="frameShadow">
          <enum>QFrame::Shadow::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="2,0,1,0,0,4,0,1,0,0,4,0,10,0,2">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -181,20 +240,9 @@ QPushButton:pressed {
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="opacityTitle">
-           <property name="font">
-            <font>
-             <pointsize>20</pointsize>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
+          <widget class="QLabel" name="label_8">
            <property name="text">
-            <string>Opacity</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignmentFlag::AlignCenter</set>
+            <string>Clock:</string>
            </property>
           </widget>
          </item>
@@ -203,72 +251,58 @@ QPushButton:pressed {
            <property name="orientation">
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
-           <property name="sizeType">
-            <enum>QSizePolicy::Policy::Preferred</enum>
-           </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>21</width>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
           </spacer>
          </item>
          <item>
-          <widget class="QPushButton" name="decreaseOpacityButton">
-           <property name="minimumSize">
-            <size>
-             <width>60</width>
-             <height>60</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>60</width>
-             <height>60</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>30</pointsize>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
+          <widget class="QLabel" name="label_9">
            <property name="text">
-            <string>-</string>
+            <string>23:16 PM</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="increaseOpacityButton">
-           <property name="minimumSize">
+          <spacer name="horizontalSpacer_12">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
             <size>
-             <width>60</width>
-             <height>60</height>
+             <width>40</width>
+             <height>20</height>
             </size>
            </property>
-           <property name="maximumSize">
-            <size>
-             <width>60</width>
-             <height>60</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>30</pointsize>
-             <italic>false</italic>
-             <bold>false</bold>
-             <strikeout>false</strikeout>
-             <kerning>true</kerning>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_10">
            <property name="text">
-            <string>+</string>
+            <string>Playtime [GAME]:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="horizontalSpacer_46">
+           <property name="orientation">
+            <enum>Qt::Orientation::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>164 Hr and 52 min</string>
            </property>
           </widget>
          </item>
@@ -278,21 +312,21 @@ QPushButton:pressed {
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Policy::Preferred</enum>
+            <enum>QSizePolicy::Policy::Expanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>92</width>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="scaleTitle">
+          <widget class="QLabel" name="scaleTitle1">
            <property name="font">
             <font>
-             <pointsize>20</pointsize>
+             <pointsize>-1</pointsize>
             </font>
            </property>
            <property name="text">
@@ -309,11 +343,11 @@ QPushButton:pressed {
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Policy::Preferred</enum>
+            <enum>QSizePolicy::Policy::Expanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
-             <width>21</width>
+             <width>40</width>
              <height>20</height>
             </size>
            </property>
@@ -379,47 +413,7 @@ QPushButton:pressed {
             <enum>Qt::Orientation::Horizontal</enum>
            </property>
            <property name="sizeType">
-            <enum>QSizePolicy::Policy::Preferred</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>93</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item>
-          <widget class="QPushButton" name="switchControllerButton">
-           <property name="minimumSize">
-            <size>
-             <width>220</width>
-             <height>59</height>
-            </size>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>220</width>
-             <height>59</height>
-            </size>
-           </property>
-           <property name="font">
-            <font>
-             <pointsize>20</pointsize>
-            </font>
-           </property>
-           <property name="styleSheet">
-            <string notr="true"/>
-           </property>
-           <property name="text">
-            <string>Switch Controller</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_12">
-           <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
+            <enum>QSizePolicy::Policy::Expanding</enum>
            </property>
            <property name="sizeHint" stdset="0">
             <size>
@@ -448,6 +442,9 @@ QPushButton:pressed {
              <pointsize>20</pointsize>
              <bold>false</bold>
             </font>
+           </property>
+           <property name="layoutDirection">
+            <enum>Qt::LayoutDirection::LeftToRight</enum>
            </property>
            <property name="styleSheet">
             <string notr="true"/>
@@ -1666,7 +1663,362 @@ QPushButton:pressed {
      </layout>
     </widget>
    </item>
-   <item>
+   <item row="0" column="0" alignment="Qt::AlignmentFlag::AlignHCenter">
+    <widget class="QFrame" name="optionBar">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>1250</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="layoutDirection">
+      <enum>Qt::LayoutDirection::LeftToRight</enum>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_6" stretch="0,0,0,0,0,0,0,0,0,0,0,0">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="sizeConstraint">
+       <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <spacer name="horizontalSpacer_45">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>60</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="distanceFadeCheck">
+        <property name="layoutDirection">
+         <enum>Qt::LayoutDirection::RightToLeft</enum>
+        </property>
+        <property name="text">
+         <string>Distance Fade</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="plusFadeDistance">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>60</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>-</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="DistanceFadeVar">
+        <property name="text">
+         <string>Error</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="minusFadeDistance">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>+</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_49">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>60</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="opacityTitle">
+        <property name="text">
+         <string>Opacity</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="decreaseOpacityButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>-</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="OpacityVar">
+        <property name="text">
+         <string>Error</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignmentFlag::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+      <item alignment="Qt::AlignmentFlag::AlignVCenter">
+       <widget class="QPushButton" name="increaseOpacityButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>+</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_53">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>60</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="switchControllerButton">
+        <property name="minimumSize">
+         <size>
+          <width>220</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>220</width>
+          <height>100</height>
+         </size>
+        </property>
+        <property name="font">
+         <font>
+          <pointsize>-1</pointsize>
+         </font>
+        </property>
+        <property name="styleSheet">
+         <string notr="true"/>
+        </property>
+        <property name="text">
+         <string>Swap Side</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QFrame" name="scaleFrame">
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_3" columnstretch="0,0,1">
+      <property name="leftMargin">
+       <number>6</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <item row="1" column="2">
+       <spacer name="horizontalSpacer_44">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="1" column="0">
+       <spacer name="horizontalSpacer_43">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="0" column="1">
+       <spacer name="verticalSpacer_7">
+        <property name="orientation">
+         <enum>Qt::Orientation::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item row="1" column="1">
+       <widget class="QPushButton" name="scaleButton">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Ignored" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>300</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item row="2" column="1">
+       <spacer name="verticalSpacer_8">
+        <property name="orientation">
+         <enum>Qt::Orientation::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
     <widget class="QFrame" name="moveButtonFrame">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -1697,7 +2049,7 @@ QPushButton:pressed {
        <number>0</number>
       </property>
       <property name="topMargin">
-       <number>0</number>
+       <number>6</number>
       </property>
       <property name="rightMargin">
        <number>0</number>

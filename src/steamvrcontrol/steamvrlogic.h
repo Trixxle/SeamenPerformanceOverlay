@@ -202,7 +202,7 @@ signals:
     void restoreDistanceFade(bool enabled);
     void overlayScaleChanged(float newScale);
     void distanceFadeValueChanged(float newValue);
-    void hideMoveBar(bool hide);
+    void hideUi(bool hide);
 };
 
 

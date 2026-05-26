@@ -45,8 +45,23 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
     ui->setupUi(this);
 
+    QSizePolicy spOptionBar = ui->optionBar->sizePolicy();
+    QSizePolicy spMoveBtn = ui->moveButton->sizePolicy();
+    QSizePolicy spScaleBtn = ui->scaleButton->sizePolicy();
+
+    spOptionBar.setRetainSizeWhenHidden(true);
+    spMoveBtn.setRetainSizeWhenHidden(true);
+    spScaleBtn.setRetainSizeWhenHidden(true);
+
+    ui->optionBar->setSizePolicy(spOptionBar);
+    ui->moveButton->setSizePolicy(spMoveBtn);
+    ui->scaleButton->setSizePolicy(spScaleBtn);
+
     ui->moveButtonFrame->setAttribute(Qt::WA_Hover, true);
     ui->moveButtonFrame->installEventFilter(this);
+
+    ui->scaleFrame->setAttribute(Qt::WA_Hover, true);
+    ui->scaleFrame->installEventFilter(this);
 
     setUpCharts();
 
@@ -65,69 +80,104 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     ui->moveButton->hide();
 
     restoreOpacity();
+    restoreDistanceFadeState();
+    restoreDistanceFadeValue();
 }
 
 DashboardUI::~DashboardUI() {
     delete ui;
 }
 
-void DashboardUI::hideMoveBar(bool hide) {
-    if (hide) {
-        ui->moveButton->hide();
-    }
-    else {
-        ui->moveButton->show();
+void DashboardUI::restoreDistanceFadeValue() {
+    if (!m_settings.value("DistanceFadeStart").isNull()) {
+        setDistanceFadeValue(m_settings.value("DistanceFadeStart").toFloat());
     }
 }
 
-bool DashboardUI::eventFilter(QObject *watched, QEvent *event){
-    // Check if the event is coming from your specific frame
-    if (watched == ui->moveButtonFrame) {
-        if (event->type() == QEvent::Enter) {
-            // Mouse entered the frame -> Zoom IN
-            if (!m_geometryCached) {
-                m_baseMoveBarGeometry = ui->moveButton->geometry();
-                m_geometryCached = true;
-            }
-            animateButtonZoom(true);
-            return true; // We handled the event
+void DashboardUI::restoreDistanceFadeState() {
+    if (!m_settings.value("DistanceFadeOn").isNull()) {
+        ui->distanceFadeCheck->setChecked(m_settings.value("DistanceFadeOn").toBool());
+    }
+}
+
+void DashboardUI::setOpacityValue(float newOpacity) {
+    float opacityPercent = newOpacity * 100.0;
+    ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
+}
+
+void DashboardUI::setDistanceFadeValue(float newDistanceFadeValue) {
+    float distanceInCms = newDistanceFadeValue * 100.0;
+    ui->DistanceFadeVar->setText(QString::number(distanceInCms) + "cm");
+}
+
+void DashboardUI::hideUi(bool hide) {
+    if (hide) {
+        ui->moveButton->hide();
+        ui->optionBar->hide();
+        ui->scaleButton->hide();
+    }
+    else {
+        ui->moveButton->show();
+        ui->optionBar->show();
+        ui->scaleButton->show();
+    }
+}
+
+bool DashboardUI::eventFilter(QObject *watched, QEvent *event) {
+    // Only process Enter and Leave events to save CPU cycles
+    if (event->type() == QEvent::Enter || event->type() == QEvent::Leave) {
+        QPushButton *targetButton = nullptr;
+        int growW = 0, growH = 0;
+
+        // Map the watched frame to its specific button and zoom parameters
+        if (watched == ui->moveButtonFrame) {
+            targetButton = ui->moveButton;
+            growW = 900;
+            growH = 80;
         }
-        else if (event->type() == QEvent::Leave) {
-            // Mouse left the frame -> Zoom OUT
-            animateButtonZoom(false);
+        else if (watched == ui->scaleFrame) {
+            targetButton = ui->scaleButton;
+            growW = 70;
+            growH = 275;
+        }
+
+        // If the event came from one of our mapped frames, trigger the animation
+        if (targetButton) {
+            bool zoomIn = (event->type() == QEvent::Enter);
+            animateButtonZoom(zoomIn, targetButton, growW, growH);
             return true;
         }
     }
+
     // Pass all other events to the base class
     return QWidget::eventFilter(watched, event);
 }
 
-void DashboardUI::animateButtonZoom(bool zoomIn) {
-    QPropertyAnimation *animation = new QPropertyAnimation(ui->moveButton, "geometry");
+void DashboardUI::animateButtonZoom(bool zoomIn, QPushButton *button, int growWidth, int growHeight) {
+    // 1. Cache the base geometry dynamically on the button itself (only happens once)
+    if (!button->property("baseGeometry").isValid()) {
+        button->setProperty("baseGeometry", button->geometry());
+    }
+
+    // Retrieve the cached base geometry specific to this button
+    QRect baseGeometry = button->property("baseGeometry").toRect();
+
+    // 2. Setup Animation
+    QPropertyAnimation *animation = new QPropertyAnimation(button, "geometry");
     animation->setDuration(150);
-    animation->setEasingCurve(QEasingCurve::OutQuad); // Adds a nice smooth deceleration
+    animation->setEasingCurve(QEasingCurve::OutQuad);
 
-    // How many pixels you want the bar to grow by
-    int growWidth = 900;
-    int growHeight = 80;
-
-    // Calculate the zoomed rectangle, keeping the center point exactly the same
+    // 3. Calculate the zoomed rectangle based on the button's specific base geometry
     QRect zoomedRect(
-        m_baseMoveBarGeometry.x() - (growWidth / 2),
-        m_baseMoveBarGeometry.y() - (growHeight / 2),
-        m_baseMoveBarGeometry.width() + growWidth,
-        m_baseMoveBarGeometry.height() + growHeight
+        baseGeometry.x() - (growWidth / 2),
+        baseGeometry.y() - (growHeight / 2),
+        baseGeometry.width() + growWidth,
+        baseGeometry.height() + growHeight
     );
 
-    // Always start from the CURRENT geometry so it doesn't stutter
-    // if the user moves the mouse in and out quickly mid-animation
-    animation->setStartValue(ui->moveButton->geometry());
-
-    if (zoomIn) {
-        animation->setEndValue(zoomedRect);
-    } else {
-        animation->setEndValue(m_baseMoveBarGeometry);
-    }
+    // 4. Start from current geometry to prevent stuttering, animate to target
+    animation->setStartValue(button->geometry());
+    animation->setEndValue(zoomIn ? zoomedRect : baseGeometry);
 
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
@@ -144,6 +194,7 @@ void DashboardUI::saveOpacity() {
 void DashboardUI::restoreOpacity() {
     if (!m_settings.value("Opacity", m_opacity).isNull()) {
         m_opacity = m_settings.value("Opacity", m_opacity).toFloat();
+        setOpacityValue(m_settings.value("Opacity").toFloat());
         updateOpacity();
     }
 }
@@ -151,6 +202,7 @@ void DashboardUI::restoreOpacity() {
 void DashboardUI::updateOpacity() {
     this->setWindowOpacity(m_opacity);
     // Workaround to properly save opacity.
+    setOpacityValue(m_opacity);
     saveOpacity();
     emit opacityChanged(m_opacity);
 }
