@@ -243,7 +243,7 @@ bool SteamVRLogic::Init() {
 		// Trade-off
 
 		// EXPERIMENTAL SLOWER UI UPDATE, SET BACK TO 100ms AT SOME POINT
-		m_pRenderTimer->setInterval(500);
+		m_pRenderTimer->setInterval(250);
 		m_pRenderTimer->start();
 	}
 	else {
@@ -385,6 +385,7 @@ void SteamVRLogic::saveDistanceFadeStart() {
 
 void SteamVRLogic::setDistanceFade(bool enabled) {
 	m_distanceFadeOn = enabled;
+	emit distanceFadeCheckChanged(m_distanceFadeOn);
 }
 
 // IMPORTANT NOTE: Opacity is restored directly in dashboard.cpp as this code is ran before the widget exists
@@ -479,6 +480,9 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
 
 		QOpenGLPaintDevice device(m_pFbo->size());
 		QPainter painter(&device);
+		painter.setRenderHint(QPainter::Antialiasing);
+		//painter.setRenderHint(QPainter::TextAntialiasing);
+		painter.setRenderHint(QPainter::SmoothPixmapTransform);
 		m_pScene->render(&painter);
 		painter.end();
 		m_pFbo->release();
@@ -849,7 +853,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_DashboardDeactivated:
 				{
 					emit hideUi(true);
-					m_pRenderTimer->setInterval(500);
+					m_pRenderTimer->setInterval(250);
 				}
 				break;
 
@@ -1391,21 +1395,25 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
         pWidget->move(0,0);
 
     	QGraphicsProxyWidget *proxy = m_pScene->addWidget( pWidget );
+    	//proxy->setTransformOriginPoint(0,0);
+    	//proxy->setScale(0.5); // Scale the whole widget down by a factor of 2 to save on GPU power.
+    	//m_pScene->setSceneRect(0, 0, pWidget->width() * 0.5, pWidget->height() * 0.5); // Match scene to new size
 
-    	// This forces Qt to render the whole overlay as a single texture, meaning one draw call. This massively improves GPU usage.
-    	// Going from 20% to 1.5% GPU usage on my system (weak laptop)
     	proxy->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
     }
     m_pWidget = pWidget;
 
-    m_pFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+	//int fboWidth = m_pScene->sceneRect().width();
+	//int fboHeight = m_pScene->sceneRect().height();
+	//m_pFbo = new QOpenGLFramebufferObject(fboWidth, fboHeight, GL_TEXTURE_2D);
+	m_pFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
 
     if( vr::VROverlay() )
     {
         vr::HmdVector2_t vecWindowSize =
         {
-            (float)pWidget->width(),
-            (float)pWidget->height()
+        	(float)pWidget->width(),
+			(float)pWidget->height()
         };
         vr::VROverlay()->SetOverlayMouseScale( m_ulOverlayHandle, &vecWindowSize );
     }

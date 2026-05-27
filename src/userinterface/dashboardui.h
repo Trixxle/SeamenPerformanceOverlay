@@ -73,8 +73,6 @@ public:
     void updateCpuFrameTimeGraph(const QList<float>& newFrameTimes);
     void updateFrameRateGraph(const QList<float>& newFrameRates);
 
-    void insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int targetRow, int targetColumn, bool toShiftDown);
-
 public slots:
     void updateGraphs(const FrameHandler::FrameStatsList& informationList);
     void updateLabels(const FrameHandler::frameStats& information);
@@ -86,6 +84,7 @@ public slots:
     void restoreDistanceFadeState();
     void setOpacityValue(float newValue);
     void setDistanceFadeValue(float newValue);
+    void setDistanceFadeState(bool state);
     void resetOpacityToDefault();
     void increaseOpacityButtonClicked();
     void decreaseOpacityButtonClicked();
@@ -124,7 +123,6 @@ private:
     QValueAxis *m_pAxisYFrameTimeConsistency;
     QBarCategoryAxis *m_pAxisXFrameTimeConsistency;
     QStringList m_pCategoriesFrameTimeConsistency;
-    QChartView *m_pChartViewFrameTimeConsistency;
 
     QChart *m_pChartCpuFrameTime;
     QBarSet *m_pBarSetCpuFrameTimeFast;
@@ -135,7 +133,6 @@ private:
     QValueAxis *m_pAxisYCpuFrameTime;
     QBarCategoryAxis *m_pAxisXCpuFrameTime;
     QStringList m_categoriesCpuFrameTime;
-    QChartView *m_pChartViewCpuFrameTime;
 
     QChart *m_pChartGpuFrameTime;
     QBarSet *m_pBarSetGpuFrameTimeFast;
@@ -145,7 +142,6 @@ private:
     QValueAxis *m_pAxisYGpuFrameTime;
     QBarCategoryAxis *m_pAxisXGpuFrameTime;
     QStringList m_categoriesGpuFrameTime;
-    QChartView *m_pChartViewGpuFrameTime;
 
     QChart *m_pChartFrameRate;
     QBarSet *m_pBarSetFrameRateFast;
@@ -155,7 +151,6 @@ private:
     QValueAxis *m_pAxisYFrameRate;
     QBarCategoryAxis *m_pAxisXFrameRate;
     QStringList m_categoriesFrameRate;
-    QChartView *m_pChartViewFrameRate;
 
 signals:
     void requestControllerSwitch();
@@ -164,6 +159,10 @@ signals:
     void requestScaleDown();
 
     void opacityChanged(float newOpacity);
+
+    void distanceCheckboxToggled(bool checked);
+    void requestDistanceFadeStartUp();
+    void requestDistanceFadeStartDown();
 };
 
 

@@ -99,21 +99,32 @@ int main(int argc, char *argv[])
     QObject::connect(systemResourcesThread, &QThread::started, systemResourcesHandler, &SystemResourcesHandler::startSystemResourcesProcessing);
     QObject::connect(systemResourcesThread, &QThread::finished, systemResourcesHandler, &QObject::deleteLater);
 
-    // Connects for backend to frontend communication
+    // Connects for backend to frontend communication (backend to overlay)
     QObject::connect(frameHandler, &FrameHandler::updateGraphs, pDashboardUI, &DashboardUI::updateGraphs);
     QObject::connect(frameHandler, &FrameHandler::updateLabels, pDashboardUI, &DashboardUI::updateLabels);
     QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResources, pDashboardUI, &DashboardUI::updateSystemResources);
     QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResourceUsage, pDashboardUI, &DashboardUI::updateSystemResourceUsage);
-    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
-    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeValueChanged, pPanicDashboard, &panicDashboard::setDistanceFadeValue);
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::hideUi, pDashboardUI, &DashboardUI::hideUi);
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeValueChanged, pDashboardUI, &DashboardUI::setDistanceFadeValue);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::saveOpacity, pDashboardUI, &DashboardUI::saveOpacity);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::restoreOpacity, pDashboardUI, &DashboardUI::restoreOpacity);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeCheckChanged, pDashboardUI, &DashboardUI::setDistanceFadeState);
+
+    // Connects for backend to frontend communication (backend to dashboard)
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeValueChanged, pPanicDashboard, &panicDashboard::setDistanceFadeValue);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::restoreDistanceFade, pPanicDashboard, &panicDashboard::setDistanceFadeState);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::saveDistanceFade, pPanicDashboard, &panicDashboard::saveDistanceFadeState);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeCheckChanged, pPanicDashboard, &panicDashboard::setDistanceFadeState);
 
     // Connects for front end to backend communication (overlay to backend)
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, SteamVRLogic::SharedInstance(), &SteamVRLogic::switchController);
     QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, SteamVRLogic::SharedInstance(), &SteamVRLogic::startMove);
     QObject::connect(pDashboardUI, &DashboardUI::requestScaleUp, SteamVRLogic::SharedInstance(), &SteamVRLogic::increaseOverlayScale);
     QObject::connect(pDashboardUI, &DashboardUI::requestScaleDown, SteamVRLogic::SharedInstance(), &SteamVRLogic::decreaseOverlayScale);
+    QObject::connect(pDashboardUI, &DashboardUI::requestDistanceFadeStartUp, SteamVRLogic::SharedInstance(), &SteamVRLogic::increaseFadeDistanceStart);
+    QObject::connect(pDashboardUI, &DashboardUI::requestDistanceFadeStartDown, SteamVRLogic::SharedInstance(), &SteamVRLogic::decreaseFadeDistanceStart);
+    QObject::connect(pDashboardUI, &DashboardUI::distanceCheckboxToggled, SteamVRLogic::SharedInstance(), &SteamVRLogic::setDistanceFade);
 
     // Connects for front end to backend communication (dashboard to backend)
     QObject::connect(pPanicDashboard, &panicDashboard::requestScaleUp, SteamVRLogic::SharedInstance(), &SteamVRLogic::increaseOverlayScale);
@@ -126,14 +137,8 @@ int main(int argc, char *argv[])
     QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked, SteamVRLogic::SharedInstance(), &SteamVRLogic::resetOverlayToDefault);
     QObject::connect(pPanicDashboard, &panicDashboard::distanceCheckboxToggled, SteamVRLogic::SharedInstance(), &SteamVRLogic::setDistanceFade);
 
-    // Connects for the overlay to dashboard communication
+    // Connects for the overlay to dashboard communication and vice versa
     QObject::connect(pDashboardUI, &DashboardUI::opacityChanged, pPanicDashboard, &panicDashboard::setOpacityValue);
-
-    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::saveOpacity, pDashboardUI, &DashboardUI::saveOpacity);
-    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::restoreOpacity, pDashboardUI, &DashboardUI::restoreOpacity);
-
-    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::restoreDistanceFade, pPanicDashboard, &panicDashboard::setDistanceFadeChecked);
-    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::saveDistanceFade, pPanicDashboard, &panicDashboard::saveDistanceFadeState);
 
     frameThread->start();
     systemResourcesThread->start();

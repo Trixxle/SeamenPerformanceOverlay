@@ -23,16 +23,12 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     QWidget(parent),
     ui(new Ui::DashboardUI),
     m_pAxisXFrameTimeConsistency(new QBarCategoryAxis()),
-    m_pChartViewFrameTimeConsistency(new QChartView()),
 
     m_pAxisXCpuFrameTime(new QBarCategoryAxis()),
-    m_pChartViewCpuFrameTime(new QChartView()),
 
     m_pAxisXGpuFrameTime(new QBarCategoryAxis()),
-    m_pChartViewGpuFrameTime(new QChartView()),
 
     m_pAxisXFrameRate(new QBarCategoryAxis()),
-    m_pChartViewFrameRate(new QChartView()),
 
     m_targetFrameRate(targetFrameRate),
     m_headsetRefreshRate(headsetRefreshRate),
@@ -45,18 +41,20 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
     ui->setupUi(this);
 
-    QSizePolicy spOptionBar = ui->optionBar->sizePolicy();
-    QSizePolicy spMoveBtn = ui->moveButton->sizePolicy();
-    QSizePolicy spScaleBtn = ui->scaleButton->sizePolicy();
 
-    spOptionBar.setRetainSizeWhenHidden(true);
-    spMoveBtn.setRetainSizeWhenHidden(true);
-    spScaleBtn.setRetainSizeWhenHidden(true);
+    // All of the below if to stop the UI from resizing itself when certain UI elements are hidden, like when the
+    // SteamVR Dashboard is closed.
+    QSizePolicy spOptionFrame = ui->optionBar->sizePolicy();
+    QSizePolicy spMMoveFrame = ui->moveButtonFrame->sizePolicy();
+    QSizePolicy spScaleFrame = ui->scaleFrame->sizePolicy();
+    spOptionFrame.setRetainSizeWhenHidden(true);
+    spMMoveFrame.setRetainSizeWhenHidden(true);
+    spScaleFrame.setRetainSizeWhenHidden(true);
+    ui->optionBar->setSizePolicy(spOptionFrame);
+    ui->moveButtonFrame->setSizePolicy(spMMoveFrame);
+    ui->scaleFrame->setSizePolicy(spScaleFrame);
 
-    ui->optionBar->setSizePolicy(spOptionBar);
-    ui->moveButton->setSizePolicy(spMoveBtn);
-    ui->scaleButton->setSizePolicy(spScaleBtn);
-
+    // Setup an event listener for the frames that hold the move and scale bars
     ui->moveButtonFrame->setAttribute(Qt::WA_Hover, true);
     ui->moveButtonFrame->installEventFilter(this);
 
@@ -72,12 +70,15 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     connect(ui->moveButton, &QPushButton::pressed, this, &DashboardUI::requestMoveBegin);
     connect(ui->increaseScaleButton, &QPushButton::clicked, this, &DashboardUI::requestScaleUp);
     connect(ui->decreaseScaleButton, &QPushButton::clicked, this, &DashboardUI::requestScaleDown);
+    connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &DashboardUI::distanceCheckboxToggled);
+    connect(ui->plusFadeDistance, &QPushButton::clicked, this, &DashboardUI::requestDistanceFadeStartUp);
+    connect(ui->minusFadeDistance, &QPushButton::clicked, this, &DashboardUI::requestDistanceFadeStartDown);
 
     //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
 
-    // Hide the move bar by default
-    ui->moveButton->hide();
+    // Hide the move bar frame by default
+    ui->moveButtonFrame->hide();
 
     restoreOpacity();
     restoreDistanceFadeState();
@@ -96,7 +97,7 @@ void DashboardUI::restoreDistanceFadeValue() {
 
 void DashboardUI::restoreDistanceFadeState() {
     if (!m_settings.value("DistanceFadeOn").isNull()) {
-        ui->distanceFadeCheck->setChecked(m_settings.value("DistanceFadeOn").toBool());
+        setDistanceFadeState(m_settings.value("DistanceFadeOn").toBool());
     }
 }
 
@@ -110,16 +111,20 @@ void DashboardUI::setDistanceFadeValue(float newDistanceFadeValue) {
     ui->DistanceFadeVar->setText(QString::number(distanceInCms) + "cm");
 }
 
+void DashboardUI::setDistanceFadeState(bool state) {
+    ui->distanceFadeCheck->setChecked(state);
+}
+
 void DashboardUI::hideUi(bool hide) {
     if (hide) {
-        ui->moveButton->hide();
+        ui->moveButtonFrame->hide();
         ui->optionBar->hide();
-        ui->scaleButton->hide();
+        ui->scaleFrame->hide();
     }
     else {
-        ui->moveButton->show();
+        ui->moveButtonFrame->show();
         ui->optionBar->show();
-        ui->scaleButton->show();
+        ui->scaleFrame->show();
     }
 }
 
@@ -132,13 +137,13 @@ bool DashboardUI::eventFilter(QObject *watched, QEvent *event) {
         // Map the watched frame to its specific button and zoom parameters
         if (watched == ui->moveButtonFrame) {
             targetButton = ui->moveButton;
-            growW = 900;
-            growH = 80;
+            growW = 450;
+            growH = 40;
         }
         else if (watched == ui->scaleFrame) {
             targetButton = ui->scaleButton;
-            growW = 70;
-            growH = 275;
+            growW = 35;
+            growH = 132;
         }
 
         // If the event came from one of our mapped frames, trigger the animation
@@ -292,51 +297,6 @@ void DashboardUI::paintEvent(QPaintEvent *event) {
     opt.initFrom(this);
     QPainter p(this);
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
-}
-
-// This function was made as I was not at all comfortable using Qt's Widget Designer program. It would be
-// 100 times easier to just add these in the widget designer instead of through code but this works and I am too lazy
-// to reimplement the same functionality through the designer. I'll do it some other time, it is low priority
-// TODO: What is explained above
-void DashboardUI::insertWidgetAtRow(QGridLayout* layout, QWidget* newWidget, int targetRow, int targetColumn, bool toShiftDown) {
-    newWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    newWidget->setMinimumHeight(150);
-    newWidget->setMaximumHeight(150);
-
-    // If the spot is already empty, no need to shift, simply add the widget
-    if (!toShiftDown) {
-        layout->addWidget(newWidget, targetRow, targetColumn);
-        return;
-    }
-    // Temporary structure to hold the items
-    struct ShiftItem {
-        QLayoutItem* item;
-        int r, c, rs, cs;
-    };
-    QList<ShiftItem> itemsToShift;
-
-    // Collects all the items that need shifting
-    for (int i = 0; i < layout->count(); ++i) {
-        int r, c, rs, cs;
-        layout->getItemPosition(i, &r, &c, &rs, &cs);
-
-        if (r >= targetRow) {
-            itemsToShift.append({layout->itemAt(i), r, c, rs, cs});
-        }
-    }
-
-    // Removes the collected items
-    for (const ShiftItem& si : itemsToShift) {
-        layout->removeItem(si.item);
-    }
-
-    // Re-adds the collected items but shifts them
-    for (const ShiftItem& si : itemsToShift) {
-        layout->addItem(si.item, si.r + 1, si.c, si.rs, si.cs);
-    }
-
-    // Adds the widget in the row that is now empty
-    layout->addWidget(newWidget, targetRow, targetColumn);
 }
 
 void DashboardUI::updateFrameTimeConsistencyGraph(const QList<float>& newFrameTimes) {
@@ -697,10 +657,10 @@ void DashboardUI::setUpCharts() {
     m_pChartFrameRate->setBackgroundBrush(Qt::transparent);
 
     // Makes the charts sit at the bottom of the chartView
-    m_pChartFrameTimeConsistency->setMargins(QMargins(0, 20, 0, 0));
-    m_pChartCpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
-    m_pChartGpuFrameTime->setMargins(QMargins(0, 20, 0, 0));
-    m_pChartFrameRate->setMargins(QMargins(0, 20, 0, 0));
+    m_pChartFrameTimeConsistency->setMargins(QMargins(0, 10, 0, 0));
+    m_pChartCpuFrameTime->setMargins(QMargins(0, 10, 0, 0));
+    m_pChartGpuFrameTime->setMargins(QMargins(0, 10, 0, 0));
+    m_pChartFrameRate->setMargins(QMargins(0, 10, 0, 0));
 
     m_pAxisYFrameTimeConsistency = new QValueAxis();
     m_pAxisYFrameTimeConsistency->setRange(0, m_headsetRefreshRate + 10);
@@ -781,87 +741,11 @@ void DashboardUI::setUpCharts() {
         *m_pBarSetFrameRateSlow << 0;
     }
 
-    m_pChartViewFrameTimeConsistency->setChart(m_pChartFrameTimeConsistency);
-    m_pChartViewFrameTimeConsistency->setObjectName("chartViewTotalFrameTime");
-    m_pChartViewFrameTimeConsistency->setStyleSheet("#chartViewTotalFrameTime { "
-                            "background-color: #FFFFFF; "
-                            "border-top-left-radius: 45px; "
-                            "border-top-right-radius: 45px; "
-                            "border-bottom-left-radius: 0px; "
-                            "border-bottom-right-radius: 0px; "
-                            "}"
-                            );
+    ui->frameTimeConsistencyView->setChart(m_pChartFrameTimeConsistency);
 
-    m_pChartViewCpuFrameTime->setChart(m_pChartCpuFrameTime);
-    m_pChartViewCpuFrameTime->setObjectName("chartViewCpuFrameTime");
-    m_pChartViewCpuFrameTime->setStyleSheet("#chartViewCpuFrameTime { "
-                            "background-color: #FFFFFF; "
-                            "border-top-left-radius: 45px; "
-                            "border-top-right-radius: 45px; "
-                            "border-bottom-left-radius: 0px; "
-                            "border-bottom-right-radius: 0px; "
-                            "}"
-                            );
+    ui->cpuFrameTimeView->setChart(m_pChartCpuFrameTime);
 
-    m_pChartViewGpuFrameTime->setChart(m_pChartGpuFrameTime);
-    m_pChartViewGpuFrameTime->setObjectName("chartViewGpuFrameTime");
-    m_pChartViewGpuFrameTime->setStyleSheet("#chartViewGpuFrameTime { "
-                            "background-color: #FFFFFF; "
-                            "border-top-left-radius: 45px; "
-                            "border-top-right-radius: 45px; "
-                            "border-bottom-left-radius: 0px; "
-                            "border-bottom-right-radius: 0px; "
-                            "}"
-                            );
+    ui->gpuFrameTimeView->setChart(m_pChartGpuFrameTime);
 
-    m_pChartViewFrameRate->setChart(m_pChartFrameRate);
-    m_pChartViewFrameRate->setObjectName("chartViewFrameRate");
-    m_pChartViewFrameRate->setStyleSheet("#chartViewFrameRate { "
-                            "background-color: #FFFFFF; "
-                            "border-top-left-radius: 45px; "
-                            "border-top-right-radius: 45px; "
-                            "border-bottom-left-radius: 0px; "
-                            "border-bottom-right-radius: 0px; "
-                            "}"
-                            );
-
-
-    m_pChartViewCpuFrameTime->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewCpuFrameTime, 0, 1, true);
-
-    m_pChartViewGpuFrameTime->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewGpuFrameTime, 0,0, false);
-
-    // Add spacers
-    struct LayoutShiftItem {
-        QLayoutItem* item;
-        int r, c, rs, cs;
-    };
-    QList<LayoutShiftItem> itemsToShift;
-
-    for (int i = 0; i < ui->mainGridLayout->count(); ++i) {
-        int r, c, rs, cs;
-        ui->mainGridLayout->getItemPosition(i, &r, &c, &rs, &cs);
-        // Grab everything from Row 2 downwards
-        if (r >= 2) {
-            itemsToShift.append({ui->mainGridLayout->itemAt(i), r, c, rs, cs});
-        }
-    }
-
-    for (const LayoutShiftItem& si : itemsToShift) {
-        ui->mainGridLayout->removeItem(si.item);
-    }
-
-    for (const LayoutShiftItem& si : itemsToShift) {
-        ui->mainGridLayout->addItem(si.item, si.r + 1, si.c, si.rs, si.cs);
-    }
-
-    // Spacer height
-    ui->mainGridLayout->setRowMinimumHeight(2, 20);
-
-    m_pChartViewFrameTimeConsistency->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameTimeConsistency, 3, 0, true);
-
-    m_pChartViewFrameRate->setParent(this);
-    insertWidgetAtRow(ui->mainGridLayout, m_pChartViewFrameRate, 3, 1, false);
+    ui->liveFrameRateView->setChart(m_pChartFrameRate);
 }

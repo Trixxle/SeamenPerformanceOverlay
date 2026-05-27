@@ -202,6 +202,7 @@ signals:
     void restoreDistanceFade(bool enabled);
     void overlayScaleChanged(float newScale);
     void distanceFadeValueChanged(float newValue);
+    void distanceFadeCheckChanged(bool enabled);
     void hideUi(bool hide);
 };
 

@@ -67,7 +67,7 @@ private:
     QElapsedTimer m_uiUpdateTimerLabels;
     QTimer* m_pTimer = nullptr;
     const qint64 UI_UPDATE_INTERVAL_MS_GRAPHS = 500; // Interval for UI graphs updating. Unit is ms
-    const qint64 UI_UPDATE_INTERVAL_MS_LABELS = 500; // Interval for UI labels updating. Unit is ms
+    const qint64 UI_UPDATE_INTERVAL_MS_LABELS = 250; // Interval for UI labels updating. Unit is ms
     QList<frameStats> m_frameBuffer;
     uint32_t m_lastFrameSampleIndex;
     uint32_t m_renderedFrames;

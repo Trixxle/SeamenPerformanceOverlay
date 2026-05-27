@@ -40,7 +40,7 @@ public:
     ~panicDashboard() override;
 
 public slots:
-    void setDistanceFadeChecked(bool checked);
+    void setDistanceFadeState(bool checked);
     void restoreDistanceFadeState();
     void saveDistanceFadeState(bool state);
 

@@ -86,7 +86,7 @@ void panicDashboard::saveDistanceFadeState(bool state) {
     m_settings.setValue("DistanceFadeOn", state);
 }
 
-void panicDashboard::setDistanceFadeChecked(bool checked) {
+void panicDashboard::setDistanceFadeState(bool checked) {
     ui->distanceFadeCheck->setChecked(checked);
 }
 
