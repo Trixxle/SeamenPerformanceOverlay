@@ -22,6 +22,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidget *parent):
     QWidget(parent),
     ui(new Ui::DashboardUI),
+    m_clocksTimer(NULL),
     m_pAxisXFrameTimeConsistency(new QBarCategoryAxis()),
 
     m_pAxisXCpuFrameTime(new QBarCategoryAxis()),
@@ -83,10 +84,45 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     restoreOpacity();
     restoreDistanceFadeState();
     restoreDistanceFadeValue();
+
+    m_clocksTimer = new QTimer(this);
+    m_clocksTimer->setTimerType(Qt::VeryCoarseTimer);
+    connect(m_clocksTimer, &QTimer::timeout, this, &DashboardUI::updateClocks);
+    // Check for new time every 5 seconds. Who cares. (Don't use this overlay for new years)
+    m_clocksTimer->start(5000);
+    updateClocks();
 }
 
 DashboardUI::~DashboardUI() {
     delete ui;
+}
+
+void DashboardUI::setAppLaunch(const QString &appName) {
+    m_anAppIsActive = true;
+    m_playTimer.start();
+    ui->playTimeTitle->setText("Playtime in " + appName + ":");
+}
+
+void DashboardUI::setAppQuit(const QString &appName) {
+    m_anAppIsActive = false;
+    qint64 elapsedMs = m_playTimer.elapsed();
+    QTime playTime = QTime(0, 0).addMSecs(elapsedMs);
+    QString playTimeString = playTime.toString("hh:mm");
+
+    ui->playTimeTitle->setText("You have played " + appName + " for " + playTimeString);
+}
+
+void DashboardUI::updateClocks() {
+    QTime time = QTime::currentTime();
+    QString timeString = time.toString("hh:mm");
+    ui->clock->setText(timeString);
+
+    if (!m_anAppIsActive) return;
+
+    qint64 elapsedMs = m_playTimer.elapsed();
+    QTime playTime = QTime(0, 0).addMSecs(elapsedMs);
+    QString playTimeString = playTime.toString("hh:mm");
+    ui->playtimeClock->setText(playTimeString);
 }
 
 void DashboardUI::restoreDistanceFadeValue() {

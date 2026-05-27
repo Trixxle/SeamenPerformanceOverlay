@@ -176,6 +176,8 @@ private:
     QString m_strVRDriver;
     QString m_strVRDisplay;
     QString m_strOverlayName;
+    uint32_t m_currentGamePid = 0;
+    QString m_currentAppName = "";
 
     QTimer *m_pPumpEventsTimer;
     QTimer *m_pRenderTimer;
@@ -204,6 +206,9 @@ signals:
     void distanceFadeValueChanged(float newValue);
     void distanceFadeCheckChanged(bool enabled);
     void hideUi(bool hide);
+    void appLaunched(const QString& appName);
+    void appQuit(const QString& appName);
+
 };
 
 

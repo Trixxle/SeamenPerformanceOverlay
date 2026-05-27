@@ -888,6 +888,88 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				widget->repaint();
 				break;
 
+			case vr::VREvent_SceneApplicationChanged:
+				{
+					// The process ID of the new scene application is stored in the event data
+					uint32_t processId = vrEvent.data.process.pid;
+
+					// A PID of 0 typically means the scene application has quit (often returning to SteamVR Home)
+					if (processId != 0 && vr::VRApplications()) {
+						char appKey[vr::k_unMaxApplicationKeyLength];
+						vr::EVRApplicationError keyErr = vr::VRApplications()->GetApplicationKeyByProcessId(processId, appKey, sizeof(appKey));
+
+						if (keyErr == vr::VRApplicationError_None) {
+							char appName[1024];
+							vr::EVRApplicationError nameErr;
+
+							// Retrieve the human-readable name of the application
+							vr::VRApplications()->GetApplicationPropertyString(
+							   appKey,
+							   vr::VRApplicationProperty_Name_String,
+							   appName,
+							   sizeof(appName),
+							   &nameErr
+							);
+
+							if (nameErr == vr::VRApplicationError_None) {
+								emit appLaunched(QString::fromUtf8(appName));
+								m_currentAppName = appName;
+							} else {
+								std::cerr << "Could not get application name for key:" << appKey;
+							}
+						}
+					}
+				}
+				break;
+
+			case vr::VREvent_ProcessQuit:
+				{
+				uint32_t processId = vrEvent.data.process.pid;
+
+					char appKey[vr::k_unMaxApplicationKeyLength];
+					vr::EVRApplicationError keyErr = vr::VRApplications()->GetApplicationKeyByProcessId(processId, appKey, sizeof(appKey));
+
+					if (keyErr == vr::VRApplicationError_None) {
+						char appName[1024];
+						vr::EVRApplicationError nameErr;
+
+						// Retrieve the human-readable name of the application
+						vr::VRApplications()->GetApplicationPropertyString(
+						   appKey,
+						   vr::VRApplicationProperty_Name_String,
+						   appName,
+						   sizeof(appName),
+						   &nameErr
+						);
+
+						if (nameErr == vr::VRApplicationError_None && QString::fromUtf8(appName) == m_currentAppName) {
+							emit appQuit(QString::fromUtf8(appName));
+							m_currentAppName.clear();
+						} else {
+							std::cerr << "Could not get application name for key:" << appKey;
+						}
+					}
+				}
+				break;
+
+			case vr::VREvent_KeyboardOpened_Global:
+				{
+					if (vr::VROverlay())
+					{
+						vr::VROverlay()->HideOverlay(handle);
+					}
+				}
+				break;
+
+			case vr::VREvent_KeyboardClosed_Global:
+				{
+					if (vr::VROverlay())
+					{
+						vr::VROverlay()->ShowOverlay(handle);
+					}
+				}
+				break;
+
 			case vr::VREvent_TrackedDeviceActivated:
 				{
 					vr::TrackedDeviceIndex_t newDeviceIndex = vrEvent.trackedDeviceIndex;

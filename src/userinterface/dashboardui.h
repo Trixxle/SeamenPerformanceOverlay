@@ -89,9 +89,13 @@ public slots:
     void increaseOpacityButtonClicked();
     void decreaseOpacityButtonClicked();
     void hideUi(bool hide);
+    void setAppLaunch(const QString &appName);
+    void setAppQuit(const QString &appName);
 
 private slots:
     void onExitButtonClicked();
+    void updateClocks();
+
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
@@ -104,6 +108,10 @@ private:
 
     Ui::DashboardUI *ui;
     const int MAX_GRAPH_POINTS = 250;
+
+    QTimer *m_clocksTimer;
+    bool m_anAppIsActive = false;
+    QElapsedTimer m_playTimer;
 
     QRect m_baseMoveBarGeometry;
     bool m_geometryCachedMove = false;

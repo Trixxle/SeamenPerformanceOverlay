@@ -109,6 +109,8 @@ int main(int argc, char *argv[])
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::saveOpacity, pDashboardUI, &DashboardUI::saveOpacity);
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::restoreOpacity, pDashboardUI, &DashboardUI::restoreOpacity);
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::distanceFadeCheckChanged, pDashboardUI, &DashboardUI::setDistanceFadeState);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::appLaunched, pDashboardUI, &DashboardUI::setAppLaunch);
+    QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::appQuit, pDashboardUI, &DashboardUI::setAppQuit);
 
     // Connects for backend to frontend communication (backend to dashboard)
     QObject::connect(SteamVRLogic::SharedInstance(), &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
