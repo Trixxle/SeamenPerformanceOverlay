@@ -78,6 +78,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QMap>
 #include <iostream>
 #include <qdialogbuttonbox.h>
+#include <memory>
 #include "openvr.h"
 
 class SteamVRLogic: public QObject {
@@ -175,6 +176,9 @@ private:
     bool m_panicSceneDirty = false;
     bool m_distanceFadeOn = false;
 
+    QRect m_mainSceneDirtyRect;
+    QRect m_panicSceneDirtyRect;
+
     vr::HmdMatrix34_t m_overlayPositionMatrix;
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
@@ -193,12 +197,14 @@ private:
     QTimer *m_pPumpEventsTimer;
     QTimer *m_pRenderTimer;
 
-    QOpenGLContext *m_pOpenGLContext;
-    QOffscreenSurface *m_pOffscreenSurface;
-    QGraphicsScene *m_pScene;
-    QGraphicsScene *m_pPanicScene;
-    QOpenGLFramebufferObject *m_pFbo;
-    QOpenGLFramebufferObject *m_pPanicFbo;
+    std::unique_ptr<QOpenGLContext> m_pOpenGLContext;
+    std::unique_ptr<QOffscreenSurface> m_pOffscreenSurface;
+    std::unique_ptr<QGraphicsScene> m_pScene;
+    std::unique_ptr<QGraphicsScene> m_pPanicScene;
+    std::unique_ptr<QOpenGLFramebufferObject> m_pFbo;
+    std::unique_ptr<QOpenGLFramebufferObject> m_pPanicFbo;
+    std::unique_ptr<QOpenGLPaintDevice> m_pMainPaintDevice;
+    std::unique_ptr<QOpenGLPaintDevice> m_pPanicPaintDevice;
 
     QPointF m_tLastMouse;
     Qt::MouseButtons m_lastMouseButtons;

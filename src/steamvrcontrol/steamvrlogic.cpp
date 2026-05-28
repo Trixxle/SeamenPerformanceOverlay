@@ -78,12 +78,6 @@ m_strVRDisplay("No Display"),
 m_strOverlayName("Seamen Performance Overlay"),
 m_pPumpEventsTimer(NULL),
 m_pRenderTimer(NULL),
-m_pOpenGLContext(NULL),
-m_pOffscreenSurface(NULL),
-m_pScene(NULL),
-m_pPanicScene(NULL),
-m_pFbo(NULL),
-m_pPanicFbo(NULL),
 m_lastMouseButtons( 0 ),
 m_settings("Seamen", "PerformanceOverlay")
 {}
@@ -113,10 +107,10 @@ bool SteamVRLogic::Init() {
     QSurfaceFormat format;
     format.setMajorVersion( 4 );
     format.setMinorVersion( 1 );
-    format.setProfile( QSurfaceFormat::CompatibilityProfile );
+    format.setProfile( QSurfaceFormat::CoreProfile);
 
-    m_pOpenGLContext = new QOpenGLContext();
-    m_pOpenGLContext->setFormat( format );
+	m_pOpenGLContext = std::make_unique<QOpenGLContext>();
+	m_pOpenGLContext->setFormat( format );
     bSuccess = m_pOpenGLContext->create();
     if( !bSuccess ) {
 		std::cout << "Failed to initialize OpenGL context." << std::endl;
@@ -124,15 +118,15 @@ bool SteamVRLogic::Init() {
     }
 
     // create an offscreen surface to attach the context and FBO to
-    m_pOffscreenSurface = new QOffscreenSurface();
-    m_pOffscreenSurface->create();
-    m_pOpenGLContext->makeCurrent( m_pOffscreenSurface );
+	m_pOffscreenSurface = std::make_unique<QOffscreenSurface>();
+	m_pOffscreenSurface->create();
+    m_pOpenGLContext->makeCurrent( m_pOffscreenSurface.get() );
 
-    m_pScene = new QGraphicsScene();
-    connect( m_pScene, SIGNAL(changed(const QList<QRectF>&)), this, SLOT( OnSceneChanged(const QList<QRectF>&)) );
+	m_pScene = std::make_unique<QGraphicsScene>();
+	connect( m_pScene.get(), SIGNAL(changed(const QList<QRectF>&)), this, SLOT( OnSceneChanged(const QList<QRectF>&)) );
 
-	m_pPanicScene = new QGraphicsScene();
-	connect( m_pPanicScene, SIGNAL(changed(const QList<QRectF>&)), this, SLOT( OnPanicSceneChanged(const QList<QRectF>&)) );
+	m_pPanicScene = std::make_unique<QGraphicsScene>();
+	connect( m_pPanicScene.get(), SIGNAL(changed(const QList<QRectF>&)), this, SLOT( OnPanicSceneChanged(const QList<QRectF>&)) );
 
     bSuccess = ConnectToVRRuntime();
 
@@ -231,7 +225,7 @@ bool SteamVRLogic::Init() {
 
 		m_pPumpEventsTimer = new QTimer( this );
 		m_pRenderTimer = new QTimer( this );
-		m_pRenderTimer->setTimerType(Qt::PreciseTimer);
+		m_pRenderTimer->setTimerType(Qt::CoarseTimer);
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		connect(m_pRenderTimer, &QTimer::timeout, this, &SteamVRLogic::RenderDirtyOverlayScenes);
 		m_pPumpEventsTimer->setInterval( 20 );
@@ -253,6 +247,7 @@ bool SteamVRLogic::Init() {
 }
 
 void SteamVRLogic::steamDashboardStateForUi() {
+	if (!vr::VROverlay()) return;
 	emit hideUi(!vr::VROverlay()->IsDashboardVisible());
 }
 
@@ -324,16 +319,12 @@ void SteamVRLogic::Shutdown() {
 	saveSession();
 	DisconnectFromVRRuntime();
 
-	delete m_pScene;
-	delete m_pPanicScene;
-	delete m_pFbo;
-	delete m_pPanicFbo;
-	delete m_pOffscreenSurface;
-
-	if( m_pOpenGLContext )
-	{
-		delete m_pOpenGLContext;
-		m_pOpenGLContext = NULL;
+	if (m_pOpenGLContext) {
+		m_pOpenGLContext->makeCurrent(m_pOffscreenSurface.get());
+		m_pFbo.reset();
+		m_pPanicFbo.reset();
+		m_pOffscreenSurface.reset();
+		m_pOpenGLContext.reset();
 	}
 }
 
@@ -438,80 +429,103 @@ void SteamVRLogic::restoreSession() {
 	}
 }
 
-void SteamVRLogic::OnSceneChanged(const QList<QRectF>&) {
-	// Just mark dirty. The actual GPU render is batched in OnTimeoutPumpEvents
-	// to prevent multiple FBO renders per timer tick when the UI updates several
-	// items at once, like labels, charts, etc.
-	m_mainSceneDirty = true;
+void SteamVRLogic::OnSceneChanged(const QList<QRectF> &region)
+{
+	for (const QRectF& rect : region) {
+		if (!m_mainSceneDirty) {
+			m_mainSceneDirtyRect = rect.toAlignedRect();
+			m_mainSceneDirty = true;
+		} else {
+			// .united() grows the rectangle to encompass both
+			m_mainSceneDirtyRect = m_mainSceneDirtyRect.united(rect.toAlignedRect());
+		}
+	}
 }
 
-void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>&) {
-	// Just mark dirty. Rendered in OnTimeoutPumpEvents alongside the main scene.
-	m_panicSceneDirty = true;
+void SteamVRLogic::OnPanicSceneChanged(const QList<QRectF>& region) {
+	for (const QRectF& rect : region) {
+		if (!m_panicSceneDirty) {
+			m_panicSceneDirtyRect = rect.toAlignedRect();
+			m_panicSceneDirty = true;
+		} else {
+			// .united() grows the rectangle to encompass both
+			m_panicSceneDirtyRect = m_panicSceneDirtyRect.united(rect.toAlignedRect());
+		}
+	}
 }
 
-// Performs the OpenGL FBO render and texture upload to OpenVR for any
-// scene that has been marked dirty since the last render update tick.
-// Called once per timer tick so that multiple scene-changed signals within a
-// single tick collapse into one GPU render instead of two, as there are two overlays
 void SteamVRLogic::RenderDirtyOverlayScenes() {
-	if (!vr::VROverlay()) return;
+    if (!vr::VROverlay()) return;
 
-	bool mainVisible = m_mainSceneDirty
-		&& m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid
-		&& vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle)
-		&& m_lastAlpha > 0.01f;
+    bool mainVisible = m_mainSceneDirty && m_ulOverlayHandle != vr::k_ulOverlayHandleInvalid && vr::VROverlay()->IsOverlayVisible(m_ulOverlayHandle) && m_lastAlpha > 0.01f;
+    bool panicVisible = m_panicSceneDirty && m_ulPanicOverlayHandle != vr::k_ulOverlayHandleInvalid && vr::VROverlay()->IsOverlayVisible(m_ulPanicOverlayHandle);
 
-	bool panicVisible = m_panicSceneDirty
-		&& m_ulPanicOverlayHandle != vr::k_ulOverlayHandleInvalid
-		&& vr::VROverlay()->IsOverlayVisible(m_ulPanicOverlayHandle);
+    if (!mainVisible && !panicVisible) return;
 
-	if (!mainVisible && !panicVisible) return;
+    m_pOpenGLContext->makeCurrent(m_pOffscreenSurface.get());
 
-	// Make context current once for both scenes
-	m_pOpenGLContext->makeCurrent(m_pOffscreenSurface);
-	QOpenGLFunctions *f = m_pOpenGLContext->functions();
+    // --- MAIN SCENE ---
+    if (mainVisible && m_pFbo && m_pMainPaintDevice) {
+        m_pFbo->bind();
 
-	if (mainVisible && m_pFbo) {
-		m_pFbo->bind();
-		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		f->glClear(GL_COLOR_BUFFER_BIT);
+        QPainter painter(m_pMainPaintDevice.get());
 
-		QOpenGLPaintDevice device(m_pFbo->size());
-		QPainter painter(&device);
-		painter.setRenderHint(QPainter::Antialiasing);
-		//painter.setRenderHint(QPainter::TextAntialiasing);
-		painter.setRenderHint(QPainter::SmoothPixmapTransform);
-		m_pScene->render(&painter);
-		painter.end();
-		m_pFbo->release();
+        // 1. Create a region from the single united bounding rect
+        QRegion clipRegion(m_mainSceneDirtyRect);
 
-		GLuint unTexture = m_pFbo->texture();
-		if (unTexture != 0) {
-			vr::Texture_t texture = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
-			vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texture);
-		}
-		m_mainSceneDirty = false;
-	}
+        // 2. Restrict the painter to only draw inside the dirty region
+        painter.setClipRegion(clipRegion);
 
-	if (panicVisible && m_pPanicFbo) {
-		m_pPanicFbo->bind();
-		f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		f->glClear(GL_COLOR_BUFFER_BIT);
+        // 3. Clear the dirty region (acts as a targeted glClear)
+        painter.setCompositionMode(QPainter::CompositionMode_Source);
+        painter.fillRect(m_mainSceneDirtyRect, Qt::transparent);
 
-		QOpenGLPaintDevice panicDevice(m_pPanicFbo->size());
-		QPainter panicPainter(&panicDevice);
-		m_pPanicScene->render(&panicPainter);
-		panicPainter.end();
-		m_pPanicFbo->release();
+        // 4. Render the scene (Qt will only process items inside the clip region)
+        painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        m_pScene->render(&painter);
 
-		GLuint unPanicTexture = m_pPanicFbo->texture();
-		if (unPanicTexture != 0) {
-			vr::Texture_t texture = {(void*)(uintptr_t)unPanicTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
-			vr::VROverlay()->SetOverlayTexture(m_ulPanicOverlayHandle, &texture);
-		}
-		m_panicSceneDirty = false;
-	}
+        painter.end();
+        m_pFbo->release();
+
+        GLuint unTexture = m_pFbo->texture();
+        if (unTexture != 0) {
+            vr::Texture_t texture = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+            vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texture);
+        }
+
+        // 5. Reset state
+        m_mainSceneDirty = false;
+        m_mainSceneDirtyRect = QRect(); // Reset the bounding rect
+    }
+
+    // --- PANIC SCENE ---
+    if (panicVisible && m_pPanicFbo && m_pPanicPaintDevice) {
+        m_pPanicFbo->bind();
+
+        QPainter panicPainter(m_pPanicPaintDevice.get());
+
+        QRegion clipRegion(m_panicSceneDirtyRect);
+
+        panicPainter.setClipRegion(clipRegion);
+
+        panicPainter.setCompositionMode(QPainter::CompositionMode_Source);
+        panicPainter.fillRect(m_panicSceneDirtyRect, Qt::transparent);
+
+        panicPainter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        m_pPanicScene->render(&panicPainter);
+
+        panicPainter.end();
+        m_pPanicFbo->release();
+
+        GLuint unPanicTexture = m_pPanicFbo->texture();
+        if (unPanicTexture != 0) {
+            vr::Texture_t texture = {(void*)(uintptr_t)unPanicTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+            vr::VROverlay()->SetOverlayTexture(m_ulPanicOverlayHandle, &texture);
+        }
+
+        m_panicSceneDirty = false;
+        m_panicSceneDirtyRect = QRect();
+    }
 }
 
 void SteamVRLogic::checkClosestControllerForRole() {
@@ -1098,8 +1112,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		}
 	};
 
-	processOverlayEvents( m_ulOverlayHandle, m_pScene, m_pWidget );
-	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene, m_pPanicWidget );
+	processOverlayEvents( m_ulOverlayHandle, m_pScene.get(), m_pWidget );
+	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene.get(), m_pPanicWidget );
 
 	// Update overlay alpha based on the viewing angle so the overlay fades when seen edge-on
 	if (vr::VROverlay()
@@ -1542,7 +1556,8 @@ void SteamVRLogic::SetWidget( QWidget *pWidget) {
 	//int fboWidth = m_pScene->sceneRect().width();
 	//int fboHeight = m_pScene->sceneRect().height();
 	//m_pFbo = new QOpenGLFramebufferObject(fboWidth, fboHeight, GL_TEXTURE_2D);
-	m_pFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+	m_pFbo = std::make_unique<QOpenGLFramebufferObject>(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+	m_pMainPaintDevice = std::make_unique<QOpenGLPaintDevice>(pWidget->width(), pWidget->height());
 
     if( vr::VROverlay() )
     {
@@ -1569,7 +1584,8 @@ void SteamVRLogic::SetPanicWidget(QWidget *pWidget) {
 	}
 	m_pPanicWidget = pWidget;
 
-	m_pPanicFbo = new QOpenGLFramebufferObject(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+	m_pPanicFbo = std::make_unique<QOpenGLFramebufferObject>(pWidget->width(), pWidget->height(), GL_TEXTURE_2D);
+	m_pPanicPaintDevice = std::make_unique<QOpenGLPaintDevice>(pWidget->width(), pWidget->height());
 
 	if( vr::VROverlay() )
 	{

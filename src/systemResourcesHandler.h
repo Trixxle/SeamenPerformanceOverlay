@@ -61,6 +61,8 @@ private:
     const qint64 UI_UPDATE_INTERVAL_MS = 2000; // Interval for UI updating
     systemResourceUsage m_systemResourceUsage;
     systemResources m_systemResources;
+    PDH_HQUERY m_pdhQuery = nullptr;
+    PDH_HCOUNTER m_vramCounter = nullptr;
 
 signals:
     void updateSystemResources(systemResources newSystemResources);

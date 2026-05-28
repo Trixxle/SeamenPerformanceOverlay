@@ -18,14 +18,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "systemResourcesHandler.h"
 
 SystemResourcesHandler::SystemResourcesHandler(QObject* parent):
-    QObject(parent)
+    QObject(parent),
+    m_pdhQuery(nullptr),
+    m_vramCounter(nullptr)
 {
     getSystemTotalVram();
     getSystemTotalRam();
+
+    if (PdhOpenQuery(nullptr, 0, &m_pdhQuery) == ERROR_SUCCESS) {
+        if (PdhAddEnglishCounterA(m_pdhQuery, "\\GPU Adapter Memory(*)\\Dedicated Usage", 0, &m_vramCounter) != ERROR_SUCCESS) {
+            PdhCloseQuery(m_pdhQuery);
+            m_pdhQuery = nullptr;
+            m_vramCounter = nullptr;
+        } else {
+            PdhCollectQueryData(m_pdhQuery);
+        }
+    }
 }
 
 SystemResourcesHandler::~SystemResourcesHandler() {
-
+    // 3. Clean up the PDH query when the handler is destroyed
+    if (m_pdhQuery) {
+        PdhCloseQuery(m_pdhQuery);
+        m_pdhQuery = nullptr;
+    }
 }
 
 void SystemResourcesHandler::getSystemTotalRam() {
@@ -67,38 +83,33 @@ void SystemResourcesHandler::getSystemRamUsage() {
 }
 
 void SystemResourcesHandler::getSystemVramUsage() {
-    PDH_HQUERY query = nullptr;
-    if (PdhOpenQuery(nullptr, 0, &query) != ERROR_SUCCESS) return;
+    // Ensure PDH initialized successfully before attempting to collect
+    if (!m_pdhQuery || !m_vramCounter) return;
 
-    PDH_HCOUNTER counter = nullptr;
-    // Wildcard captures all GPU adapter instances for system-wide total
-    if (PdhAddEnglishCounterA(query, "\\GPU Adapter Memory(*)\\Dedicated Usage", 0, &counter) != ERROR_SUCCESS) {
-        PdhCloseQuery(query);
-        return;
-    }
-
-    PdhCollectQueryData(query);
+    // 2. Only collect and format the data in the hot loop
+    PdhCollectQueryData(m_pdhQuery);
 
     DWORD bufferSize = 0;
     DWORD itemCount = 0;
-    PdhGetFormattedCounterArrayA(counter, PDH_FMT_LARGE, &bufferSize, &itemCount, nullptr);
+
+    // First call to get the required buffer size
+    PdhGetFormattedCounterArrayA(m_vramCounter, PDH_FMT_LARGE, &bufferSize, &itemCount, nullptr);
 
     if (bufferSize > 0 && itemCount > 0) {
         std::vector<BYTE> buffer(bufferSize);
         auto* items = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM_A*>(buffer.data());
 
-        if (PdhGetFormattedCounterArrayA(counter, PDH_FMT_LARGE, &bufferSize, &itemCount, items) == ERROR_SUCCESS) {
+        // Second call to actually get the data
+        if (PdhGetFormattedCounterArrayA(m_vramCounter, PDH_FMT_LARGE, &bufferSize, &itemCount, items) == ERROR_SUCCESS) {
             LONGLONG totalBytes = 0;
             for (DWORD i = 0; i < itemCount; i++) {
-                if (items[i].FmtValue.CStatus == PDH_CSTATUS_VALID_DATA) {
+                if (items[i].FmtValue.CStatus == PDH_CSTATUS_VALID_DATA || items[i].FmtValue.CStatus == PDH_CSTATUS_NEW_DATA) {
                     totalBytes += items[i].FmtValue.largeValue;
                 }
             }
             m_systemResourceUsage.vramUsage = static_cast<float>(totalBytes) / (1024.0f * 1024.0f * 1024.0f);
         }
     }
-
-    PdhCloseQuery(query);
 }
 
 void SystemResourcesHandler::startSystemResourcesProcessing() {

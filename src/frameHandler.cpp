@@ -146,8 +146,7 @@ void FrameHandler::processFrame() {
     for (int i = 0; i < smoothCount; i++) {
         averagedFrames += smoothFrameRateArray[i];
     }
-    m_information.smoothFrameRate = averagedFrames / smoothCount;
-
+    m_information.smoothFrameRate = (smoothCount > 0) ? (averagedFrames / smoothCount) : 0;
     m_frameBuffer.append(m_information);
 
     if (m_uiUpdateTimerLabels.hasExpired(UI_UPDATE_INTERVAL_MS_LABELS))
