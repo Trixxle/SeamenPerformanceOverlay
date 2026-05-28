@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
-    <height>459</height>
+    <width>767</width>
+    <height>502</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,6 +22,11 @@
     background-color: #232424;
     border-radius: 40px;
     border: 2px solid rgb(16, 146, 191); 
+}
+
+/*--- Attached Device Interaction ---*/
+#LeftControllerButton, #RightControllerButton, #HMDButton {
+	font-size: 18px;
 }
 
 /*--- Version Number ---*/
@@ -46,22 +51,22 @@
 
 /* --- The Interaction Frame --- */
 #InteractionFrame {
-    border-radius: 30px;
+    border-radius: 10px;
 }
 
 
 /* --- The 4 Inner Grid Panels  Specific Styling--- */
-#ScaleFrame, #OpacityFrame, #DistanceFadeFrame, #ResetFrame {
+#ScaleFrame, #OpacityFrame, #DistanceFadeFrame, #ResetFrame, #AttachedDeviceFrame {
     background-color: rgb(50, 50, 50);
     border-radius: 30px;
 }
 
-#ScaleTitle, #OpacityTitle, #DistanceFadeTitle, #LostOrBrokeTitle {
+#ScaleTitle, #OpacityTitle, #DistanceFadeTitle, #LostOrBrokeTitle, #AttachedDeviceTitle {
 	font-size: 25px;
     font-weight: bold;
 }
 
-#DistanceFadeTitleFrame, #ScaleTitleFrame, #OpacityTitleFrame, #LostOrBrokeTitleFrame {
+#DistanceFadeTitleFrame, #ScaleTitleFrame, #OpacityTitleFrame, #LostOrBrokeTitleFrame, #AttachedDeviceTitleFrame {
     background-color: #454545;
     border-top-left-radius: 30px;
     border-top-right-radius: 30px;
@@ -247,7 +252,7 @@ QPushButton:pressed {
          <item>
           <widget class="QLabel" name="versionNumber">
            <property name="text">
-            <string>v2026.5.2</string>
+            <string>v2026.5.3</string>
            </property>
           </widget>
          </item>
@@ -264,7 +269,7 @@ QPushButton:pressed {
            </property>
           </spacer>
          </item>
-         <item>
+         <item alignment="Qt::AlignmentFlag::AlignHCenter">
           <widget class="QLabel" name="settingsTitle">
            <property name="font">
             <font>
@@ -333,24 +338,9 @@ QPushButton:pressed {
         <property name="frameShadow">
          <enum>QFrame::Shadow::Raised</enum>
         </property>
-        <layout class="QGridLayout" name="gridLayout" rowstretch="4,6">
-         <property name="sizeConstraint">
-          <enum>QLayout::SizeConstraint::SetDefaultConstraint</enum>
-         </property>
-         <property name="leftMargin">
-          <number>20</number>
-         </property>
-         <property name="topMargin">
-          <number>20</number>
-         </property>
-         <property name="rightMargin">
-          <number>20</number>
-         </property>
-         <property name="bottomMargin">
-          <number>20</number>
-         </property>
+        <layout class="QGridLayout" name="gridLayout">
          <property name="spacing">
-          <number>20</number>
+          <number>9</number>
          </property>
          <item row="0" column="1">
           <widget class="QFrame" name="OpacityFrame">
@@ -424,6 +414,12 @@ QPushButton:pressed {
               </property>
               <item>
                <widget class="QPushButton" name="MinusOpacity">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="text">
                  <string>-</string>
                 </property>
@@ -441,6 +437,12 @@ QPushButton:pressed {
               </item>
               <item>
                <widget class="QPushButton" name="PlusOpacity">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="text">
                  <string>+</string>
                 </property>
@@ -526,6 +528,12 @@ QPushButton:pressed {
               </property>
               <item>
                <widget class="QPushButton" name="MinusScale">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="text">
                  <string>-</string>
                 </property>
@@ -543,6 +551,12 @@ QPushButton:pressed {
               </item>
               <item>
                <widget class="QPushButton" name="PlusScale">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="text">
                  <string>+</string>
                 </property>
@@ -553,7 +567,106 @@ QPushButton:pressed {
            </layout>
           </widget>
          </item>
-         <item row="1" column="0">
+         <item row="1" column="1">
+          <widget class="QFrame" name="ResetFrame">
+           <property name="frameShape">
+            <enum>QFrame::Shape::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Shadow::Raised</enum>
+           </property>
+           <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,4">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
+            <item>
+             <widget class="QFrame" name="LostOrBrokeTitleFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_10">
+               <item>
+                <widget class="QLabel" name="LostOrBrokeTitle">
+                 <property name="font">
+                  <font>
+                   <family>Segoe UI</family>
+                   <pointsize>-1</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="text">
+                  <string>Lost or Broke the Overlay?</string>
+                 </property>
+                 <property name="alignment">
+                  <set>Qt::AlignmentFlag::AlignCenter</set>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+            <item>
+             <widget class="QFrame" name="panicButtonFrame">
+              <property name="frameShape">
+               <enum>QFrame::Shape::StyledPanel</enum>
+              </property>
+              <property name="frameShadow">
+               <enum>QFrame::Shadow::Raised</enum>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_11">
+               <property name="spacing">
+                <number>0</number>
+               </property>
+               <property name="leftMargin">
+                <number>100</number>
+               </property>
+               <property name="topMargin">
+                <number>0</number>
+               </property>
+               <property name="rightMargin">
+                <number>100</number>
+               </property>
+               <property name="bottomMargin">
+                <number>0</number>
+               </property>
+               <item>
+                <widget class="QPushButton" name="panicButton">
+                 <property name="font">
+                  <font>
+                   <pointsize>-1</pointsize>
+                   <bold>true</bold>
+                  </font>
+                 </property>
+                 <property name="styleSheet">
+                  <string notr="true"/>
+                 </property>
+                 <property name="text">
+                  <string>RESET</string>
+                 </property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item row="1" column="0" rowspan="2">
           <widget class="QFrame" name="DistanceFadeFrame">
            <property name="frameShape">
             <enum>QFrame::Shape::StyledPanel</enum>
@@ -692,6 +805,12 @@ QPushButton:pressed {
                  </property>
                  <item>
                   <widget class="QPushButton" name="MinusDistanceFade">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>-</string>
                    </property>
@@ -709,6 +828,12 @@ QPushButton:pressed {
                  </item>
                  <item>
                   <widget class="QPushButton" name="PlusDistanceFade">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
                    <property name="text">
                     <string>+</string>
                    </property>
@@ -722,15 +847,15 @@ QPushButton:pressed {
            </layout>
           </widget>
          </item>
-         <item row="1" column="1">
-          <widget class="QFrame" name="ResetFrame">
+         <item row="2" column="1">
+          <widget class="QFrame" name="AttachedDeviceFrame">
            <property name="frameShape">
             <enum>QFrame::Shape::StyledPanel</enum>
            </property>
            <property name="frameShadow">
             <enum>QFrame::Shadow::Raised</enum>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_4" stretch="0,4">
+           <layout class="QVBoxLayout" name="verticalLayout_13" stretch="0,4">
             <property name="spacing">
              <number>0</number>
             </property>
@@ -747,16 +872,16 @@ QPushButton:pressed {
              <number>0</number>
             </property>
             <item>
-             <widget class="QFrame" name="LostOrBrokeTitleFrame">
+             <widget class="QFrame" name="AttachedDeviceTitleFrame">
               <property name="frameShape">
                <enum>QFrame::Shape::StyledPanel</enum>
               </property>
               <property name="frameShadow">
                <enum>QFrame::Shadow::Raised</enum>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_10">
+              <layout class="QVBoxLayout" name="verticalLayout_14">
                <item>
-                <widget class="QLabel" name="LostOrBrokeTitle">
+                <widget class="QLabel" name="AttachedDeviceTitle">
                  <property name="font">
                   <font>
                    <family>Segoe UI</family>
@@ -765,7 +890,7 @@ QPushButton:pressed {
                   </font>
                  </property>
                  <property name="text">
-                  <string>Lost or broke the overlay?</string>
+                  <string>Attach to Device</string>
                  </property>
                  <property name="alignment">
                   <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -776,47 +901,101 @@ QPushButton:pressed {
              </widget>
             </item>
             <item>
-             <widget class="QFrame" name="panicButtonFrame">
-              <property name="frameShape">
-               <enum>QFrame::Shape::StyledPanel</enum>
+             <layout class="QHBoxLayout" name="AttachedDeviceInteractionFrame">
+              <property name="spacing">
+               <number>10</number>
               </property>
-              <property name="frameShadow">
-               <enum>QFrame::Shadow::Raised</enum>
+              <property name="leftMargin">
+               <number>20</number>
               </property>
-              <layout class="QVBoxLayout" name="verticalLayout_11">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <property name="leftMargin">
-                <number>100</number>
-               </property>
-               <property name="topMargin">
-                <number>0</number>
-               </property>
-               <property name="rightMargin">
-                <number>100</number>
-               </property>
-               <property name="bottomMargin">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QPushButton" name="panicButton">
-                 <property name="font">
-                  <font>
-                   <pointsize>-1</pointsize>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                 <property name="styleSheet">
-                  <string notr="true"/>
-                 </property>
-                 <property name="text">
-                  <string>RESET</string>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </widget>
+              <property name="topMargin">
+               <number>10</number>
+              </property>
+              <property name="rightMargin">
+               <number>20</number>
+              </property>
+              <property name="bottomMargin">
+               <number>10</number>
+              </property>
+              <item>
+               <widget class="QPushButton" name="LeftControllerButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../../resources/customIcons.qrc">
+                  <normaloff>:/icons/leftControllerPNG.png</normaloff>:/icons/leftControllerPNG.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>40</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="HMDButton">
+                <property name="enabled">
+                 <bool>false</bool>
+                </property>
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../../resources/customIcons.qrc">
+                  <normaloff>:/icons/hmdPNG.png</normaloff>:/icons/hmdPNG.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>40</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="RightControllerButton">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="text">
+                 <string/>
+                </property>
+                <property name="icon">
+                 <iconset resource="../../resources/customIcons.qrc">
+                  <normaloff>:/icons/rightControllerPNG.png</normaloff>:/icons/rightControllerPNG.png</iconset>
+                </property>
+                <property name="iconSize">
+                 <size>
+                  <width>40</width>
+                  <height>40</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </item>
            </layout>
           </widget>
@@ -829,6 +1008,8 @@ QPushButton:pressed {
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../../resources/customIcons.qrc"/>
+ </resources>
  <connections/>
 </ui>

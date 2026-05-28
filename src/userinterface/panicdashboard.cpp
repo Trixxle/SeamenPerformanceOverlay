@@ -37,12 +37,14 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->MinusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityDown);
     connect(ui->PlusDistanceFade, &QPushButton::clicked, this, &panicDashboard::requestDistanceFadeStartUp);
     connect(ui->MinusDistanceFade, &QPushButton::clicked, this, &panicDashboard::requestDistanceFadeStartDown);
+    connect(ui->RightControllerButton, &QPushButton::clicked, this, &panicDashboard::requestRightControllerAttach);
+    connect(ui->LeftControllerButton, &QPushButton::clicked, this, &panicDashboard::requestLeftControllerAttach);
+    connect(ui->HMDButton, &QPushButton::clicked, this, &panicDashboard::requestHmdAttach);
 
     restoreDistanceFadeState();
     restoreScale();
     restoreOpacity();
     restoreDistanceFadeValue();
-    emit initialized();
 }
 
 void panicDashboard::restoreScale() {

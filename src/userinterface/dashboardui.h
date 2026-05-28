@@ -165,8 +165,6 @@ signals:
     void requestMoveBegin();
     void requestScaleBegin();
 
-    void initialized();
-
     void opacityChanged(float newOpacity);
 
     void distanceCheckboxToggled(bool checked);

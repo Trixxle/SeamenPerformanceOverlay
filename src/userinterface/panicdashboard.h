@@ -66,7 +66,9 @@ signals:
     void requestScaleDown();
     void requestOpacityUp();
     void requestOpacityDown();
-    void initialized();
+    void requestLeftControllerAttach();
+    void requestRightControllerAttach();
+    void requestHmdAttach();
 };
 
 

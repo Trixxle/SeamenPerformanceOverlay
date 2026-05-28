@@ -122,14 +122,19 @@ public slots:
     void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
     void steamDashboardStateForUi();
+    void attachToRightController();
+    void attachToLeftController();
+    void attachToHmd();
 
 private:
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
-    vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
+
+    vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::ETrackedControllerRole m_savedRole = vr::TrackedControllerRole_LeftHand;
+
     vr::ETrackedControllerRole m_matrixForRole = vr::TrackedControllerRole_LeftHand;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
@@ -145,7 +150,7 @@ private:
     void saveSession();
     void restoreSession();
     void AttachToDevice(const vr::TrackedDeviceIndex_t& device);
-    vr::TrackedDeviceIndex_t findDeviceForRole(vr::ETrackedControllerRole role);
+    vr::TrackedDeviceIndex_t getDeviceForRole(vr::ETrackedControllerRole role);
     vr::ETrackedControllerRole getRoleForDevice(vr::TrackedDeviceIndex_t device);
     vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
     void mirrorMatrix();
@@ -158,6 +163,7 @@ private:
     void checkClosestControllerForRole();
     void attemptControllerBind();
     float calculateOverlayDistance();
+    void switchToSpecificController(vr::TrackedDeviceIndex_t targetDevice);
 
     bool m_isMoving = false;
     bool m_isScaling = false;
@@ -213,7 +219,6 @@ signals:
     void hideUi(bool hide);
     void appLaunched(const QString& appName);
     void appQuit(const QString& appName);
-    void initialized();
 };
 
 

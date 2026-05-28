@@ -87,7 +87,6 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     // Check for new time every 5 seconds. Who cares. (Don't use this overlay for new years)
     m_clocksTimer->start(5000);
     updateClocks();
-    emit initialized();
 }
 
 DashboardUI::~DashboardUI() {
