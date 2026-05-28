@@ -66,6 +66,7 @@ signals:
     void requestScaleDown();
     void requestOpacityUp();
     void requestOpacityDown();
+    void initialized();
 };
 
 

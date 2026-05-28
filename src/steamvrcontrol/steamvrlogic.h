@@ -75,6 +75,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QOpenGLFunctions>
 #include <QDir>
 #include <QFile>
+#include <QMap>
 #include <iostream>
 #include <qdialogbuttonbox.h>
 #include "openvr.h"
@@ -110,6 +111,8 @@ public slots:
     void switchController();
     void startMove();
     void stopMove();
+    void startScale();
+    void stopScale();
     void increaseOverlayScale();
     void decreaseOverlayScale();
     void increaseFadeDistanceStart();
@@ -118,6 +121,7 @@ public slots:
     // The overlay's main opacity is handled by Qt in the dashboard class.
     void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
+    void steamDashboardStateForUi();
 
 private:
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
@@ -125,7 +129,7 @@ private:
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
-    vr::ETrackedControllerRole m_savedRole = vr::TrackedControllerRole_Invalid;
+    vr::ETrackedControllerRole m_savedRole = vr::TrackedControllerRole_LeftHand;
     vr::ETrackedControllerRole m_matrixForRole = vr::TrackedControllerRole_LeftHand;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
@@ -156,6 +160,7 @@ private:
     float calculateOverlayDistance();
 
     bool m_isMoving = false;
+    bool m_isScaling = false;
     float m_distanceFadeStart = 0.4f;
     float m_overlayWidthInMeters;
     float m_baseAlpha = 1.0f;
@@ -177,7 +182,7 @@ private:
     QString m_strVRDisplay;
     QString m_strOverlayName;
     uint32_t m_currentGamePid = 0;
-    QString m_currentAppName = "";
+    QMap<uint32_t, QString> m_activeProcesses;
 
     QTimer *m_pPumpEventsTimer;
     QTimer *m_pRenderTimer;
@@ -208,7 +213,7 @@ signals:
     void hideUi(bool hide);
     void appLaunched(const QString& appName);
     void appQuit(const QString& appName);
-
+    void initialized();
 };
 
 

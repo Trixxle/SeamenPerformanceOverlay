@@ -69,17 +69,13 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     connect(ui->decreaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::decreaseOpacityButtonClicked);
     connect(ui->switchControllerButton, &QPushButton::clicked, this, &DashboardUI::requestControllerSwitch);
     connect(ui->moveButton, &QPushButton::pressed, this, &DashboardUI::requestMoveBegin);
-    connect(ui->increaseScaleButton, &QPushButton::clicked, this, &DashboardUI::requestScaleUp);
-    connect(ui->decreaseScaleButton, &QPushButton::clicked, this, &DashboardUI::requestScaleDown);
+    connect(ui->scaleButton, &QPushButton::pressed, this, &DashboardUI::requestScaleBegin);
     connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &DashboardUI::distanceCheckboxToggled);
     connect(ui->plusFadeDistance, &QPushButton::clicked, this, &DashboardUI::requestDistanceFadeStartUp);
     connect(ui->minusFadeDistance, &QPushButton::clicked, this, &DashboardUI::requestDistanceFadeStartDown);
 
     //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
-
-    // Hide the move bar frame by default
-    ui->moveButtonFrame->hide();
 
     restoreOpacity();
     restoreDistanceFadeState();
@@ -91,6 +87,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     // Check for new time every 5 seconds. Who cares. (Don't use this overlay for new years)
     m_clocksTimer->start(5000);
     updateClocks();
+    emit initialized();
 }
 
 DashboardUI::~DashboardUI() {
@@ -105,11 +102,7 @@ void DashboardUI::setAppLaunch(const QString &appName) {
 
 void DashboardUI::setAppQuit(const QString &appName) {
     m_anAppIsActive = false;
-    qint64 elapsedMs = m_playTimer.elapsed();
-    QTime playTime = QTime(0, 0).addMSecs(elapsedMs);
-    QString playTimeString = playTime.toString("hh:mm");
-
-    ui->playTimeTitle->setText("You have played " + appName + " for " + playTimeString);
+    ui->playTimeTitle->setText("You have played " + appName + " for:");
 }
 
 void DashboardUI::updateClocks() {
@@ -129,12 +122,14 @@ void DashboardUI::restoreDistanceFadeValue() {
     if (!m_settings.value("DistanceFadeStart").isNull()) {
         setDistanceFadeValue(m_settings.value("DistanceFadeStart").toFloat());
     }
+    else setDistanceFadeValue(0.4);
 }
 
 void DashboardUI::restoreDistanceFadeState() {
     if (!m_settings.value("DistanceFadeOn").isNull()) {
         setDistanceFadeState(m_settings.value("DistanceFadeOn").toBool());
     }
+    else setDistanceFadeState(false);
 }
 
 void DashboardUI::setOpacityValue(float newOpacity) {
@@ -238,6 +233,8 @@ void DashboardUI::restoreOpacity() {
         setOpacityValue(m_settings.value("Opacity").toFloat());
         updateOpacity();
     }
+    else setOpacityValue(1);
+    updateOpacity();
 }
 
 void DashboardUI::updateOpacity() {

@@ -51,6 +51,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QtWidgets/QApplication>
 #include <QThread>
 #include <QMetaType>
+#include <QTimer>
 #include "userinterface/dashboardui.h"
 #include "userinterface/panicdashboard.h"
 #include "steamvrcontrol/steamvrlogic.h"
@@ -122,8 +123,7 @@ int main(int argc, char *argv[])
     // Connects for front end to backend communication (overlay to backend)
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, SteamVRLogic::SharedInstance(), &SteamVRLogic::switchController);
     QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, SteamVRLogic::SharedInstance(), &SteamVRLogic::startMove);
-    QObject::connect(pDashboardUI, &DashboardUI::requestScaleUp, SteamVRLogic::SharedInstance(), &SteamVRLogic::increaseOverlayScale);
-    QObject::connect(pDashboardUI, &DashboardUI::requestScaleDown, SteamVRLogic::SharedInstance(), &SteamVRLogic::decreaseOverlayScale);
+    QObject::connect(pDashboardUI, &DashboardUI::requestScaleBegin, SteamVRLogic::SharedInstance(), &SteamVRLogic::startScale);
     QObject::connect(pDashboardUI, &DashboardUI::requestDistanceFadeStartUp, SteamVRLogic::SharedInstance(), &SteamVRLogic::increaseFadeDistanceStart);
     QObject::connect(pDashboardUI, &DashboardUI::requestDistanceFadeStartDown, SteamVRLogic::SharedInstance(), &SteamVRLogic::decreaseFadeDistanceStart);
     QObject::connect(pDashboardUI, &DashboardUI::distanceCheckboxToggled, SteamVRLogic::SharedInstance(), &SteamVRLogic::setDistanceFade);
@@ -144,6 +144,10 @@ int main(int argc, char *argv[])
 
     frameThread->start();
     systemResourcesThread->start();
+
+    QTimer::singleShot(0, SteamVRLogic::SharedInstance(), []() {
+            SteamVRLogic::SharedInstance()->steamDashboardStateForUi();
+    });
 
     int exitCode = a.exec();
 

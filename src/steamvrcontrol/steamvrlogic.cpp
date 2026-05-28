@@ -237,12 +237,8 @@ bool SteamVRLogic::Init() {
 		m_pPumpEventsTimer->setInterval( 20 );
 		m_pPumpEventsTimer->start();
 
-		// The quickest updating UI element is the text, which happens at 100ms intervals.
+		// The quickest updating UI element is the text, which happens at 250ms intervals.
 		// Rendering above that frequency would be wasted performance
-		// Yes, this makes the buttons slightly less responsive but at 100ms interval they still feel fine, it is worth the
-		// Trade-off
-
-		// EXPERIMENTAL SLOWER UI UPDATE, SET BACK TO 100ms AT SOME POINT
 		m_pRenderTimer->setInterval(250);
 		m_pRenderTimer->start();
 	}
@@ -253,9 +249,14 @@ bool SteamVRLogic::Init() {
 
 	restoreSession();
 
-    return bSuccess;
+	emit initialized();
+
+	return bSuccess;
 }
 
+void SteamVRLogic::steamDashboardStateForUi() {
+	emit hideUi(!vr::VROverlay()->IsDashboardVisible());
+}
 
 // Why limit this? Allow the user to increase it as much as they want, let them be free. They will play themselves
 void SteamVRLogic::increaseOverlayScale() {
@@ -769,6 +770,29 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_MouseMove:
 				{
 					QPointF ptNewMouse( vrEvent.data.mouse.x, vrEvent.data.mouse.y );
+
+					if (m_isScaling && vr::VROverlay()) {
+						// Calculate the horizontal movement delta
+						float deltaX = ptNewMouse.x() - m_tLastMouse.x();
+
+						// Sensitivity modifier (adjust based on your UI resolution and desired drag speed)
+						float sensitivity = 0.0002f;
+						float scaleDelta = deltaX * sensitivity;
+
+						if (std::abs(scaleDelta) > 0.0001f) {
+							float currentWidth = 0.0f;
+							vr::VROverlay()->GetOverlayWidthInMeters(m_ulOverlayHandle, &currentWidth);
+
+							// Apply delta and clamp to reasonable real-world bounds (e.g., 10cm to 3 meters)
+							float newWidth = currentWidth + scaleDelta;
+							newWidth = std::max(0.1f, std::min(newWidth, 3.0f));
+
+							//vr::VROverlay()->SetOverlayWidthInMeters(m_ulOverlayHandle, newWidth);
+							m_overlayWidthInMeters = newWidth;
+							updateOverlayWidthInMeters();
+						}
+					}
+
 					QPoint ptGlobal = ptNewMouse.toPoint();
 					QGraphicsSceneMouseEvent mouseEvent( QEvent::GraphicsSceneMouseMove );
 					mouseEvent.setWidget( NULL );
@@ -839,6 +863,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 					if (m_isMoving) {
 						stopMove();
 						m_isMoving = false;
+					}
+
+					if (m_isScaling) {
+						stopScale();
 					}
 				}
 				break;
@@ -912,45 +940,32 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 							);
 
 							if (nameErr == vr::VRApplicationError_None) {
-								emit appLaunched(QString::fromUtf8(appName));
-								m_currentAppName = appName;
+								QString qAppName = QString::fromUtf8(appName);
+
+								// Cache the PID and the name so we don't have to query OpenVR when it quits
+								m_activeProcesses.insert(processId, qAppName);
+
+								emit appLaunched(qAppName);
 							} else {
-								std::cerr << "Could not get application name for key:" << appKey;
+								std::cerr << "Could not get application name for key:" << appKey << std::endl;
 							}
 						}
 					}
 				}
-				break;
+					break;
 
-			case vr::VREvent_ProcessQuit:
+				case vr::VREvent_ProcessQuit:
 				{
-				uint32_t processId = vrEvent.data.process.pid;
+					uint32_t processId = vrEvent.data.process.pid;
 
-					char appKey[vr::k_unMaxApplicationKeyLength];
-					vr::EVRApplicationError keyErr = vr::VRApplications()->GetApplicationKeyByProcessId(processId, appKey, sizeof(appKey));
-
-					if (keyErr == vr::VRApplicationError_None) {
-						char appName[1024];
-						vr::EVRApplicationError nameErr;
-
-						// Retrieve the human-readable name of the application
-						vr::VRApplications()->GetApplicationPropertyString(
-						   appKey,
-						   vr::VRApplicationProperty_Name_String,
-						   appName,
-						   sizeof(appName),
-						   &nameErr
-						);
-
-						if (nameErr == vr::VRApplicationError_None && QString::fromUtf8(appName) == m_currentAppName) {
-							emit appQuit(QString::fromUtf8(appName));
-							m_currentAppName.clear();
-						} else {
-							std::cerr << "Could not get application name for key:" << appKey;
-						}
+					// Look up the dead PID in our own cache instead of relying on OpenVR
+					if (m_activeProcesses.contains(processId)) {
+						// take() retrieves the value and removes the key from the map
+						QString appName = m_activeProcesses.take(processId);
+						emit appQuit(appName);
 					}
 				}
-				break;
+					break;
 
 			case vr::VREvent_KeyboardOpened_Global:
 				{
@@ -1230,6 +1245,15 @@ void SteamVRLogic::switchController() {
 		std::cerr << "Warning: You have somehow done something that should be impossible. You clicked the switch controller"
 		" button with an invalid device." << std::endl;
 	}
+}
+
+void SteamVRLogic::startScale() {
+	if (m_isScaling) return;
+	m_isScaling = true;
+}
+
+void SteamVRLogic::stopScale() {
+	m_isScaling = false;
 }
 
 void SteamVRLogic::startMove() {

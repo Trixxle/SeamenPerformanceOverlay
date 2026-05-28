@@ -42,30 +42,35 @@ panicDashboard::panicDashboard(QWidget *parent) :
     restoreScale();
     restoreOpacity();
     restoreDistanceFadeValue();
+    emit initialized();
 }
 
 void panicDashboard::restoreScale() {
     if (!m_settings.value("Size").isNull()) {
         setScaleValue(m_settings.value("Size").toFloat());
     }
+    else setScaleValue(0.2);
 }
 
 void panicDashboard::restoreOpacity() {
     if (!m_settings.value("Opacity").isNull()) {
         setOpacityValue(m_settings.value("Opacity").toFloat());
     }
+    else setOpacityValue(1);
 }
 
 void panicDashboard::restoreDistanceFadeValue() {
     if (!m_settings.value("DistanceFadeStart").isNull()) {
         setDistanceFadeValue(m_settings.value("DistanceFadeStart").toFloat());
     }
+    else setDistanceFadeValue(0.4);
 }
 
 void panicDashboard::restoreDistanceFadeState() {
     if (!m_settings.value("DistanceFadeOn").isNull()) {
         ui->distanceFadeCheck->setChecked(m_settings.value("DistanceFadeOn").toBool());
     }
+    else setDistanceFadeState(false);
 }
 
 void panicDashboard::setOpacityValue(float newOpacity) {
@@ -74,7 +79,7 @@ void panicDashboard::setOpacityValue(float newOpacity) {
 }
 
 void panicDashboard::setScaleValue(float newScale) {
-    ui->ScaleVar->setText(QString::number(newScale));
+    ui->ScaleVar->setText(QString::number(newScale, 'f', 2));
 }
 
 void panicDashboard::setDistanceFadeValue(float newDistanceFadeValue) {

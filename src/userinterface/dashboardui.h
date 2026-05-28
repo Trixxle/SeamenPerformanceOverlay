@@ -163,8 +163,9 @@ private:
 signals:
     void requestControllerSwitch();
     void requestMoveBegin();
-    void requestScaleUp();
-    void requestScaleDown();
+    void requestScaleBegin();
+
+    void initialized();
 
     void opacityChanged(float newOpacity);
 
