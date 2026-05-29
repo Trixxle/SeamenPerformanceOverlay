@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>919</width>
+    <width>918</width>
     <height>527</height>
    </rect>
   </property>
@@ -96,6 +96,10 @@ QLabel{
 
 #interactionFrame QLabel {
 	font-size: 18px;
+}
+
+#clock {
+	font-weight: bold;
 }
 
 /*--- Global Buttons ---*/
@@ -266,7 +270,7 @@ QPushButton:pressed {
            <item>
             <widget class="QLabel" name="playTimeTitle">
              <property name="text">
-              <string>Playtime in Your Mom:</string>
+              <string>Time spent crying today:</string>
              </property>
             </widget>
            </item>

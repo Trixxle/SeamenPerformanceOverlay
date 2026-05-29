@@ -51,6 +51,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #define PERFORMANCEVR_STEAMVRLOGIC_H
 
 #include <QtCore/QtCore>
+#include <QThread>
 #include <QtGui/QVector2D>
 #include <QtGui/QMatrix4x4>
 #include <QtCore/QVector>
@@ -73,6 +74,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <filesystem>
 #include <QGraphicsProxyWidget>
 #include <QOpenGLFunctions>
+#include <QOpenGLExtraFunctions>
 #include <QDir>
 #include <QFile>
 #include <QMap>
@@ -126,8 +128,14 @@ public slots:
     void attachToRightController();
     void attachToLeftController();
     void attachToHmd();
+    void setCurrentGame();
 
 private:
+    struct AppCacheData {
+        QString appName;
+        QByteArray appKey;
+    };
+
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
@@ -192,7 +200,7 @@ private:
     QString m_strVRDisplay;
     QString m_strOverlayName;
     uint32_t m_currentGamePid = 0;
-    QMap<uint32_t, QString> m_activeProcesses;
+    QMap<uint32_t, AppCacheData> m_activeProcesses;
 
     QTimer *m_pPumpEventsTimer;
     QTimer *m_pRenderTimer;

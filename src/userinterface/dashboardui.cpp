@@ -132,7 +132,7 @@ void DashboardUI::restoreDistanceFadeState() {
 }
 
 void DashboardUI::setOpacityValue(float newOpacity) {
-    float opacityPercent = newOpacity * 100.0;
+    int opacityPercent = qRound(newOpacity * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
 }
 
@@ -168,12 +168,12 @@ bool DashboardUI::eventFilter(QObject *watched, QEvent *event) {
         if (watched == ui->moveButtonFrame) {
             targetButton = ui->moveButton;
             growW = 450;
-            growH = 40;
+            growH = 35;
         }
         else if (watched == ui->scaleFrame) {
             targetButton = ui->scaleButton;
             growW = 35;
-            growH = 132;
+            growH = 180;
         }
 
         // If the event came from one of our mapped frames, trigger the animation
@@ -245,14 +245,28 @@ void DashboardUI::updateOpacity() {
 }
 
 void DashboardUI::increaseOpacityButtonClicked() {
-    if (m_opacity >= 1.0) return;
-    m_opacity = qBound(0.0, m_opacity + 0.05, 1.0);
+    if (m_opacity >= 1.0f) return;
+
+    m_opacity = qBound(0.0f, m_opacity + 0.05f, 1.0f);
+
+    // Snap to exactly 1.0 to prevent floating-point drift
+    if (m_opacity > 0.99f) {
+        m_opacity = 1.0f;
+    }
+
     updateOpacity();
 }
 
 void DashboardUI::decreaseOpacityButtonClicked() {
-    if (m_opacity <= 0.0) return;
-    m_opacity = qBound(0.0, m_opacity - 0.05, 1.0);
+    if (m_opacity <= 0.0f) return;
+
+    m_opacity = qBound(0.0f, m_opacity - 0.05f, 1.0f);
+
+    // Snap to zero to prevent floating-point drift
+    if (m_opacity < 0.01f) {
+        m_opacity = 0.0f;
+    }
+
     updateOpacity();
 }
 

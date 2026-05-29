@@ -76,7 +76,7 @@ void panicDashboard::restoreDistanceFadeState() {
 }
 
 void panicDashboard::setOpacityValue(float newOpacity) {
-    float opacityPercent = newOpacity * 100.0;
+    int opacityPercent = qRound( newOpacity * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
 }
 

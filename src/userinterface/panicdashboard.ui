@@ -159,6 +159,10 @@ QPushButton:pressed {
 
 #panicButton:pressed{
 	background-color: rgb(128,0,0);
+}
+
+#HMDButton:disabled {
+	opacity: 05;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout" stretch="0">

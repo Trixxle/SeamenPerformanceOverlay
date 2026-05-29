@@ -104,18 +104,30 @@ bool SteamVRLogic::Init() {
         m_strOverlayName = arguments.at( nNameArg + 1 );
     }
 
+	/*
     QSurfaceFormat format;
     format.setMajorVersion( 4 );
     format.setMinorVersion( 1 );
     format.setProfile( QSurfaceFormat::CoreProfile);
 
+
 	m_pOpenGLContext = std::make_unique<QOpenGLContext>();
 	m_pOpenGLContext->setFormat( format );
     bSuccess = m_pOpenGLContext->create();
+
     if( !bSuccess ) {
 		std::cout << "Failed to initialize OpenGL context." << std::endl;
     	return false;
     }
+	*/
+
+	m_pOpenGLContext = std::make_unique<QOpenGLContext>();
+	bSuccess = m_pOpenGLContext->create();
+
+	if( !bSuccess ) {
+		std::cout << "Failed to initialize OpenGL context." << std::endl;
+		return false;
+	}
 
     // create an offscreen surface to attach the context and FBO to
 	m_pOffscreenSurface = std::make_unique<QOffscreenSurface>();
@@ -246,9 +258,65 @@ bool SteamVRLogic::Init() {
 	return bSuccess;
 }
 
+void SteamVRLogic::setCurrentGame() {
+	// Safety check to ensure the OpenVR interface is initialized
+	if (!vr::VRApplications()) {
+		return;
+	}
+
+	uint32_t processId = vr::VRApplications()->GetCurrentSceneProcessId();
+
+	// A process ID of 0 means the user is in the "Void" or loading compositor
+	if (processId != 0) {
+		char appKey[vr::k_unMaxApplicationKeyLength];
+		vr::EVRApplicationError keyErr = vr::VRApplications()->GetApplicationKeyByProcessId(processId, appKey, sizeof(appKey));
+
+		if (keyErr == vr::VRApplicationError_None) {
+
+			// Filter out SteamVR Home
+			if (std::strcmp(appKey, "openvr.tool.steamvr_environments") == 0) {
+				return;
+			}
+
+			char appName[1024];
+			vr::EVRApplicationError nameErr;
+
+			// Retrieve the human-readable name
+			vr::VRApplications()->GetApplicationPropertyString(
+				appKey,
+				vr::VRApplicationProperty_Name_String,
+				appName,
+				sizeof(appName),
+				&nameErr
+			);
+
+			if (nameErr == vr::VRApplicationError_None) {
+				QString qAppName = QString::fromUtf8(appName);
+				QByteArray qAppKey(appKey);
+
+				// Check if it's already tracked just in case
+				if (!m_activeProcesses.contains(processId)) {
+					// Cache it so your VREvent_ProcessQuit logic can cleanly shut it down later
+					m_activeProcesses.insert(processId, {qAppName, qAppKey});
+					emit appLaunched(qAppName);
+				}
+			} else {
+				std::cerr << "Could not get application name for current scene key:" << appKey << std::endl;
+			}
+		}
+	}
+}
 void SteamVRLogic::steamDashboardStateForUi() {
 	if (!vr::VROverlay()) return;
-	emit hideUi(!vr::VROverlay()->IsDashboardVisible());
+
+	if (vr::VROverlay()->IsDashboardVisible()) {
+		emit hideUi(false);
+		m_pRenderTimer->setInterval(33);
+	}
+	else {
+		emit hideUi(true);
+		m_pRenderTimer->setInterval(250);
+	}
 }
 
 // Why limit this? Allow the user to increase it as much as they want, let them be free. They will play themselves
@@ -488,8 +556,30 @@ void SteamVRLogic::RenderDirtyOverlayScenes() {
         m_pFbo->release();
 
         GLuint unTexture = m_pFbo->texture();
+
         if (unTexture != 0) {
             vr::Texture_t texture = {(void*)(uintptr_t)unTexture, vr::TextureType_OpenGL, vr::ColorSpace_Auto};
+
+        	QOpenGLExtraFunctions *gl = QOpenGLContext::currentContext()->extraFunctions();
+
+        	// Insert a sync fence into the GPU command stream
+        	GLsync fence = gl->glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+        	gl->glFlush(); // Ensure the fence is pushed to the queue
+
+        	// Wait for the GPU to reach the fence, yielding the CPU while waiting
+        	GLenum waitReturn = GL_UNSIGNALED;
+        	while (waitReturn != GL_ALREADY_SIGNALED && waitReturn != GL_CONDITION_SATISFIED) {
+        		// Wait for up to 1ms
+        		waitReturn = gl->glClientWaitSync(fence, GL_SYNC_FLUSH_COMMANDS_BIT, 1000000);
+
+        		if (waitReturn == GL_TIMEOUT_EXPIRED) {
+        			// GPU is busy. Yield the CPU manually instead of spin-waiting
+        			QThread::yieldCurrentThread();
+        		}
+        	}
+
+        	gl->glDeleteSync(fence);
+
             vr::VROverlay()->SetOverlayTexture(m_ulOverlayHandle, &texture);
         }
 
@@ -681,8 +771,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 	vr::VREvent_t vrEvent;
 
-	// Every ~10 seconds, check if a closer controller with the same role exists
-	if (++m_proximityCheckCounter >= 500) {
+	// Every ~5 seconds, check if a closer controller with the same role exists
+	if (++m_proximityCheckCounter >= 250) {
 		m_proximityCheckCounter = 0;
 		checkClosestControllerForRole();
 	}
@@ -930,54 +1020,76 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 			case vr::VREvent_SceneApplicationChanged:
 				{
-					// The process ID of the new scene application is stored in the event data
-					uint32_t processId = vrEvent.data.process.pid;
+				   uint32_t processId = vrEvent.data.process.pid;
 
-					// A PID of 0 typically means the scene application has quit (often returning to SteamVR Home)
-					if (processId != 0 && vr::VRApplications()) {
-						char appKey[vr::k_unMaxApplicationKeyLength];
-						vr::EVRApplicationError keyErr = vr::VRApplications()->GetApplicationKeyByProcessId(processId, appKey, sizeof(appKey));
+				   if (processId != 0 && vr::VRApplications()) {
+				      char appKey[vr::k_unMaxApplicationKeyLength];
+				      vr::EVRApplicationError keyErr = vr::VRApplications()->GetApplicationKeyByProcessId(processId, appKey, sizeof(appKey));
 
-						if (keyErr == vr::VRApplicationError_None) {
-							char appName[1024];
-							vr::EVRApplicationError nameErr;
+				      if (keyErr == vr::VRApplicationError_None) {
+				         char appName[1024];
+				         vr::EVRApplicationError nameErr;
 
-							// Retrieve the human-readable name of the application
-							vr::VRApplications()->GetApplicationPropertyString(
-							   appKey,
-							   vr::VRApplicationProperty_Name_String,
-							   appName,
-							   sizeof(appName),
-							   &nameErr
-							);
+				         vr::VRApplications()->GetApplicationPropertyString(
+				            appKey,
+				            vr::VRApplicationProperty_Name_String,
+				            appName,
+				            sizeof(appName),
+				            &nameErr
+				         );
 
-							if (nameErr == vr::VRApplicationError_None) {
-								QString qAppName = QString::fromUtf8(appName);
+				         if (nameErr == vr::VRApplicationError_None) {
+				            QString qAppName = QString::fromUtf8(appName);
+				            QByteArray qAppKey(appKey);
 
-								// Cache the PID and the name so we don't have to query OpenVR when it quits
-								m_activeProcesses.insert(processId, qAppName);
+				            // Prevent false-positive re-launches
+				            bool isNewLaunch = true;
+				            for (auto it = m_activeProcesses.constBegin(); it != m_activeProcesses.constEnd(); ++it) {
+				                if (it.value().appKey == qAppKey) {
+				                    isNewLaunch = false;
+				                    break;
+				                }
+				            }
 
-								emit appLaunched(qAppName);
-							} else {
-								std::cerr << "Could not get application name for key:" << appKey << std::endl;
-							}
-						}
-					}
+				            // Cache the PID mapping to both Name and Key
+				            m_activeProcesses.insert(processId, {qAppName, qAppKey});
+
+				            // Only emit if its a genuinely new launch
+				            if (isNewLaunch) {
+				                emit appLaunched(qAppName);
+				            }
+				         } else {
+				            std::cerr << "Could not get application name for key:" << appKey << std::endl;
+				         }
+				      }
+				   }
 				}
-					break;
+				break;
 
-				case vr::VREvent_ProcessQuit:
+			case vr::VREvent_ProcessQuit:
 				{
-					uint32_t processId = vrEvent.data.process.pid;
+				   uint32_t processId = vrEvent.data.process.pid;
 
-					// Look up the dead PID in our own cache instead of relying on OpenVR
-					if (m_activeProcesses.contains(processId)) {
-						// take() retrieves the value and removes the key from the map
-						QString appName = m_activeProcesses.take(processId);
-						emit appQuit(appName);
-					}
+				   if (m_activeProcesses.contains(processId)) {
+				      // Retrieve and remove the quitting PID from our cache
+				      AppCacheData data = m_activeProcesses.take(processId);
+
+				      // Ask OpenVR if the main application is actually dead
+				      uint32_t mainProcessId = vr::VRApplications()->GetApplicationProcessId(data.appKey.constData());
+
+				      // If mainProcessId is 0, the application is completely shut down
+				      if (mainProcessId == 0) {
+				          emit appQuit(data.appName);
+				      } else {
+				          // The main app is still running (this was just a child process or compositor shift).
+				          // Ensure the actual main process is tracked in our cache so we don't lose it.
+				          if (!m_activeProcesses.contains(mainProcessId)) {
+				              m_activeProcesses.insert(mainProcessId, data);
+				          }
+				      }
+				   }
 				}
-					break;
+				break;
 
 			case vr::VREvent_KeyboardOpened_Global:
 				{
@@ -1243,7 +1355,10 @@ void SteamVRLogic::attachToRightController() {
 	switchToSpecificController(rightIndex);
 }
 
+// Abuse the overlay's logic to default to HMD when no controller can be found
 void SteamVRLogic::attachToHmd() {
+	m_leftController = vr::k_unTrackedDeviceIndexInvalid;
+	m_rightController = vr::k_unTrackedDeviceIndexInvalid;
 	AttachToDevice(vr::k_unTrackedDeviceIndex_Hmd);
 }
 
