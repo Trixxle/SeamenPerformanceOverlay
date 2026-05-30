@@ -1,7 +1,0 @@
-<RCC>
-  <qresource prefix="/icons">
-    <file>hmdPNG.png</file>
-    <file>leftControllerPNG.png</file>
-    <file>rightControllerPNG.png</file>
-  </qresource>
-</RCC>

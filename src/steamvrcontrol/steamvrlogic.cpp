@@ -116,23 +116,6 @@ bool SteamVRLogic::Init() {
         m_strOverlayName = arguments.at( nNameArg + 1 );
     }
 
-	/*
-    QSurfaceFormat format;
-    format.setMajorVersion( 4 );
-    format.setMinorVersion( 1 );
-    format.setProfile( QSurfaceFormat::CoreProfile);
-
-
-	m_pOpenGLContext = std::make_unique<QOpenGLContext>();
-	m_pOpenGLContext->setFormat( format );
-    bSuccess = m_pOpenGLContext->create();
-
-    if( !bSuccess ) {
-		std::cout << "Failed to initialize OpenGL context." << std::endl;
-    	return false;
-    }
-	*/
-
 	m_pOpenGLContext = std::make_unique<QOpenGLContext>();
 	bSuccess = m_pOpenGLContext->create();
 
@@ -1317,7 +1300,9 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				// Only call the API if the alpha actually changed, to avoid redundant
 				// OpenVR calls every 20ms when the viewing angle is stable.
 				float newAlpha = m_baseAlpha * angleFactor * distanceFactor;
+				if (newAlpha < 0.005f) newAlpha = 0.0f; // Clamp tp avoid overlay being in a barely visible state
 				if (std::abs(newAlpha - m_lastAlpha) > 0.005f) {
+					//newAlpha < 0.0f ? vr::VROverlay()->HideOverlay(m_ulOverlayHandle) : vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
 					vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, newAlpha);
 					m_lastAlpha = newAlpha;
 				}

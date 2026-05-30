@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>918</width>
-    <height>527</height>
+    <height>531</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,7 +36,7 @@
 
 /*--- Global QLabel ---*/
 QLabel{
-	font-size: 18px;
+	font-size: 22px;
 }
 
 /*--- Upper Option bar ---*/
@@ -49,18 +49,18 @@ QLabel{
 }
 
 #optionBar QLabel{
-	font-size: 18px;
+	font-size: 22px;
 }
 
 #optionBar QCheckBox {
-	font-size: 18px;
+	font-size: 22px;
     spacing: 10px; /* Pushes the 'Enable' text away from the box */
     color: white;
 }
 
 #optionBar QCheckBox::indicator {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
     border-radius: 8px; /* Setting radius to half the width makes a perfect circle */
     background-color: #232424; /* Matches your darkest background */
     border: 1px solid #454545; /* Subtle grey ring */
@@ -81,7 +81,7 @@ QLabel{
 }
 
 #optionBar #switchControllerButton {
-	font-size: 18px;
+	font-size: 22px;
 	border-top-right-radius: 27px;
 }
 
@@ -95,7 +95,7 @@ QLabel{
 }
 
 #interactionFrame QLabel {
-	font-size: 18px;
+	font-size: 22px;
 }
 
 #clock {
@@ -104,7 +104,7 @@ QLabel{
 
 /*--- Global Buttons ---*/
 QPushButton {
-	font-size: 18px;
+	font-size: 22px;
 	color: white;
 	background-color: transparent;
 	border: none;
@@ -123,6 +123,7 @@ QPushButton:pressed {
 /*--- Specific Exit Button Styling ---*/
 #exitButton{
 	color: rgb(200,125,125);
+	border-bottom-right-radius: 30px;
 }
 
 /*--- Graph Statistics ---*/
@@ -137,6 +138,7 @@ QPushButton:pressed {
 
 /*--- Scale Bar ---*/
 #scaleButton{
+	font-size: 10px;
 	background-color: rgb(125, 125, 125);
 	border-radius: 10px;
 }
@@ -147,6 +149,7 @@ QPushButton:pressed {
 
 /*--- Move Bar ---*/
 #moveButton{
+	font-size: 18px;
 	background-color: rgb(125, 125, 125);
 	border-radius: 10px;
 }
@@ -261,7 +264,7 @@ QPushButton:pressed {
              </property>
              <property name="sizeHint" stdset="0">
               <size>
-               <width>40</width>
+               <width>20</width>
                <height>20</height>
               </size>
              </property>
@@ -270,7 +273,7 @@ QPushButton:pressed {
            <item>
             <widget class="QLabel" name="playTimeTitle">
              <property name="text">
-              <string>Time spent crying today:</string>
+              <string>Time you showered this week:</string>
              </property>
             </widget>
            </item>
@@ -293,7 +296,7 @@ QPushButton:pressed {
            <item>
             <widget class="QLabel" name="playtimeClock">
              <property name="text">
-              <string>50:03</string>
+              <string>00:00</string>
              </property>
             </widget>
            </item>
@@ -326,7 +329,7 @@ QPushButton:pressed {
           </widget>
          </item>
          <item row="0" column="2">
-          <layout class="QHBoxLayout" name="exitByttonLayout" stretch="0,0,0">
+          <layout class="QHBoxLayout" name="exitByttonLayout" stretch="0,0">
            <property name="spacing">
             <number>0</number>
            </property>
@@ -347,13 +350,13 @@ QPushButton:pressed {
             <widget class="QPushButton" name="exitButton">
              <property name="minimumSize">
               <size>
-               <width>50</width>
+               <width>80</width>
                <height>30</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
-               <width>50</width>
+               <width>80</width>
                <height>30</height>
               </size>
              </property>
@@ -375,22 +378,6 @@ QPushButton:pressed {
               <string>Exit</string>
              </property>
             </widget>
-           </item>
-           <item>
-            <spacer name="horizontalSpacer_11">
-             <property name="orientation">
-              <enum>Qt::Orientation::Horizontal</enum>
-             </property>
-             <property name="sizeType">
-              <enum>QSizePolicy::Policy::Fixed</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>37</width>
-               <height>17</height>
-              </size>
-             </property>
-            </spacer>
            </item>
           </layout>
          </item>
@@ -647,26 +634,10 @@ QPushButton:pressed {
          </spacer>
         </item>
         <item row="9" column="0">
-         <layout class="QHBoxLayout" name="RefreshRate" stretch="0,0,1,0,0,0,0">
+         <layout class="QHBoxLayout" name="RefreshRate" stretch="0,1,0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_19">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QLabel" name="headsetRefreshRateTitle">
             <property name="minimumSize">
@@ -740,22 +711,6 @@ QPushButton:pressed {
              <string>ms</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_23">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
@@ -989,26 +944,10 @@ QPushButton:pressed {
          </widget>
         </item>
         <item row="8" column="0">
-         <layout class="QHBoxLayout" name="TargetFrameRate" stretch="0,0,1,0,0,0,0">
+         <layout class="QHBoxLayout" name="TargetFrameRate" stretch="0,1,0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_18">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QLabel" name="targetFrameRateTitle">
             <property name="minimumSize">
@@ -1088,22 +1027,6 @@ QPushButton:pressed {
              <string>FPS</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_22">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
@@ -1305,26 +1228,10 @@ QPushButton:pressed {
          </spacer>
         </item>
         <item row="8" column="1">
-         <layout class="QHBoxLayout" name="SystemResources" stretch="0,0,0,0,0,2,0,0,0,0,0">
+         <layout class="QHBoxLayout" name="SystemResources" stretch="0,0,0,0,2,0,0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_13">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QLabel" name="ramTitle">
             <property name="font">
@@ -1444,22 +1351,6 @@ QPushButton:pressed {
              <string>/Error</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_14">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
@@ -1668,26 +1559,10 @@ QPushButton:pressed {
          </layout>
         </item>
         <item row="9" column="1">
-         <layout class="QHBoxLayout" name="FrameRate" stretch="0,0,1,0,0,0,0">
+         <layout class="QHBoxLayout" name="FrameRate" stretch="0,1,0,0,0">
           <property name="spacing">
            <number>0</number>
           </property>
-          <item>
-           <spacer name="horizontalSpacer_15">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
           <item>
            <widget class="QLabel" name="smoothFrameRateTitle">
             <property name="minimumSize">
@@ -1763,22 +1638,6 @@ QPushButton:pressed {
              <string>FPS</string>
             </property>
            </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer_16">
-            <property name="orientation">
-             <enum>Qt::Orientation::Horizontal</enum>
-            </property>
-            <property name="sizeType">
-             <enum>QSizePolicy::Policy::Preferred</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
           </item>
          </layout>
         </item>
@@ -1992,7 +1851,7 @@ QPushButton:pressed {
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>60</width>
+          <width>50</width>
           <height>20</height>
          </size>
         </property>
@@ -2075,7 +1934,7 @@ QPushButton:pressed {
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>60</width>
+          <width>50</width>
           <height>20</height>
          </size>
         </property>
@@ -2085,13 +1944,13 @@ QPushButton:pressed {
        <widget class="QPushButton" name="switchControllerButton">
         <property name="minimumSize">
          <size>
-          <width>110</width>
+          <width>125</width>
           <height>50</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>110</width>
+          <width>125</width>
           <height>50</height>
          </size>
         </property>
@@ -2191,7 +2050,7 @@ QPushButton:pressed {
         <property name="minimumSize">
          <size>
           <width>10</width>
-          <height>75</height>
+          <height>125</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -2309,7 +2168,7 @@ QPushButton:pressed {
         <property name="minimumSize">
          <size>
           <width>150</width>
-          <height>12</height>
+          <height>0</height>
          </size>
         </property>
         <property name="maximumSize">

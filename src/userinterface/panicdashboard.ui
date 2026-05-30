@@ -35,13 +35,14 @@
 	font-weight: bold;
 }
 
-/* --- Top Blue Header --- */
+/* --- Top Header --- */
 #TitleFrame {
-    background-color: rgb(16, 146, 191); 
+    background-color: #295A6B;
     border-top-left-radius: 37px;
     border-top-right-radius: 37px;
     border-bottom-left-radius: 0px;
     border-bottom-right-radius: 0px;
+	border-bottom: 2px solid rgb(16, 146, 191);
 }
 
 #settingsTitle {
@@ -286,6 +287,12 @@ QPushButton:pressed {
            </property>
            <property name="alignment">
             <set>Qt::AlignmentFlag::AlignCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+           <property name="margin">
+            <number>0</number>
            </property>
           </widget>
          </item>
@@ -933,7 +940,7 @@ QPushButton:pressed {
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="../../resources/customIcons.qrc">
+                 <iconset resource="../../resources-nonbin/customIcons.qrc">
                   <normaloff>:/icons/leftControllerPNG.png</normaloff>:/icons/leftControllerPNG.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -965,7 +972,7 @@ QPushButton:pressed {
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="../../resources/customIcons.qrc">
+                 <iconset resource="../../resources-nonbin/customIcons.qrc">
                   <normaloff>:/icons/hmdPNG.png</normaloff>:/icons/hmdPNG.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -988,7 +995,7 @@ QPushButton:pressed {
                  <string/>
                 </property>
                 <property name="icon">
-                 <iconset resource="../../resources/customIcons.qrc">
+                 <iconset resource="../../resources-nonbin/customIcons.qrc">
                   <normaloff>:/icons/rightControllerPNG.png</normaloff>:/icons/rightControllerPNG.png</iconset>
                 </property>
                 <property name="iconSize">
@@ -1013,7 +1020,7 @@ QPushButton:pressed {
   </layout>
  </widget>
  <resources>
-  <include location="../../resources/customIcons.qrc"/>
+  <include location="../../resources-nonbin/customIcons.qrc"/>
  </resources>
  <connections/>
 </ui>

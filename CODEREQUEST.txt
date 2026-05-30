@@ -1,1 +1,0 @@
-The source code can be found at: https://github.com/Trixxle/SeamenPerformanceOverlay

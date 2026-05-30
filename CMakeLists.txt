@@ -19,7 +19,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_SOURCE_DIR})
 
 add_executable(SeamenPerformanceOverlay
-        resources/SeamenPerformanceOverlay.rc
+        resources-nonbin/SeamenPerformanceOverlay.rc
         src/main.cpp
         src/userinterface/dashboardui.cpp
         src/userinterface/dashboardui.h
@@ -34,7 +34,7 @@ add_executable(SeamenPerformanceOverlay
         src/systemResourcesHandler.cpp
         src/systemResourcesHandler.h
         src/systemResourcesHandler.h
-        resources/customIcons.qrc
+        resources-nonbin/customIcons.qrc
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
@@ -162,5 +162,5 @@ if (MINGW)
 endif ()
 
 if (WIN32)
-    target_sources(SeamenPerformanceOverlay PRIVATE "resources/SeamenPerformanceOverlay.rc")
+    target_sources(SeamenPerformanceOverlay PRIVATE "resources-nonbin/SeamenPerformanceOverlay.rc")
 endif()
