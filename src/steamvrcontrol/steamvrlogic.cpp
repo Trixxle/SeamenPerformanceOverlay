@@ -60,30 +60,42 @@ SteamVRLogic *SteamVRLogic::SharedInstance()
     return s_pSharedSteamVRLogic;
 }
 
-SteamVRLogic::SteamVRLogic():
+SteamVRLogic::SteamVRLogic() :
 m_eLastHmdError(vr::VRInitError_None),
-m_eCompositorError( vr::VRInitError_None ),
-m_eOverlayError( vr::VRInitError_None ),
-m_ePanicOverlayError( vr::VRInitError_None ),
-m_ulOverlayHandle( vr::k_ulOverlayHandleInvalid ),
-m_ulPanicOverlayHandle( vr::k_ulOverlayHandleInvalid ),
+m_eCompositorError(vr::VRInitError_None),
+m_eOverlayError(vr::VRInitError_None),
+m_ePanicOverlayError(vr::VRInitError_None),
+m_ulOverlayHandle(vr::k_ulOverlayHandleInvalid),
+m_ulPanicOverlayHandle(vr::k_ulOverlayHandleInvalid), m_ulOverlayThumbnailHandle(0),
+m_pVRSystem(nullptr),
+m_overlayWidthInMeters(0),
 m_overlayPositionMatrix({
-	1.0f, 0.0f, 0.0f, 0.0f,
-	0.0f, 0.866f, 0.5f, 0.1f,
-	0.0f, -0.5f, 0.866f, -0.08f
+   1.0f, 0.0f, 0.0f, 0.0f,
+   0.0f, 0.866f, 0.5f, 0.1f,
+   0.0f, -0.5f, 0.866f, -0.08f
 	}),
+m_rTrackedDevicePose{},
 m_pWidget(NULL),
+m_pPanicWidget(nullptr),
 m_strVRDriver("No Driver"),
 m_strVRDisplay("No Display"),
 m_strOverlayName("Seamen Performance Overlay"),
 m_pPumpEventsTimer(NULL),
 m_pRenderTimer(NULL),
-m_lastMouseButtons( 0 ),
+m_lastMouseButtons(0),
 m_settings("Seamen", "PerformanceOverlay")
 {}
 
 SteamVRLogic::~SteamVRLogic() {
-    DisconnectFromVRRuntime();
+}
+
+void SteamVRLogic::DestroyInstance()
+{
+	if (s_pSharedSteamVRLogic)
+	{
+		delete s_pSharedSteamVRLogic;
+		s_pSharedSteamVRLogic = nullptr; // Prevents the dangling pointer
+	}
 }
 
 bool SteamVRLogic::Init() {

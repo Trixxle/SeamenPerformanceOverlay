@@ -89,6 +89,7 @@ class SteamVRLogic: public QObject {
 
 public:
     static SteamVRLogic *SharedInstance();
+    static void DestroyInstance();
 
     SteamVRLogic();
     ~SteamVRLogic();
