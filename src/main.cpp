@@ -119,6 +119,9 @@ int main(int argc, char *argv[])
     QObject::connect(vrLogic, &SteamVRLogic::distanceFadeCheckChanged, pDashboardUI, &DashboardUI::setDistanceFadeState);
     QObject::connect(vrLogic, &SteamVRLogic::appLaunched, pDashboardUI, &DashboardUI::setAppLaunch);
     QObject::connect(vrLogic, &SteamVRLogic::appQuit, pDashboardUI, &DashboardUI::setAppQuit);
+    QObject::connect(vrLogic, &SteamVRLogic::leftControllerBattery, pDashboardUI, &DashboardUI::setLeftControllerBatteryLevel);
+    QObject::connect(vrLogic, &SteamVRLogic::rightControllerBattery, pDashboardUI, &DashboardUI::setRightControllerBatteryLevel);
+    QObject::connect(vrLogic, &SteamVRLogic::headsetBattery, pDashboardUI, &DashboardUI::setHeadseyBatteryLevel);
 
     // Connects for backend to frontend communication (backend to dashboard)
     QObject::connect(vrLogic, &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
@@ -160,6 +163,13 @@ int main(int argc, char *argv[])
     });
     QTimer::singleShot(0, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setCurrentGame();
+    });
+
+    QTimer::singleShot(0, vrLogic, []() {
+    SteamVRLogic::SharedInstance()->setControllersBatteryLevel();
+    });
+    QTimer::singleShot(0, vrLogic, []() {
+    SteamVRLogic::SharedInstance()->setHeadsetBatteryLevel();
     });
 
     int exitCode = a.exec();

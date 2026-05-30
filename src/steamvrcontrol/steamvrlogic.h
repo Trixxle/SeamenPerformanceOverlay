@@ -130,6 +130,8 @@ public slots:
     void attachToLeftController();
     void attachToHmd();
     void setCurrentGame();
+    void setControllersBatteryLevel();
+    void setHeadsetBatteryLevel();
 
 private:
     struct AppCacheData {
@@ -222,6 +224,7 @@ private:
     int m_bindToControllerAttempts = 0;
     int m_proximityCheckCounter = 0;
     int m_poseCheckCounter = 0;
+    int m_batteryCheckCounter = 0;
 
 signals:
     void saveOpacity();
@@ -234,6 +237,9 @@ signals:
     void hideUi(bool hide);
     void appLaunched(const QString& appName);
     void appQuit(const QString& appName);
+    void leftControllerBattery(float level);
+    void rightControllerBattery(float level);
+    void headsetBattery(float level);
 };
 
 

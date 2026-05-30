@@ -751,6 +751,33 @@ void SteamVRLogic::attemptControllerBind() {
 	}
 }
 
+void SteamVRLogic::setControllersBatteryLevel() {
+	vr::ETrackedPropertyError error = vr::TrackedProp_InvalidOperation;
+	float leftLevel = m_pVRSystem->GetFloatTrackedDeviceProperty(m_leftController, vr::Prop_DeviceBatteryPercentage_Float, &error);
+	if (error !=vr::TrackedProp_Success || error == vr::TrackedProp_UnknownProperty || error == vr::TrackedProp_ValueNotProvidedByDevice || leftLevel == 0) {
+		// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
+		emit leftControllerBattery(2.0);
+	}
+	else emit leftControllerBattery(leftLevel);
+
+	float rightLevel = m_pVRSystem->GetFloatTrackedDeviceProperty(m_leftController, vr::Prop_DeviceBatteryPercentage_Float, &error);
+	if (error !=vr::TrackedProp_Success || error == vr::TrackedProp_UnknownProperty || error == vr::TrackedProp_ValueNotProvidedByDevice || leftLevel == 0) {
+		// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
+		emit rightControllerBattery(2.0);
+	}
+	else emit rightControllerBattery(leftLevel);
+}
+
+void SteamVRLogic::setHeadsetBatteryLevel() {
+	vr::ETrackedPropertyError error = vr::TrackedProp_InvalidOperation;
+	float leftLevel = m_pVRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DeviceBatteryPercentage_Float, &error);
+	if (error !=vr::TrackedProp_Success || error == vr::TrackedProp_UnknownProperty || error == vr::TrackedProp_ValueNotProvidedByDevice || leftLevel == 0) {
+		// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
+		emit headsetBattery(2.0);
+	}
+	else emit headsetBattery(leftLevel);
+}
+
 void SteamVRLogic::OnTimeoutPumpEvents()
 {
     if( !vr::VRSystem() )
@@ -770,6 +797,13 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	if (++m_proximityCheckCounter >= 250) {
 		m_proximityCheckCounter = 0;
 		checkClosestControllerForRole();
+	}
+
+	// Every ~30 seconds set battery life for controllers
+	if (++m_batteryCheckCounter >= 1500) {
+		m_batteryCheckCounter = 0;
+		setControllersBatteryLevel();
+		setHeadsetBatteryLevel();
 	}
 
 	// Every ~500ms, check if the attached device has a valid pose and if the preferred

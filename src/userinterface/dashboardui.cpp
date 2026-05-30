@@ -84,6 +84,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     m_clocksTimer = new QTimer(this);
     m_clocksTimer->setTimerType(Qt::VeryCoarseTimer);
     connect(m_clocksTimer, &QTimer::timeout, this, &DashboardUI::updateClocks);
+
     // Check for new time every 5 seconds. Who cares. (Don't use this overlay for new years)
     m_clocksTimer->start(5000);
     updateClocks();
@@ -91,6 +92,54 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
 DashboardUI::~DashboardUI() {
     delete ui;
+}
+
+void DashboardUI::setRightControllerBatteryLevel(float level) {
+    // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
+    if (level == 2.0) {
+        ui->rightControllerBatteryLabel->hide();
+        ui->rightControllerIcon->hide();
+    }
+    else {
+        if (!ui->rightControllerBatteryLabel->isVisible()) {
+            ui->rightControllerBatteryLabel->show();
+            ui->rightControllerIcon->show();
+        }
+        int batteryLevel = qRound(level * 100.0f);
+        ui->rightControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
+    }
+}
+
+void DashboardUI::setLeftControllerBatteryLevel(float level) {
+    // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
+    if (level == 2.0) {
+        ui->leftControllerBatteryLabel->hide();
+        ui->leftControllerIcon->hide();
+    }
+    else {
+        if (!ui->leftControllerBatteryLabel->isVisible()) {
+            ui->leftControllerBatteryLabel->show();
+            ui->leftControllerIcon->show();
+        }
+        int batteryLevel = qRound(level * 100.0f);
+        ui->leftControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
+    }
+}
+
+void DashboardUI::setHeadseyBatteryLevel(float level) {
+    // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
+    if (level == 2.0) {
+        ui->headsetBatteryLevel->hide();
+        ui->headsetIcon->hide();
+    }
+    else {
+        if (!ui->headsetBatteryLevel->isVisible()) {
+            ui->headsetBatteryLevel->show();
+            ui->headsetIcon->show();
+        }
+        int batteryLevel = qRound(level * 100.0f);
+        ui->headsetBatteryLevel->setText(QString::number(batteryLevel) + "%");
+    }
 }
 
 void DashboardUI::setAppLaunch(const QString &appName) {

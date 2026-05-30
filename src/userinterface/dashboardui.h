@@ -91,6 +91,9 @@ public slots:
     void hideUi(bool hide);
     void setAppLaunch(const QString &appName);
     void setAppQuit(const QString &appName);
+    void setLeftControllerBatteryLevel(float level);
+    void setRightControllerBatteryLevel(float level);
+    void setHeadseyBatteryLevel(float level);
 
 private slots:
     void onExitButtonClicked();
