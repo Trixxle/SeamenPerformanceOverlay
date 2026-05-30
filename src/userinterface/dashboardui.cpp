@@ -23,13 +23,13 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     QWidget(parent),
     ui(new Ui::DashboardUI),
     m_clocksTimer(NULL),
-    m_pAxisXFrameTimeConsistency(new QBarCategoryAxis()),
+    m_pAxisXFrameTimeConsistency(new QBarCategoryAxis(this)),
 
-    m_pAxisXCpuFrameTime(new QBarCategoryAxis()),
+    m_pAxisXCpuFrameTime(new QBarCategoryAxis(this)),
 
-    m_pAxisXGpuFrameTime(new QBarCategoryAxis()),
+    m_pAxisXGpuFrameTime(new QBarCategoryAxis(this)),
 
-    m_pAxisXFrameRate(new QBarCategoryAxis()),
+    m_pAxisXFrameRate(new QBarCategoryAxis(this)),
 
     m_targetFrameRate(targetFrameRate),
     m_headsetRefreshRate(headsetRefreshRate),
@@ -663,21 +663,25 @@ void DashboardUI::setUpCharts() {
     m_pSeriesFrameRate->append(m_pBarSetFrameRateMedium);
 
     m_pChartFrameTimeConsistency = new QChart();
+    m_pChartFrameTimeConsistency->setAnimationOptions(QChart::NoAnimation); // Stop Qt from storing in between frames
     m_pChartFrameTimeConsistency->addSeries(m_pSeriesFrameTimeConsistency);
     m_pChartFrameTimeConsistency->addAxis(m_pAxisXFrameTimeConsistency, Qt::AlignBottom);
     m_pSeriesFrameTimeConsistency->attachAxis(m_pAxisXFrameTimeConsistency);
 
     m_pChartCpuFrameTime = new QChart();
+    m_pChartCpuFrameTime->setAnimationOptions(QChart::NoAnimation);
     m_pChartCpuFrameTime->addSeries(m_pSeriesCpuFrameTime);
     m_pChartCpuFrameTime->addAxis(m_pAxisXCpuFrameTime, Qt::AlignBottom);
     m_pSeriesCpuFrameTime->attachAxis(m_pAxisXCpuFrameTime);
 
     m_pChartGpuFrameTime = new QChart();
+    m_pChartGpuFrameTime->setAnimationOptions(QChart::NoAnimation);
     m_pChartGpuFrameTime->addSeries(m_pSeriesGpuFrameTime);
     m_pChartGpuFrameTime->addAxis(m_pAxisXGpuFrameTime, Qt::AlignBottom);
     m_pSeriesGpuFrameTime->attachAxis(m_pAxisXGpuFrameTime);
 
     m_pChartFrameRate = new QChart();
+    m_pChartFrameRate->setAnimationOptions(QChart::NoAnimation);
     m_pChartFrameRate->addSeries(m_pSeriesFrameRate);
     m_pChartFrameRate->addAxis(m_pAxisXFrameRate, Qt::AlignBottom);
     m_pSeriesFrameRate->attachAxis(m_pAxisXFrameRate);
