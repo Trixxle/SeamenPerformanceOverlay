@@ -95,23 +95,23 @@ int main(int argc, char *argv[])
     vrLogic->SetWidget(pDashboardUI.get());
     vrLogic->SetPanicWidget(pPanicDashboard.get());
 
-    auto frameHandler = std::make_unique<FrameHandler>(vrLogic->GetHeadsetRefreshRate(), vrLogic->GetHeadsetMaxFrameRate());
-    auto systemResourcesHandler = std::make_unique<SystemResourcesHandler>();
+    auto *frameHandler = new FrameHandler(vrLogic->GetHeadsetRefreshRate(), vrLogic->GetHeadsetMaxFrameRate());
+    auto *systemResourcesHandler = new SystemResourcesHandler();
 
     frameHandler->moveToThread(frameThread.get());
     systemResourcesHandler->moveToThread(systemResourcesThread.get());
 
     // Connects multithreading frame statistics and system resource statistics
-    QObject::connect(frameThread.get(), &QThread::started, frameHandler.get(), &FrameHandler::startProcessing);
-    QObject::connect(frameThread.get(), &QThread::finished, frameHandler.get(), &QObject::deleteLater);
-    QObject::connect(systemResourcesThread.get(), &QThread::started, systemResourcesHandler.get(), &SystemResourcesHandler::startSystemResourcesProcessing);
-    QObject::connect(systemResourcesThread.get(), &QThread::finished, systemResourcesHandler.get(), &QObject::deleteLater);
+    QObject::connect(frameThread.get(), &QThread::started, frameHandler, &FrameHandler::startProcessing);
+    QObject::connect(frameThread.get(), &QThread::finished, frameHandler, &QObject::deleteLater);
+    QObject::connect(systemResourcesThread.get(), &QThread::started, systemResourcesHandler, &SystemResourcesHandler::startSystemResourcesProcessing);
+    QObject::connect(systemResourcesThread.get(), &QThread::finished, systemResourcesHandler, &QObject::deleteLater);
 
     // Connects for backend to frontend communication (backend to overlay)
-    QObject::connect(frameHandler.get(), &FrameHandler::updateGraphs, pDashboardUI.get(), &DashboardUI::updateGraphs);
-    QObject::connect(frameHandler.get(), &FrameHandler::updateLabels, pDashboardUI.get(), &DashboardUI::updateLabels);
-    QObject::connect(systemResourcesHandler.get(), &SystemResourcesHandler::updateSystemResources, pDashboardUI.get(), &DashboardUI::updateSystemResources);
-    QObject::connect(systemResourcesHandler.get(), &SystemResourcesHandler::updateSystemResourceUsage, pDashboardUI.get(), &DashboardUI::updateSystemResourceUsage);
+    QObject::connect(frameHandler, &FrameHandler::updateGraphs, pDashboardUI.get(), &DashboardUI::updateGraphs);
+    QObject::connect(frameHandler, &FrameHandler::updateLabels, pDashboardUI.get(), &DashboardUI::updateLabels);
+    QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResources, pDashboardUI.get(), &DashboardUI::updateSystemResources);
+    QObject::connect(systemResourcesHandler, &SystemResourcesHandler::updateSystemResourceUsage, pDashboardUI.get(), &DashboardUI::updateSystemResourceUsage);
     QObject::connect(vrLogic, &SteamVRLogic::hideUi, pDashboardUI.get(), &DashboardUI::hideUi);
     QObject::connect(vrLogic, &SteamVRLogic::distanceFadeValueChanged, pDashboardUI.get(), &DashboardUI::setDistanceFadeValue);
     QObject::connect(vrLogic, &SteamVRLogic::saveOpacity, pDashboardUI.get(), &DashboardUI::saveOpacity);

@@ -60,9 +60,8 @@ void SystemResourcesHandler::getSystemTotalVram() {
         IDXGIAdapter* adapter = nullptr;
 
         // Index 0 is typically the primary display adapter
-        if (factory->EnumAdapters(0, &adapter) != DXGI_ERROR_NOT_FOUND) {
+        if (SUCCEEDED(factory->EnumAdapters(0, &adapter))) {
             DXGI_ADAPTER_DESC desc;
-
             if (SUCCEEDED(adapter->GetDesc(&desc))) {
                 // Convert from Bytes to GB.
                 m_systemResources.systemVram = static_cast<float>(desc.DedicatedVideoMemory) / (1024.0f * 1024.0f * 1024.0f);
@@ -83,6 +82,49 @@ void SystemResourcesHandler::getSystemRamUsage() {
 }
 
 void SystemResourcesHandler::getSystemVramUsage() {
+    // Ensure PDH initialized successfully before attempting to collect
+    if (!m_pdhQuery || !m_vramCounter) return;
+
+    // Only collect and format the data in the hot loop
+    PdhCollectQueryData(m_pdhQuery);
+
+    DWORD bufferSize = 0;
+    DWORD itemCount = 0;
+
+    // First call to get the required buffer size.
+    PDH_STATUS status = PdhGetFormattedCounterArrayA(m_vramCounter, PDH_FMT_LARGE, &bufferSize, &itemCount, nullptr);
+
+    int retries = 3;
+
+    while ((status == static_cast<PDH_STATUS>(PDH_MORE_DATA) || status == ERROR_SUCCESS) && bufferSize > 0 && retries > 0) {
+        std::vector<BYTE> buffer(bufferSize);
+        auto* items = reinterpret_cast<PDH_FMT_COUNTERVALUE_ITEM_A*>(buffer.data());
+
+        // Second call to actually get the data
+        status = PdhGetFormattedCounterArrayA(m_vramCounter, PDH_FMT_LARGE, &bufferSize, &itemCount, items);
+
+        if (status == ERROR_SUCCESS) {
+            LONGLONG totalBytes = 0;
+            for (DWORD i = 0; i < itemCount; i++) {
+                if (items[i].FmtValue.CStatus == PDH_CSTATUS_VALID_DATA || items[i].FmtValue.CStatus == PDH_CSTATUS_NEW_DATA) {
+                    totalBytes += items[i].FmtValue.largeValue;
+                }
+            }
+            m_systemResourceUsage.vramUsage = static_cast<float>(totalBytes) / (1024.0f * 1024.0f * 1024.0f);
+            break;
+        }
+        else if (status != static_cast<PDH_STATUS>(PDH_MORE_DATA)) {
+            break;
+        }
+
+        retries--;
+    }
+}
+
+
+// Old one just in case
+/*
+*void SystemResourcesHandler::getSystemVramUsage() {
     // Ensure PDH initialized successfully before attempting to collect
     if (!m_pdhQuery || !m_vramCounter) return;
 
@@ -111,6 +153,7 @@ void SystemResourcesHandler::getSystemVramUsage() {
         }
     }
 }
+ */
 
 void SystemResourcesHandler::startSystemResourcesProcessing() {
     if (!m_pUpdateTimer) {
