@@ -97,6 +97,21 @@ DashboardUI::~DashboardUI() {
     delete ui;
 }
 
+void DashboardUI::removeTrackedFromUI(uint32_t index) {
+    QString iconName = QString("trackerIcon%1").arg(index);
+    auto iconLabel = ui->trackersFrame->findChild<QLabel*>(iconName);
+    if (iconLabel) { // If the icon exists, the battery label exists as they are created in pairs
+        QString labelName = QString("trackerBatteryLabel%1").arg(index);
+        auto batteryLabel = ui->trackersFrame->findChild<QLabel*>(labelName);
+
+        QHBoxLayout* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout());
+        if (hLayout) {
+            hLayout->removeWidget(iconLabel);
+            hLayout->removeWidget(batteryLabel);
+        }
+    }
+}
+
 void DashboardUI::addTrackerToUi(uint32_t index) {
     if (!ui->trackersFrame->isVisible()) {
         ui->trackersFrame->show();
@@ -114,11 +129,11 @@ void DashboardUI::addTrackerToUi(uint32_t index) {
     QPixmap pixmap(":icons/vive3Icon.png");
     iconLabel->setPixmap(pixmap);
     iconLabel->setScaledContents(true);
-    iconLabel->setFixedSize(30, 30);
+    iconLabel->setFixedSize(25, 25);
 
     auto batteryLabel = std::make_unique<QLabel>();
     batteryLabel->setObjectName(QString("trackerBatteryLabel%1").arg(index));
-    batteryLabel->setText("100%");
+    batteryLabel->setText("-%");
     batteryLabel->setStyleSheet("font-size: 15px;");
 
     // Retrieve the horizontal layout from the frame
@@ -186,6 +201,21 @@ void DashboardUI::setHeadseyBatteryLevel(float level) {
                                                                               "{ "
                                                                               "color: rgb(255, 125, 125); "
                                                                               "}");
+    }
+}
+
+void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index) {
+    QString batteryLevelName = QString("trackerBatteryLabel%1").arg(index);
+    auto uiElement = ui->trackersFrame->findChild<QLabel*>(batteryLevelName);
+    if (uiElement) {
+        int batteryLevel = qRound(level * 100.0f);
+
+        if (level == 2.0) {
+            uiElement->setText(QString("-%"));
+            return;
+        }
+        uiElement->setText(QString::number(batteryLevel) + "%");
+        if (batteryLevel < 21) ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
     }
 }
 

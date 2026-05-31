@@ -122,7 +122,9 @@ int main(int argc, char *argv[])
     QObject::connect(vrLogic, &SteamVRLogic::leftControllerBattery, pDashboardUI, &DashboardUI::setLeftControllerBatteryLevel);
     QObject::connect(vrLogic, &SteamVRLogic::rightControllerBattery, pDashboardUI, &DashboardUI::setRightControllerBatteryLevel);
     QObject::connect(vrLogic, &SteamVRLogic::headsetBattery, pDashboardUI, &DashboardUI::setHeadseyBatteryLevel);
+    QObject::connect(vrLogic, &SteamVRLogic::trackersBattery, pDashboardUI, &DashboardUI::setTrackersBatteryLevel);
     QObject::connect(vrLogic, &SteamVRLogic::addTrackerToUi, pDashboardUI, &DashboardUI::addTrackerToUi);
+    QObject::connect(vrLogic, &SteamVRLogic::removeTrackerFromUi, pDashboardUI, &DashboardUI::removeTrackedFromUI);
 
     // Connects for backend to frontend communication (backend to dashboard)
     QObject::connect(vrLogic, &SteamVRLogic::overlayScaleChanged, pPanicDashboard, &panicDashboard::setScaleValue);
@@ -174,6 +176,9 @@ int main(int argc, char *argv[])
     });
     QTimer::singleShot(0, vrLogic, []() {
     SteamVRLogic::SharedInstance()->searchForTrackers();
+    });
+    QTimer::singleShot(1, vrLogic, []() {
+    SteamVRLogic::SharedInstance()->setTrackersBattery();
     });
 
     int exitCode = a.exec();

@@ -132,6 +132,7 @@ public slots:
     void setCurrentGame();
     void setControllersBatteryLevel();
     void setHeadsetBatteryLevel();
+    void setTrackersBattery();
     void searchForTrackers();
 
 private:
@@ -182,6 +183,8 @@ private:
     float calculateOverlayDistance();
     void switchToSpecificController(vr::TrackedDeviceIndex_t targetDevice);
     std::vector<vr::TrackedDeviceIndex_t> getDevicesForClass(vr::ETrackedDeviceClass classToLookFor);
+    void addTracker(vr::TrackedDeviceIndex_t trackerToAdd);
+    void removeTracker(vr::TrackedDeviceIndex_t);
 
     bool m_isMoving = false;
     bool m_isScaling = false;
@@ -247,6 +250,8 @@ signals:
     void rightControllerBattery(float level);
     void headsetBattery(float level);
     void addTrackerToUi(uint32_t index);
+    void trackersBattery(float level, uint32_t index);
+    void removeTrackerFromUi(uint32_t index);
 };
 
 

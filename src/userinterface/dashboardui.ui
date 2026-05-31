@@ -529,8 +529,11 @@ QPushButton:pressed {
            </item>
           </layout>
          </item>
-         <item row="1" column="0">
+         <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignHCenter">
           <widget class="QFrame" name="trackersFrame">
+           <property name="layoutDirection">
+            <enum>Qt::LayoutDirection::LeftToRight</enum>
+           </property>
            <property name="frameShape">
             <enum>QFrame::Shape::StyledPanel</enum>
            </property>
@@ -539,7 +542,7 @@ QPushButton:pressed {
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <property name="spacing">
-             <number>0</number>
+             <number>10</number>
             </property>
             <property name="leftMargin">
              <number>20</number>
