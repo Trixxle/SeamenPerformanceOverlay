@@ -132,12 +132,15 @@ public slots:
     void setCurrentGame();
     void setControllersBatteryLevel();
     void setHeadsetBatteryLevel();
+    void searchForTrackers();
 
 private:
     struct AppCacheData {
         QString appName;
         QByteArray appKey;
     };
+
+    std::vector<vr::TrackedDeviceIndex_t> m_trackers;
 
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
@@ -178,6 +181,7 @@ private:
     void attemptControllerBind();
     float calculateOverlayDistance();
     void switchToSpecificController(vr::TrackedDeviceIndex_t targetDevice);
+    std::vector<vr::TrackedDeviceIndex_t> getDevicesForClass(vr::ETrackedDeviceClass classToLookFor);
 
     bool m_isMoving = false;
     bool m_isScaling = false;
@@ -242,6 +246,7 @@ signals:
     void leftControllerBattery(float level);
     void rightControllerBattery(float level);
     void headsetBattery(float level);
+    void addTrackerToUi(uint32_t index);
 };
 
 

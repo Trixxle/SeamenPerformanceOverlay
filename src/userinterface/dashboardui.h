@@ -95,6 +95,7 @@ public slots:
     void setLeftControllerBatteryLevel(float level);
     void setRightControllerBatteryLevel(float level);
     void setHeadseyBatteryLevel(float level);
+    void addTrackerToUi(uint32_t index);
 
 private slots:
     void onExitButtonClicked();

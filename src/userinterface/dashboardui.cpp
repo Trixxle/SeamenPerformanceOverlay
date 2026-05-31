@@ -55,6 +55,9 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     ui->moveButtonFrame->setSizePolicy(spMMoveFrame);
     ui->scaleFrame->setSizePolicy(spScaleFrame);
 
+    // Hide tracker frame by default
+    ui->trackersFrame->hide();
+
     // Setup an event listener for the frames that hold the move and scale bars
     ui->moveButtonFrame->setAttribute(Qt::WA_Hover, true);
     ui->moveButtonFrame->installEventFilter(this);
@@ -94,6 +97,38 @@ DashboardUI::~DashboardUI() {
     delete ui;
 }
 
+void DashboardUI::addTrackerToUi(uint32_t index) {
+    if (!ui->trackersFrame->isVisible()) {
+        ui->trackersFrame->show();
+    }
+
+    // Check if the widget already exists to prevent duplicate allocations
+    QString iconName = QString("trackerIcon%1").arg(index);
+    if (ui->trackersFrame->findChild<QLabel*>(iconName)) {
+        return; // Tracker already exists, exit early
+    }
+
+    auto iconLabel = std::make_unique<QLabel>();
+    iconLabel->setObjectName(iconName);
+
+    QPixmap pixmap(":icons/vive3Icon.png");
+    iconLabel->setPixmap(pixmap);
+    iconLabel->setScaledContents(true);
+    iconLabel->setFixedSize(30, 30);
+
+    auto batteryLabel = std::make_unique<QLabel>();
+    batteryLabel->setObjectName(QString("trackerBatteryLabel%1").arg(index));
+    batteryLabel->setText("100%");
+    batteryLabel->setStyleSheet("font-size: 15px;");
+
+    // Retrieve the horizontal layout from the frame
+    QHBoxLayout* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout());
+    if (hLayout) {
+        hLayout->addWidget(iconLabel.release());
+        hLayout->addWidget(batteryLabel.release());
+    }
+}
+
 void DashboardUI::setRightControllerBatteryLevel(float level) {
     // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
     if (level == 2.0) {
@@ -107,6 +142,10 @@ void DashboardUI::setRightControllerBatteryLevel(float level) {
         }
         int batteryLevel = qRound(level * 100.0f);
         ui->rightControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
+        if (batteryLevel < 21) ui->rightControllerBatteryLabel->setStyleSheet("#rightControllerBatteryLabel "
+                                                                              "{ "
+                                                                              "color: rgb(255, 125, 125); "
+                                                                              "}");
     }
 }
 
@@ -123,6 +162,10 @@ void DashboardUI::setLeftControllerBatteryLevel(float level) {
         }
         int batteryLevel = qRound(level * 100.0f);
         ui->leftControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
+        if (batteryLevel < 21) ui->leftControllerBatteryLabel->setStyleSheet("#leftControllerBatteryLabel "
+                                                                              "{ "
+                                                                              "color: rgb(255, 125, 125); "
+                                                                              "}");
     }
 }
 
@@ -139,6 +182,10 @@ void DashboardUI::setHeadseyBatteryLevel(float level) {
         }
         int batteryLevel = qRound(level * 100.0f);
         ui->headsetBatteryLevel->setText(QString::number(batteryLevel) + "%");
+        if (batteryLevel < 21) ui->headsetBatteryLevel->setStyleSheet("#headsetBatteryLevel "
+                                                                              "{ "
+                                                                              "color: rgb(255, 125, 125); "
+                                                                              "}");
     }
 }
 

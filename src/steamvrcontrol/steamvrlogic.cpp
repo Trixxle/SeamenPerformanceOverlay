@@ -255,6 +255,14 @@ bool SteamVRLogic::Init() {
 	return bSuccess;
 }
 
+void SteamVRLogic::searchForTrackers() {
+	if (!vr::VRInput() || !m_pVRSystem) return;
+	m_trackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
+	for (auto tracker : m_trackers) {
+		emit addTrackerToUi(tracker);
+	}
+}
+
 void SteamVRLogic::setCurrentGame() {
 	// Safety check to ensure the OpenVR interface is initialized
 	if (!vr::VRApplications()) {
@@ -1104,7 +1112,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				   uint32_t processId = vrEvent.data.process.pid;
 
 				   if (m_activeProcesses.contains(processId)) {
-				      // Retrieve and remove the quitting PID from our cache
+				      // Retrieve and remove the quitting PID from the cache
 				      AppCacheData data = m_activeProcesses.take(processId);
 
 				      // Ask OpenVR if the main application is actually dead
@@ -1335,9 +1343,15 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				// Only call the API if the alpha actually changed, to avoid redundant
 				// OpenVR calls every 20ms when the viewing angle is stable.
 				float newAlpha = m_baseAlpha * angleFactor * distanceFactor;
-				if (newAlpha < 0.005f) newAlpha = 0.0f; // Clamp tp avoid overlay being in a barely visible state
-				if (std::abs(newAlpha - m_lastAlpha) > 0.005f) {
-					//newAlpha < 0.0f ? vr::VROverlay()->HideOverlay(m_ulOverlayHandle) : vr::VROverlay()->ShowOverlay(m_ulOverlayHandle);
+
+				// Clamp to avoid overlay being in a barely visible state
+				if (newAlpha < 0.005f) newAlpha = 0.0f;
+
+				// When the opacity is 0% we have to disable cursor input its hitbox is still active.
+				// Update only if the alpha changed significantly OR if we just hit absolute zero
+				if (std::abs(newAlpha - m_lastAlpha) >= 0.005f || (newAlpha == 0.0f && m_lastAlpha != 0.0f)) {
+					if (newAlpha == 0.0f) vr::VROverlay()->SetOverlayInputMethod(m_ulOverlayHandle, vr::VROverlayInputMethod_None);
+					else if (m_lastAlpha == 0) vr::VROverlay()->SetOverlayInputMethod(m_ulOverlayHandle, vr::VROverlayInputMethod_Mouse);
 					vr::VROverlay()->SetOverlayAlpha(m_ulOverlayHandle, newAlpha);
 					m_lastAlpha = newAlpha;
 				}
@@ -1632,7 +1646,35 @@ vr::TrackedDeviceIndex_t SteamVRLogic::getDeviceForRole(vr::ETrackedControllerRo
 	return vr::k_unTrackedDeviceIndexInvalid;
 }
 
-// Returns the hand role for a device. First tries the standard controller role API,
+// Finds a tracked device for the given hand role. First tries the standard controller
+// role API, then falls back to scanning all tracked devices by their role hint property.
+// This ensures hand tracking devices are found even when they are not classified as controllers.
+std::vector<vr::TrackedDeviceIndex_t>  SteamVRLogic::getDevicesForClass(vr::ETrackedDeviceClass classToLookFor) {
+	if (!vr::VRInput() || !m_pVRSystem) return std::vector<vr::TrackedDeviceIndex_t>(); // return empty
+	// Passing nullptr and 0 will return the required array size.
+	uint32_t deviceCount = m_pVRSystem->GetSortedTrackedDeviceIndicesOfClass(
+		classToLookFor,
+		nullptr,
+		0,
+		vr::k_unTrackedDeviceIndex_Hmd // Sort relative to the headset
+	);
+
+	if (deviceCount > 0) {
+		std::vector<vr::TrackedDeviceIndex_t> foundDevices(deviceCount);
+		// Call the function again to actually populate your array
+		m_pVRSystem->GetSortedTrackedDeviceIndicesOfClass(
+			classToLookFor,
+			foundDevices.data(),
+			deviceCount,
+			vr::k_unTrackedDeviceIndex_Hmd
+		);
+		return foundDevices;
+	}
+
+	return std::vector<vr::TrackedDeviceIndex_t>(); // return empty if nothing found
+}
+
+// Returns the role for a device. First tries the standard controller role API,
 // then falls back to the role hint property to support hand tracking devices.
 vr::ETrackedControllerRole SteamVRLogic::getRoleForDevice(vr::TrackedDeviceIndex_t device) {
 	if (device == vr::k_unTrackedDeviceIndexInvalid) return vr::TrackedControllerRole_Invalid;
