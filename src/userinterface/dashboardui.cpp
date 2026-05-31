@@ -381,8 +381,10 @@ void DashboardUI::updateLabels(const FrameHandler::frameStats &information) {
 }
 
 float DashboardUI::roundFloat(float number, int decimalCases) {
-    if (decimalCases == 0) return roundf(number);
-    return roundf(number * 100) / (decimalCases * 50);
+    if (decimalCases <= 0) return std::roundf(number);
+    float multiplier = std::pow(10.0f, decimalCases);
+
+    return std::roundf(number * multiplier) / multiplier;
 }
 
 // This is required as for some reason Qt is refusing to atumatocally apply the underlying QPaintEvent function and thus
@@ -599,19 +601,19 @@ void DashboardUI::setDashboardTargetFrameRate(float targetFrameRate) {
 }
 
 void DashboardUI::setSystemRamUsage(float ramUsage) {
-    ui->ramUsageLabel->setText(QString::number(roundFloat(ramUsage, 2)));
+    ui->ramUsageLabel->setText(QString::number(roundFloat(ramUsage, 1)));
 }
 
 void DashboardUI::setSystemVramUsage(float vramUsage) {
-    ui->vramUsageLabel->setText(QString::number(roundFloat(vramUsage, 2)));
+    ui->vramUsageLabel->setText(QString::number(roundFloat(vramUsage, 1)));
 }
 
 void DashboardUI::setSystemRam(float systemRam) {
-    ui->totalRamLabel->setText(tr("/") + QString::number(roundFloat(systemRam, 2)) + tr(" GB"));
+    ui->totalRamLabel->setText(tr("/") + QString::number(roundFloat(systemRam, 1)) + tr("GB"));
 }
 
 void DashboardUI::setSystemVram(float systemVram) {
-    ui->totalVramLabel->setText(tr("/") + QString::number(roundFloat(systemVram, 2)) + tr(" GB"));
+    ui->totalVramLabel->setText(tr("/") + QString::number(roundFloat(systemVram, 1)) + tr("GB"));
 }
 
 void DashboardUI::setUpCharts() {

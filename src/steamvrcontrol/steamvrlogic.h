@@ -143,6 +143,8 @@ private:
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
+    vr::VRInputValueHandle_t m_leftHandHandle = vr::k_ulInvalidInputValueHandle;
+    vr::VRInputValueHandle_t m_rightHandHandle = vr::k_ulInvalidInputValueHandle;
 
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
     vr::ETrackedControllerRole m_savedRole = vr::TrackedControllerRole_LeftHand;

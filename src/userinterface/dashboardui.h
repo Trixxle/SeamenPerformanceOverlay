@@ -37,6 +37,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QPropertyAnimation>
 #include <QMainWindow>
 #include <QEvent>
+#include <cmath>
 #include "frameHandler.h"
 #include "systemResourcesHandler.h"
 
