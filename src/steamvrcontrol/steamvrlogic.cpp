@@ -99,6 +99,7 @@ void SteamVRLogic::DestroyInstance()
 }
 
 SteamVRLogic::initializationError SteamVRLogic::Init() {
+
 	if (!vr::VR_IsRuntimeInstalled()) {
 		std::cerr << "SteamVR is not installed." << std::endl;
 		return eSteamVrNotInstalled;

@@ -85,7 +85,7 @@ int main(int argc, char *argv[])
 
     if (result != SteamVRLogic::initializationError::eNone) {
         QString errorMessage;
-        QString errorTitle = "Seamen Performance Overlay encountered an oopsie";
+        QString errorTitle = "Seamen Performance Overlay";
 
         switch (result) {
             case SteamVRLogic::initializationError::eNone:
@@ -110,10 +110,46 @@ int main(int argc, char *argv[])
                 errorMessage = "An unknown error occurred during initialization.";
                 break;
         }
-        QMessageBox::critical(nullptr, errorTitle, errorMessage);
+        QMessageBox msgBox;
+        msgBox.setWindowTitle(errorTitle);
+        msgBox.setText("<b>Oh no! :( An oopsie was encountered!</b>");
+        msgBox.setInformativeText(errorMessage);
+        msgBox.setIcon(QMessageBox::Critical);
 
+        msgBox.setStyleSheet(
+            "QMessageBox { "
+            "    background-color: #232424; "
+            "    qproperty-alignment: AlignCenter; "
+            "    color: #ffffff; "
+            "} "
+            "QLabel { "
+            "    color: #ffffff; "
+            "} "
+            "QPushButton { "
+            "    qproperty-alignment: AlignCenter; "
+            "    background-color: transparent; "
+            "    color: white; "
+            "    border-radius: 10px; "
+            "    padding: 6px 12px; "
+            "    min-width: 80px; "
+            "    border: 2px solid rgb(16, 146, 191);"
+            "} "
+            "QPushButton:hover { "
+            "    background-color: #262626; "
+            "} "
+            "QPushButton:pressed { "
+            "   background-color: #1EAEED; "
+            "   border-color: #1EAEED; "
+            "   color: black; "
+            "} "
+        );
+
+        msgBox.setWindowFlags(msgBox.windowFlags() | Qt::WindowStaysOnTopHint);
+        msgBox.show();
+        msgBox.raise();
+        msgBox.activateWindow();
+        msgBox.exec();
         SteamVRLogic::DestroyInstance();
-
         return -1;
     }
 
