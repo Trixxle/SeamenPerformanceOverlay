@@ -51,6 +51,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QtWidgets/QApplication>
 #include <QThread>
 #include <QMetaType>
+#include <QMessageBox>
+#include <QApplication>
+#include <QString>
 #include <QTimer>
 #include <QSurfaceFormat>
 #include <memory>
@@ -78,9 +81,39 @@ int main(int argc, char *argv[])
 
     SteamVRLogic* vrLogic = SteamVRLogic::SharedInstance();
 
+    SteamVRLogic::initializationError result = vrLogic->Init();
 
-    if (!vrLogic->Init()) {
-        std::cerr << "Failed to initialize SteamVR Logic. Exiting." << std::endl;
+    if (result != SteamVRLogic::initializationError::eNone) {
+        QString errorMessage;
+        QString errorTitle = "Seamen Performance Overlay encountered an oopsie";
+
+        switch (result) {
+            case SteamVRLogic::initializationError::eNone:
+                // This is caught by the outer if-statement but kept for completeness so my dumb IDE doesn't complain
+                break;
+            case SteamVRLogic::initializationError::eSteamVrNotInstalled:
+                errorMessage = "SteamVR is not installed on this system. Please install SteamVR and try again.";
+                break;
+            case SteamVRLogic::initializationError::eOpenGLFailedToInitialize:
+                errorMessage = "OpenGL failed to initialize. Please check your graphics drivers and hardware support.";
+                break;
+            case SteamVRLogic::initializationError::eFailedToConnectToSteamVr:
+                errorMessage = "Failed to connect to SteamVR.";
+                break;
+            case SteamVRLogic::initializationError::eFailedToCreateOverlays:
+                errorMessage = "Failed to create the necessary SteamVR overlays.";
+                break;
+            case SteamVRLogic::initializationError::eFailedToInitialize:
+                errorMessage = "A general failure occurred while attempting to initialize the overlay.";
+                break;
+            default:
+                errorMessage = "An unknown error occurred during initialization.";
+                break;
+        }
+        QMessageBox::critical(nullptr, errorTitle, errorMessage);
+
+        SteamVRLogic::DestroyInstance();
+
         return -1;
     }
 
@@ -162,23 +195,23 @@ int main(int argc, char *argv[])
     systemResourcesThread->start();
 
     QTimer::singleShot(0, vrLogic, []() {
-            SteamVRLogic::SharedInstance()->steamDashboardStateForUi();
+        SteamVRLogic::SharedInstance()->steamDashboardStateForUi();
     });
     QTimer::singleShot(0, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setCurrentGame();
     });
 
     QTimer::singleShot(0, vrLogic, []() {
-    SteamVRLogic::SharedInstance()->setControllersBatteryLevel();
+        SteamVRLogic::SharedInstance()->setControllersBatteryLevel();
     });
     QTimer::singleShot(0, vrLogic, []() {
-    SteamVRLogic::SharedInstance()->setHeadsetBatteryLevel();
+        SteamVRLogic::SharedInstance()->setHeadsetBatteryLevel();
     });
     QTimer::singleShot(0, vrLogic, []() {
-    SteamVRLogic::SharedInstance()->searchForTrackers();
+        SteamVRLogic::SharedInstance()->searchForTrackers();
     });
     QTimer::singleShot(1, vrLogic, []() {
-    SteamVRLogic::SharedInstance()->setTrackersBattery();
+        SteamVRLogic::SharedInstance()->setTrackersBattery();
     });
 
     int exitCode = a.exec();

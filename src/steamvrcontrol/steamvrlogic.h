@@ -88,13 +88,21 @@ class SteamVRLogic: public QObject {
     typedef QObject BaseClass;
 
 public:
+    enum initializationError {
+        eNone = 0,
+        eSteamVrNotInstalled = 1,
+        eOpenGLFailedToInitialize = 2,
+        eFailedToConnectToSteamVr = 3,
+        eFailedToCreateOverlays = 4,
+        eFailedToInitialize = 5
+    };
     static SteamVRLogic *SharedInstance();
     static void DestroyInstance();
 
     SteamVRLogic();
     ~SteamVRLogic();
 
-    bool Init();
+    initializationError Init();
     void Shutdown();
     bool BHMDAvailable();
     void SetWidget( QWidget *pWidget);
@@ -143,7 +151,7 @@ private:
 
     std::vector<vr::TrackedDeviceIndex_t> m_trackers;
 
-    int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 10;
+    int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 20;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_leftController = vr::k_unTrackedDeviceIndexInvalid;
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
@@ -168,8 +176,8 @@ private:
     void saveSession();
     void restoreSession();
     void AttachToDevice(const vr::TrackedDeviceIndex_t& device);
-    vr::TrackedDeviceIndex_t getDeviceForRole(vr::ETrackedControllerRole role);
-    vr::ETrackedControllerRole getRoleForDevice(vr::TrackedDeviceIndex_t device);
+    vr::TrackedDeviceIndex_t getControllerForRole(vr::ETrackedControllerRole role);
+    vr::ETrackedControllerRole getRoleForController(vr::TrackedDeviceIndex_t device);
     vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
     void mirrorMatrix();
     void updateOverlayWidthInMeters();
