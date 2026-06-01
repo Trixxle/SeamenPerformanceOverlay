@@ -142,6 +142,7 @@ public slots:
     void setHeadsetBatteryLevel();
     void setTrackersBattery();
     void searchForTrackers();
+    void resetPosition();
 
 private:
     struct AppCacheData {

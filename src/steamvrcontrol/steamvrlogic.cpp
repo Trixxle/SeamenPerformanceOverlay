@@ -275,7 +275,7 @@ void SteamVRLogic::searchForTrackers() {
 	m_trackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
 	for (auto tracker : m_trackers) {
 		vr::ETrackedPropertyError error = vr::TrackedProp_InvalidOperation;
-		if (m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error))
+		if (m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error) )
 			emit addTrackerToUi(tracker);
 	}
 }
@@ -372,6 +372,28 @@ void SteamVRLogic::decreaseFadeDistanceStart() {
 void SteamVRLogic::updateOverlayWidthInMeters() {
 	vr::VROverlay()->SetOverlayWidthInMeters( m_ulOverlayHandle, m_overlayWidthInMeters );
 	emit overlayScaleChanged(m_overlayWidthInMeters);
+}
+
+void SteamVRLogic::resetPosition() {
+	m_overlayPositionMatrix = {
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.866f, 0.5f, 0.1f,
+		0.0f, -0.5f, 0.866f, -0.08f
+	};
+	m_matrixForRole = vr::TrackedControllerRole_LeftHand;
+	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
+		AttachToDevice(m_leftController);
+		m_savedRole = vr::TrackedControllerRole_LeftHand;
+	}
+	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
+		AttachToDevice(m_rightController);
+		m_savedRole = vr::TrackedControllerRole_RightHand;
+		mirrorMatrix();
+	}
+	else {
+		AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
+		m_savedRole = vr::TrackedControllerRole_Invalid;
+	}
 }
 
 void SteamVRLogic::resetOverlayToDefault() {
@@ -1705,9 +1727,6 @@ vr::TrackedDeviceIndex_t SteamVRLogic::getControllerForRole(vr::ETrackedControll
 	return vr::k_unTrackedDeviceIndexInvalid;
 }
 
-// Finds a tracked device for the given hand role. First tries the standard controller
-// role API, then falls back to scanning all tracked devices by their role hint property.
-// This ensures hand tracking devices are found even when they are not classified as controllers.
 std::vector<vr::TrackedDeviceIndex_t>  SteamVRLogic::getDevicesForClass(vr::ETrackedDeviceClass classToLookFor) {
 	if (!vr::VRInput() || !m_pVRSystem) return std::vector<vr::TrackedDeviceIndex_t>(); // return empty
 	// Passing nullptr and 0 will return the required array size.
@@ -1759,7 +1778,6 @@ bool SteamVRLogic::ConnectToVRRuntime() {
 		return false;
 	}
 
-    char buf[vr::k_unMaxPropertyStringSize];
     vr::ETrackedPropertyError err;
 	m_strVRDisplay = GetTrackedDeviceString(m_pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
     m_strVRDriver = GetTrackedDeviceString(m_pVRSystem, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);

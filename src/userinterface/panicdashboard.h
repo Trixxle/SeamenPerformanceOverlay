@@ -69,6 +69,7 @@ signals:
     void requestLeftControllerAttach();
     void requestRightControllerAttach();
     void requestHmdAttach();
+    void requestResetPosition();
 };
 
 

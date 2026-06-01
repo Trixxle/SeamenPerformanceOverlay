@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "panicdashboard.h"
 #include "ui_panicDashboard.h"
+#include "steamvrcontrol/steamvrlogic.h"
 
 
 panicDashboard::panicDashboard(QWidget *parent) :
@@ -40,6 +41,7 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->RightControllerButton, &QPushButton::clicked, this, &panicDashboard::requestRightControllerAttach);
     connect(ui->LeftControllerButton, &QPushButton::clicked, this, &panicDashboard::requestLeftControllerAttach);
     connect(ui->HMDButton, &QPushButton::clicked, this, &panicDashboard::requestHmdAttach);
+    connect(ui->resetPositionButton, &QPushButton::clicked, this, &panicDashboard::requestResetPosition);
 
     restoreDistanceFadeState();
     restoreScale();

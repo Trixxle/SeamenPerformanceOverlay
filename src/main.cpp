@@ -222,7 +222,7 @@ int main(int argc, char *argv[])
     QObject::connect(pPanicDashboard, &panicDashboard::distanceCheckboxToggled, vrLogic, &SteamVRLogic::setDistanceFade);
     QObject::connect(pPanicDashboard, &panicDashboard::requestRightControllerAttach, vrLogic, &SteamVRLogic::attachToRightController);
     QObject::connect(pPanicDashboard, &panicDashboard::requestLeftControllerAttach, vrLogic, &SteamVRLogic::attachToLeftController);
-    QObject::connect(pPanicDashboard, &panicDashboard::requestHmdAttach, vrLogic, &SteamVRLogic::attachToHmd);
+    QObject::connect(pPanicDashboard, &panicDashboard::requestResetPosition, vrLogic, &SteamVRLogic::resetPosition);
 
     // Connects for the overlay to dashboard communication and vice versa
     QObject::connect(pDashboardUI, &DashboardUI::opacityChanged, pPanicDashboard, &panicDashboard::setOpacityValue);
