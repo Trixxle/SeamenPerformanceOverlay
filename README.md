@@ -5,11 +5,12 @@
 Get in on Steam! [ADD STEAMSTORE LINK]
 
 ## What is it?
-The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics, battery levels, and system resources usage! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
+The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics, battery levels, and system resource usages! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
 The frame time consistency graph it has is a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped PICO XR troubleshoot their VR streaming application PICO Connect.
 
 ## Compatability
 As long as you connect to SteamVR this overlay *should* work with any headset and controllers. Or even without controllers!
+For the time being the overlay only supports Windows. However, Linux support is planned.
 
 
 ## Gallery:
@@ -34,9 +35,9 @@ The overlay will install itself to SteamVR the first time it is ran. The next ti
 ### Graphs:
 The graphs are the main event on this overlay, but to properly read them it is important to understand them.
 The graphs display 4 colors: blue, orange, red, and purple.
-  - Blue means it is optimal
-  - Orange means the performance was almost optimal
-  - Red means the performance is nowhere near optimal
+  - Blue means optimal
+  - Orange means almost optimal
+  - Red means nowhere near optimal
   - Purple means a frame was dropped completely and never shown
 
 Some graphs will also display a dotted line, this line represents the value the bars have to stay under or at to display a frame with perfection.
@@ -59,6 +60,7 @@ Some graphs will also display a dotted line, this line represents the value the 
   - Opacity controls
   - Size controls
   - Distance fade controls
+  - Color blindness option menu
   - Exit button
 
 ### Miscelaneous features:
@@ -68,7 +70,8 @@ Some graphs will also display a dotted line, this line represents the value the 
   - Saves everything about the overlay (opacity, scale, placement etc.) and restores it in future sessions
   - Works across AMD and Nvidia GPUs. (Probably Intel too but not tested)
   - Works across Intel and AMD CPUs
-  - A Second dashboard overlay with additional settings such as a reset button and the colorblindness options.
+  - A second dashboard overlay with additional settings such as a reset button and the colorblindness options.
+  - Dynamic high power and low power rendering modes. - When the SteamVR Dashboard is open the overlay will render at a higher quality to allow for smooth interactivity. When the SteamVR Dashbaord is closed the overlay switches back to its default low power rendering mode to use as little performance as possible
 
 ## Known bugs:
   - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
@@ -93,3 +96,12 @@ You can either build using your IDE of choice or by opening a terminal, navigati
 ```
 [UNFINISHED]
 ```
+
+# Contact
+For **feedback, bug reports**, and/or **feature requests**, join the Discord: https://discord.gg/j2skervRuZ
+
+Website: https://seamen.gay
+Corporate website: https://corporate.seamen.gay
+Direct email: jorn@seamen.gay
+Learn our language! Why would you want to? No idea - https://seamenese.com
+
