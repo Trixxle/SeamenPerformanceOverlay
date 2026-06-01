@@ -96,6 +96,7 @@ public:
         eFailedToCreateOverlays = 4,
         eFailedToInitialize = 5
     };
+
     static SteamVRLogic *SharedInstance();
     static void DestroyInstance();
 

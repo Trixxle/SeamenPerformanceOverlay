@@ -107,7 +107,40 @@ protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
 
 private:
-    void setUpCharts();
+
+    struct chartColors {
+        QColor fast;
+        QColor medium;
+        QColor slow;
+        QColor dropped;
+    };
+
+    enum class colorBlindType {
+        none = 0,
+        protanopia = 1,
+        deuteranopia = 2,
+        tritanopia = 3
+    };
+
+    struct colorBlindColors {
+        static chartColors getColors(colorBlindType type) {
+            switch (type) {
+                case colorBlindType::protanopia:
+                    return {QColor(16,146,191), QColor(255,165,0), QColor(186, 0,0), QColor(34, 13, 46)};
+                case colorBlindType::deuteranopia:
+                    return {QColor(16,146,191), QColor(255,165,0), QColor(108, 0,0), QColor(3, 0, 46)};
+                case colorBlindType::tritanopia:
+                    return {QColor(16,146,191), QColor(255,223,0), QColor(255, 0,0), QColor(11, 0, 78)};
+                case colorBlindType::none:
+                default:
+                    return {QColor(16,146,191), QColor(255,165,0), QColor(255, 0,0), QColor(59, 0, 59)};
+            }
+        }
+    };
+
+    colorBlindType m_userColorBlindType = colorBlindType::protanopia;
+
+    void setUpCharts(chartColors colors);
     void paintEvent(QPaintEvent *event) override;
     float roundFloat(float number, int decimalCases);
     void updateOpacity();

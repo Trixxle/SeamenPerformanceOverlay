@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "dashboardui.h"
+#include "dashboardui.h"
 #include "ui_dashboardui.h"
 #include "steamvrcontrol/steamvrlogic.h"
 
@@ -65,7 +66,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     ui->scaleFrame->setAttribute(Qt::WA_Hover, true);
     ui->scaleFrame->installEventFilter(this);
 
-    setUpCharts();
+    setUpCharts(colorBlindColors::getColors(m_userColorBlindType));
 
     connect(ui->exitButton, &QPushButton::clicked, this, &DashboardUI::onExitButtonClicked);
     connect(ui->increaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::increaseOpacityButtonClicked);
@@ -693,7 +694,7 @@ void DashboardUI::setSystemVram(float systemVram) {
     ui->totalVramLabel->setText(tr("/") + QString::number(roundFloat(systemVram, 1)) + tr("GB"));
 }
 
-void DashboardUI::setUpCharts() {
+void DashboardUI::setUpCharts(chartColors colors) {
     for (int i = 0; i < MAX_GRAPH_POINTS; ++i) {
         m_pCategoriesFrameTimeConsistency.append(QString::number(i));
         m_categoriesCpuFrameTime.append(QString::number(i));
@@ -714,15 +715,15 @@ void DashboardUI::setUpCharts() {
     m_pAxisXFrameRate->setVisible(false);
 
     m_pBarSetFrameTimeConsistencyFast = new QBarSet("NormalTOTAL");
-    m_pBarSetFrameTimeConsistencyFast->setColor(QColor(16, 146, 191));
+    m_pBarSetFrameTimeConsistencyFast->setColor(colors.fast);
     m_pBarSetFrameTimeConsistencyFast->setBorderColor(Qt::transparent);
 
     m_pBarSetFrameTimeConsistencyMedium = new QBarSet("MediumTOTAL");
-    m_pBarSetFrameTimeConsistencyMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetFrameTimeConsistencyMedium->setColor(colors.medium);
     m_pBarSetFrameTimeConsistencyMedium->setBorderColor(Qt::transparent);
 
     m_pBarSetFrameTimeConsistencySlow = new QBarSet("SlowTOTAL");
-    m_pBarSetFrameTimeConsistencySlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetFrameTimeConsistencySlow->setColor(colors.slow);
     m_pBarSetFrameTimeConsistencySlow->setBorderColor(Qt::transparent);
 
     m_pSeriesFrameTimeConsistency = new QStackedBarSeries();
@@ -732,19 +733,19 @@ void DashboardUI::setUpCharts() {
     m_pSeriesFrameTimeConsistency->append(m_pBarSetFrameTimeConsistencyMedium);
 
     m_pBarSetCpuFrameTimeFast = new QBarSet("NormalCPU");
-    m_pBarSetCpuFrameTimeFast->setColor(QColor(16, 146, 191));
+    m_pBarSetCpuFrameTimeFast->setColor(colors.fast);
     m_pBarSetCpuFrameTimeFast->setBorderColor(Qt::transparent);
 
     m_pBarSetCpuFrameTimeMedium = new QBarSet("MediumCPU");
-    m_pBarSetCpuFrameTimeMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetCpuFrameTimeMedium->setColor(colors.medium);
     m_pBarSetCpuFrameTimeMedium->setBorderColor(Qt::transparent);
 
     m_pBarSetCpuFrameTimeSlow = new QBarSet("SlowCPU");
-    m_pBarSetCpuFrameTimeSlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetCpuFrameTimeSlow->setColor(colors.slow);
     m_pBarSetCpuFrameTimeSlow->setBorderColor(Qt::transparent);
 
     m_pBarSetCpuFrameTimeDropped = new QBarSet("SlowCPU");
-    m_pBarSetCpuFrameTimeDropped->setColor(QColorConstants::Svg::purple);
+    m_pBarSetCpuFrameTimeDropped->setColor(colors.dropped);
     m_pBarSetCpuFrameTimeDropped->setBorderColor(Qt::transparent);
 
     m_pSeriesCpuFrameTime = new QStackedBarSeries();
@@ -755,15 +756,15 @@ void DashboardUI::setUpCharts() {
     m_pSeriesCpuFrameTime->append(m_pBarSetCpuFrameTimeDropped);
 
     m_pBarSetGpuFrameTimeFast = new QBarSet("NormalGPU");
-    m_pBarSetGpuFrameTimeFast->setColor(QColor(16, 146, 191));
+    m_pBarSetGpuFrameTimeFast->setColor(colors.fast);
     m_pBarSetGpuFrameTimeFast->setBorderColor(Qt::transparent);
 
     m_pBarSetGpuFrameTimeMedium = new QBarSet("MediumGPU");
-    m_pBarSetGpuFrameTimeMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetGpuFrameTimeMedium->setColor(colors.medium);
     m_pBarSetGpuFrameTimeMedium->setBorderColor(Qt::transparent);
 
     m_pBarSetGpuFrameTimeSlow = new QBarSet("SlowGPU");
-    m_pBarSetGpuFrameTimeSlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetGpuFrameTimeSlow->setColor(colors.slow);
     m_pBarSetGpuFrameTimeSlow->setBorderColor(Qt::transparent);
 
     m_pSeriesGpuFrameTime = new QStackedBarSeries();
@@ -773,15 +774,15 @@ void DashboardUI::setUpCharts() {
     m_pSeriesGpuFrameTime->append(m_pBarSetGpuFrameTimeMedium);
 
     m_pBarSetFrameRateFast = new QBarSet("NormalFPS");
-    m_pBarSetFrameRateFast->setColor(QColor(16, 146, 191));
+    m_pBarSetFrameRateFast->setColor(colors.fast);
     m_pBarSetFrameRateFast->setBorderColor(Qt::transparent);
 
     m_pBarSetFrameRateMedium = new QBarSet("MediumFPS");
-    m_pBarSetFrameRateMedium->setColor(QColorConstants::Svg::orange);
+    m_pBarSetFrameRateMedium->setColor(colors.medium);
     m_pBarSetFrameRateMedium->setBorderColor(Qt::transparent);
 
     m_pBarSetFrameRateSlow = new QBarSet("SlowFPS");
-    m_pBarSetFrameRateSlow->setColor(QColorConstants::Svg::red);
+    m_pBarSetFrameRateSlow->setColor(colors.slow);
     m_pBarSetFrameRateSlow->setBorderColor(Qt::transparent);
 
     m_pSeriesFrameRate = new QStackedBarSeries();

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>695</width>
-    <height>610</height>
+    <width>725</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -56,8 +56,8 @@
 }
 
 
-/* --- The 4 Inner Grid Panels  Specific Styling--- */
-#colorBlindnessFrame, #showTrackersFrame, #ScaleFrame, #OpacityFrame, #DistanceFadeFrame, #ResetFrame, #AttachedDeviceFrame {
+/* --- The Inner Grid Panels Specific Styling--- */
+#ColorblindnessFrame, #showTrackersFrame, #ScaleFrame, #OpacityFrame, #DistanceFadeFrame, #ResetFrame, #AttachedDeviceFrame {
     background-color: rgb(50, 50, 50);
     border-radius: 30px;
 }
@@ -107,6 +107,37 @@
     border: 2px solid #232424;
     image: none; 
 }
+
+/*--- Colorblind Options Overrides ---*/
+#colorblindSelectionGroup {
+	border: none;
+	background: transparent;
+	title: none;
+}
+
+#colorblindSelectionGroup QRadioButton {
+	font-size: 23px;
+    color: white;
+}
+
+#colorblindSelectionGroup QRadioButton::indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: #232424; 
+    border: 2px solid #454545; 
+}
+
+#colorblindSelectionGroup QRadioButton::indicator:hover {
+    border: 2px solid rgb(16, 146, 191); 
+}
+
+#colorblindSelectionGroup QRadioButton::indicator:checked {
+    background-color: rgb(16, 146, 191); 
+    border: 2px solid #232424;
+    image: none; 
+}
+
 
 /*--- Global QLabel --- */
 QLabel {
@@ -225,7 +256,7 @@ QPushButton:pressed {
         <property name="frameShadow">
          <enum>QFrame::Shadow::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,30,0,40,0">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,0,30,0,35,0">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -325,7 +356,7 @@ QPushButton:pressed {
       <item>
        <widget class="QFrame" name="InteractionFrame">
         <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+         <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
           <verstretch>0</verstretch>
          </sizepolicy>
@@ -413,7 +444,7 @@ QPushButton:pressed {
               <item>
                <widget class="QPushButton" name="MinusScale">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -436,7 +467,7 @@ QPushButton:pressed {
               <item>
                <widget class="QPushButton" name="PlusScale">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -524,7 +555,7 @@ QPushButton:pressed {
               <item>
                <widget class="QPushButton" name="MinusOpacity">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -547,7 +578,7 @@ QPushButton:pressed {
               <item>
                <widget class="QPushButton" name="PlusOpacity">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -563,11 +594,11 @@ QPushButton:pressed {
           </widget>
          </item>
          <item row="1" column="0">
-          <layout class="QVBoxLayout" name="subLayoutForDistanceFadeAndColorblindOptions">
+          <layout class="QVBoxLayout" name="subLayoutColorblindAndDistanceFade" stretch="1,1">
            <property name="spacing">
             <number>6</number>
            </property>
-           <property name="topMargin">
+           <property name="bottomMargin">
             <number>0</number>
            </property>
            <item>
@@ -642,7 +673,7 @@ QPushButton:pressed {
                   <number>20</number>
                  </property>
                  <property name="topMargin">
-                  <number>25</number>
+                  <number>0</number>
                  </property>
                  <property name="rightMargin">
                   <number>20</number>
@@ -752,14 +783,14 @@ QPushButton:pressed {
             </widget>
            </item>
            <item>
-            <widget class="QFrame" name="colorBlindnessFrame">
+            <widget class="QFrame" name="ColorblindnessFrame">
              <property name="frameShape">
               <enum>QFrame::Shape::StyledPanel</enum>
              </property>
              <property name="frameShadow">
               <enum>QFrame::Shadow::Raised</enum>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_17">
+             <layout class="QVBoxLayout" name="verticalLayout_20" stretch="1,2">
               <property name="spacing">
                <number>0</number>
               </property>
@@ -776,14 +807,17 @@ QPushButton:pressed {
                <number>0</number>
               </property>
               <item>
-               <widget class="QFrame" name="DistanceFadeFrame_2">
+               <widget class="QFrame" name="colorBlindnessTitleFrame">
+                <property name="styleSheet">
+                 <string notr="true"/>
+                </property>
                 <property name="frameShape">
                  <enum>QFrame::Shape::StyledPanel</enum>
                 </property>
                 <property name="frameShadow">
                  <enum>QFrame::Shadow::Raised</enum>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_11" stretch="0,4">
+                <layout class="QVBoxLayout" name="verticalLayout_22">
                  <property name="spacing">
                   <number>0</number>
                  </property>
@@ -800,157 +834,75 @@ QPushButton:pressed {
                   <number>0</number>
                  </property>
                  <item>
-                  <widget class="QFrame" name="colorBlindnessTitleFrame">
-                   <property name="styleSheet">
-                    <string notr="true"/>
+                  <widget class="QLabel" name="colorBlindnessTitle">
+                   <property name="font">
+                    <font>
+                     <family>Segoe UI</family>
+                     <pointsize>-1</pointsize>
+                     <bold>true</bold>
+                    </font>
                    </property>
-                   <property name="frameShape">
-                    <enum>QFrame::Shape::StyledPanel</enum>
+                   <property name="text">
+                    <string>Colorblind Options</string>
                    </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Shadow::Raised</enum>
+                   <property name="alignment">
+                    <set>Qt::AlignmentFlag::AlignCenter</set>
                    </property>
-                   <layout class="QVBoxLayout" name="verticalLayout_15">
-                    <item>
-                     <widget class="QLabel" name="colorBlindnessTitle">
-                      <property name="font">
-                       <font>
-                        <family>Segoe UI</family>
-                        <pointsize>-1</pointsize>
-                        <bold>true</bold>
-                       </font>
-                      </property>
-                      <property name="text">
-                       <string>Colorblind Options</string>
-                      </property>
-                      <property name="alignment">
-                       <set>Qt::AlignmentFlag::AlignCenter</set>
-                      </property>
-                     </widget>
-                    </item>
-                   </layout>
                   </widget>
                  </item>
-                 <item>
-                  <widget class="QFrame" name="DistanceFadeInteractionFrame_2">
-                   <property name="frameShape">
-                    <enum>QFrame::Shape::StyledPanel</enum>
+                </layout>
+               </widget>
+              </item>
+              <item>
+               <widget class="QGroupBox" name="colorblindSelectionGroup">
+                <property name="enabled">
+                 <bool>true</bool>
+                </property>
+                <property name="layoutDirection">
+                 <enum>Qt::LayoutDirection::LeftToRight</enum>
+                </property>
+                <property name="title">
+                 <string/>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignCenter</set>
+                </property>
+                <property name="flat">
+                 <bool>true</bool>
+                </property>
+                <property name="checkable">
+                 <bool>false</bool>
+                </property>
+                <layout class="QGridLayout" name="gridLayout_4">
+                 <item row="3" column="0">
+                  <widget class="QRadioButton" name="protanopiaColorblindOption">
+                   <property name="text">
+                    <string>Protanopia</string>
                    </property>
-                   <property name="frameShadow">
-                    <enum>QFrame::Shadow::Raised</enum>
+                  </widget>
+                 </item>
+                 <item row="1" column="0">
+                  <widget class="QRadioButton" name="noneColorblindOption">
+                   <property name="text">
+                    <string>None</string>
                    </property>
-                   <layout class="QVBoxLayout" name="verticalLayout_16" stretch="0,0">
-                    <property name="spacing">
-                     <number>0</number>
-                    </property>
-                    <property name="leftMargin">
-                     <number>20</number>
-                    </property>
-                    <property name="topMargin">
-                     <number>25</number>
-                    </property>
-                    <property name="rightMargin">
-                     <number>20</number>
-                    </property>
-                    <property name="bottomMargin">
-                     <number>0</number>
-                    </property>
-                    <item>
-                     <widget class="QFrame" name="DistanceFadeCheckFrame_2">
-                      <property name="frameShape">
-                       <enum>QFrame::Shape::StyledPanel</enum>
-                      </property>
-                      <property name="frameShadow">
-                       <enum>QFrame::Shadow::Raised</enum>
-                      </property>
-                      <layout class="QHBoxLayout" name="horizontalLayout_4">
-                       <property name="spacing">
-                        <number>0</number>
-                       </property>
-                       <property name="leftMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="topMargin">
-                        <number>0</number>
-                       </property>
-                       <property name="rightMargin">
-                        <number>31</number>
-                       </property>
-                       <property name="bottomMargin">
-                        <number>0</number>
-                       </property>
-                       <item>
-                        <widget class="QCheckBox" name="distanceFadeCheck_2">
-                         <property name="layoutDirection">
-                          <enum>Qt::LayoutDirection::RightToLeft</enum>
-                         </property>
-                         <property name="text">
-                          <string>Enable</string>
-                         </property>
-                         <property name="tristate">
-                          <bool>false</bool>
-                         </property>
-                        </widget>
-                       </item>
-                      </layout>
-                     </widget>
-                    </item>
-                    <item>
-                     <layout class="QHBoxLayout" name="DistanceFadeButtonsLayout_2">
-                      <property name="spacing">
-                       <number>10</number>
-                      </property>
-                      <property name="leftMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="topMargin">
-                       <number>10</number>
-                      </property>
-                      <property name="rightMargin">
-                       <number>0</number>
-                      </property>
-                      <property name="bottomMargin">
-                       <number>10</number>
-                      </property>
-                      <item>
-                       <widget class="QPushButton" name="MinusDistanceFade_2">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="text">
-                         <string>-</string>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QLabel" name="DistanceFadeVar_2">
-                        <property name="text">
-                         <string>Error</string>
-                        </property>
-                        <property name="alignment">
-                         <set>Qt::AlignmentFlag::AlignCenter</set>
-                        </property>
-                       </widget>
-                      </item>
-                      <item>
-                       <widget class="QPushButton" name="PlusDistanceFade_2">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="text">
-                         <string>+</string>
-                        </property>
-                       </widget>
-                      </item>
-                     </layout>
-                    </item>
-                   </layout>
+                   <property name="checked">
+                    <bool>true</bool>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="1" column="1">
+                  <widget class="QRadioButton" name="deuteranopiaColorblindOption">
+                   <property name="text">
+                    <string>Deuteranopia</string>
+                   </property>
+                  </widget>
+                 </item>
+                 <item row="3" column="1">
+                  <widget class="QRadioButton" name="tritanopiaColorblindOption">
+                   <property name="text">
+                    <string>Tritanopia</string>
+                   </property>
                   </widget>
                  </item>
                 </layout>
@@ -964,7 +916,7 @@ QPushButton:pressed {
          <item row="1" column="1">
           <layout class="QVBoxLayout" name="subLayout" stretch="0,0,0">
            <property name="spacing">
-            <number>9</number>
+            <number>6</number>
            </property>
            <property name="topMargin">
             <number>0</number>
@@ -1049,13 +1001,13 @@ QPushButton:pressed {
                   <number>20</number>
                  </property>
                  <property name="topMargin">
-                  <number>0</number>
+                  <number>10</number>
                  </property>
                  <property name="rightMargin">
                   <number>50</number>
                  </property>
                  <property name="bottomMargin">
-                  <number>0</number>
+                  <number>10</number>
                  </property>
                  <item>
                   <widget class="QCheckBox" name="showTrackersCheckbox">
