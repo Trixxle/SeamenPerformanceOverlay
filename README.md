@@ -5,10 +5,12 @@
 Get in on Steam! [ADD STEAMSTORE LINK]
 
 ## What is it?
-The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics alongside RAM and VRAM usage! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
-The frame time consistency graph it has is a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped brands such as PICO troubleshoot their VR streaming application PICO Connect.
+The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics, battery levels, and system resource usages! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
+The frame time consistency graph it has is a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped PICO XR troubleshoot their VR streaming application PICO Connect.
 
+## Compatability
 As long as you connect to SteamVR this overlay *should* work with any headset and controllers. Or even without controllers!
+For the time being the overlay only supports Windows. However, Linux support is planned.
 
 
 ## Gallery:
@@ -25,7 +27,7 @@ Switch Controllers!        |  Fades based on viewing angle!
 
 Simply download the latest released .zip, extract it anywhere, run SteamVR, and run the .exe within the downloaded folder.
 Do not move files outside the folder, all files must remain in one folder.
-The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Startup Overlay Apps"
+The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Startup Overlay Apps". If you have the Steam version of this overlay installed it can interfere with the GitHub version and vice versa. It is recommended to keep one at a time.
 
 
 ## Features:
@@ -33,9 +35,9 @@ The overlay will install itself to SteamVR the first time it is ran. The next ti
 ### Graphs:
 The graphs are the main event on this overlay, but to properly read them it is important to understand them.
 The graphs display 4 colors: blue, orange, red, and purple.
-  - Blue means it is optimal
-  - Orange means the performance was almost optimal
-  - Red means the performance is nowhere near optimal
+  - Blue means optimal
+  - Orange means almost optimal
+  - Red means nowhere near optimal
   - Purple means a frame was dropped completely and never shown
 
 Some graphs will also display a dotted line, this line represents the value the bars have to stay under or at to display a frame with perfection.
@@ -48,29 +50,35 @@ Some graphs will also display a dotted line, this line represents the value the 
   - Less accurate but more stable frame rate number for easy viewing
   - System RAM usage and total RAM count
   - System VRAM usage and total VRAM count
+  - Headset battery level (if supported by headset)
+  - Controllers battery level (if supported by controllers)
+  - Trackers battery level (if supported by trackers)
 
 ### Interactivity:
   - Can be moved anywhere around a controller
   - Can be attached to the left or right controller
   - Opacity controls
   - Size controls
+  - Distance fade controls
+  - Color blindness option menu
   - Exit button
 
 ### Miscelaneous features:
+  - Colorblindness settings
   - Fades based on viewing angle
-  - Will fall back to showing in front of view when no controllers are detected. Will attach to a controller if it appears mid-session
+  - Will fall back to showing in front of view when no controllers are detected. Will attach to a controller if it appears mid-session with priority to the manually attached controller.
   - Saves everything about the overlay (opacity, scale, placement etc.) and restores it in future sessions
   - Works across AMD and Nvidia GPUs. (Probably Intel too but not tested)
   - Works across Intel and AMD CPUs
-  - A Second dashboard overlay with a "SAVE ME!" button that resets the overlay to default and respawns it above your left or right controller, or HMD when there are no controllers
+  - A second dashboard overlay with additional settings such as a reset button and the colorblindness options.
+  - Dynamic high power and low power rendering modes. - When the SteamVR Dashboard is open the overlay will render at a higher quality to allow for smooth interactivity. When the SteamVR Dashbaord is closed the overlay switches back to its default low power rendering mode to use as little performance as possible
 
 ## Known bugs:
   - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
   - When scaling the overlay to an impractical size the fading based on viewing angle stops working correctly
-  - The overlay does not know how to handle more than 2 controllers
 
 ## Planned features:
-  - Linux support (I need a Linux distro to test with)
+  - Linux support (I need a PC running Linux to test with)
 
 ## Building Instructions
 
@@ -88,3 +96,12 @@ You can either build using your IDE of choice or by opening a terminal, navigati
 ```
 [UNFINISHED]
 ```
+
+# Contact
+For **feedback, bug reports**, and/or **feature requests**, join the Discord: https://discord.gg/j2skervRuZ
+
+Website: https://seamen.gay
+Corporate website: https://corporate.seamen.gay
+Direct email: jorn@seamen.gay
+Learn our language! Why would you want to? No idea - https://seamenese.com
+
