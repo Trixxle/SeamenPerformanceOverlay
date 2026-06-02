@@ -701,7 +701,7 @@ QPushButton:pressed {
              <item>
               <widget class="QLabel" name="playTimeTitle">
                <property name="text">
-                <string>Time since last incident:</string>
+                <string>Time spent eating soup:</string>
                </property>
                <property name="textFormat">
                 <enum>Qt::TextFormat::AutoText</enum>
