@@ -46,19 +46,19 @@ panicDashboard::panicDashboard(QWidget *parent) :
         }
     });
     connect(ui->protanopiaColorblindOption, &QRadioButton::toggled, this, [](bool checked){
-    if(checked) {
-        userSettings::instance().setColorblindness(userSettings::colorBlindType::protanopia);
-    }
+        if(checked) {
+            userSettings::instance().setColorblindness(userSettings::colorBlindType::protanopia);
+        }
     });
     connect(ui->deuteranopiaColorblindOption, &QRadioButton::toggled, this, [](bool checked){
-    if(checked) {
-        userSettings::instance().setColorblindness(userSettings::colorBlindType::deuteranopia);
-    }
+        if(checked) {
+            userSettings::instance().setColorblindness(userSettings::colorBlindType::deuteranopia);
+        }
     });
     connect(ui->tritanopiaColorblindOption, &QRadioButton::toggled, this, [](bool checked){
-    if(checked) {
-        userSettings::instance().setColorblindness(userSettings::colorBlindType::tritanopia);
-    }
+        if(checked) {
+            userSettings::instance().setColorblindness(userSettings::colorBlindType::tritanopia);
+        }
     });
 }
 

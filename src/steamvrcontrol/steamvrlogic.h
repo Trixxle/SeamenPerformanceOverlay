@@ -191,6 +191,7 @@ private:
 
     bool m_isMoving = false;
     bool m_isScaling = false;
+    float m_scaleButtonPressX = -1.0f;  // -1 = not yet anchored; captured on first MouseMove after press
     float m_baseAlpha = 1.0f;
     float m_lastAlpha = -1.0f;  // Cached alpha to avoid redundant SetOverlayAlpha calls
     bool m_mainSceneDirty = false;   // Dirty flags: set on scene change, cleared after FBO render

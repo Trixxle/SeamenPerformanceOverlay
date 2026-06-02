@@ -84,6 +84,8 @@ public slots:
     void updateOpacity();
     void updateDistanceFadeValue();
     void updateDistanceFadeState();
+    void updateTrackersShown();
+    void updateUpdateChartsColors();
     void increaseOpacityButtonClicked();
     void decreaseOpacityButtonClicked();
     void hideUi(bool hide);

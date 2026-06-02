@@ -793,7 +793,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		m_batteryCheckCounter = 0;
 		setControllersBatteryLevel();
 		setHeadsetBatteryLevel();
-		setTrackersBattery();
+		if (userSettings::instance().getShowTrackers()) setTrackersBattery(); // Skip querying tracker batteries if the UI element isnt shown
 	}
 
 	// Every ~500ms, check if the attached device has a valid pose and if the preferred
@@ -885,6 +885,12 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 	// Process events for one overlay, dispatching mouse events to the given scene and widget
 	auto processOverlayEvents = [&](vr::VROverlayHandle_t handle, QGraphicsScene* scene, QWidget* widget) {
+
+		float scaleBaseWidth = 0.0f;
+		if (m_isScaling && vr::VROverlay()) {
+			vr::VROverlay()->GetOverlayWidthInMeters(handle, &scaleBaseWidth);
+		}
+
 		while( vr::VROverlay()->PollNextOverlayEvent( handle, &vrEvent, sizeof( vrEvent ) ) )
 		{
 			if (vrEvent.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
@@ -898,23 +904,19 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 					QPointF ptNewMouse( vrEvent.data.mouse.x, vrEvent.data.mouse.y );
 
 					if (m_isScaling && vr::VROverlay()) {
-						// Calculate the horizontal movement delta
-						float deltaX = ptNewMouse.x() - m_tLastMouse.x();
-
-						// Sensitivity modifier (adjust based on your UI resolution and desired drag speed)
-						float sensitivity = 0.0002f;
-						float scaleDelta = deltaX * sensitivity;
-
-						if (std::abs(scaleDelta) > 0.0001f) {
-							float currentWidth = 0.0f;
-							vr::VROverlay()->GetOverlayWidthInMeters(m_ulOverlayHandle, &currentWidth);
-
-							// Apply delta and clamp to reasonable real-world bounds (e.g., 10cm to 10 meters)
-							float newWidth = currentWidth + scaleDelta;
-							newWidth = std::max(0.01f, std::min(newWidth, 10.0f));
-
-							//vr::VROverlay()->SetOverlayWidthInMeters(m_ulOverlayHandle, newWidth);
-							userSettings::instance().setSize(newWidth);
+						if (m_scaleButtonPressX < 0.0f) {
+							m_scaleButtonPressX = ptNewMouse.x();
+							if (scaleBaseWidth <= 0.0f) {
+								vr::VROverlay()->GetOverlayWidthInMeters(handle, &scaleBaseWidth);
+							}
+						} else {
+							float centerPx = widget->width() * 0.5f;
+							float denominator = m_scaleButtonPressX - centerPx;
+							if (std::abs(denominator) > 0.5f) {
+								float newWidth = scaleBaseWidth * (ptNewMouse.x() - centerPx) / denominator;
+								newWidth = std::max(0.01f, std::min(newWidth, 10.0f));
+								userSettings::instance().setSize(newWidth);
+							}
 						}
 					}
 
@@ -1451,10 +1453,12 @@ void SteamVRLogic::switchController() {
 void SteamVRLogic::startScale() {
 	if (m_isScaling) return;
 	m_isScaling = true;
+	m_scaleButtonPressX = -1.0f;  // anchor will be captured on first MouseMove
 }
 
 void SteamVRLogic::stopScale() {
 	m_isScaling = false;
+	m_scaleButtonPressX = -1.0f;
 }
 
 void SteamVRLogic::startMove() {

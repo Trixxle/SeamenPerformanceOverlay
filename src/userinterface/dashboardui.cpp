@@ -53,15 +53,14 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     ui->moveButtonFrame->setSizePolicy(spMMoveFrame);
     ui->scaleFrame->setSizePolicy(spScaleFrame);
 
-    // Hide tracker frame by default
-    ui->trackersFrame->hide();
-
     // Setup an event listener for the frames that hold the move and scale bars
     ui->moveButtonFrame->setAttribute(Qt::WA_Hover, true);
     ui->moveButtonFrame->installEventFilter(this);
 
     ui->scaleFrame->setAttribute(Qt::WA_Hover, true);
     ui->scaleFrame->installEventFilter(this);
+
+    ui->trackersFrame->hide(); // Hide by default
 
     setUpCharts(colorBlindColors::getColors(userSettings::instance().getColorBlindness()));
 
@@ -94,6 +93,10 @@ DashboardUI::~DashboardUI() {
     delete ui;
 }
 
+void DashboardUI::updateTrackersShown() {
+    userSettings::instance().getShowTrackers() ? ui->trackersFrame->show() : ui->trackersFrame->hide();
+}
+
 void DashboardUI::removeTrackedFromUI(uint32_t index) {
     QString iconName = QString("trackerIcon%1").arg(index);
     auto iconLabel = ui->trackersFrame->findChild<QLabel*>(iconName);
@@ -110,10 +113,6 @@ void DashboardUI::removeTrackedFromUI(uint32_t index) {
 }
 
 void DashboardUI::addTrackerToUi(uint32_t index) {
-    if (!ui->trackersFrame->isVisible()) {
-        ui->trackersFrame->show();
-    }
-
     // Check if the widget already exists to prevent duplicate allocations
     QString iconName = QString("trackerIcon%1").arg(index);
     if (ui->trackersFrame->findChild<QLabel*>(iconName)) {
@@ -650,6 +649,26 @@ void DashboardUI::setSystemRam(float systemRam) {
 
 void DashboardUI::setSystemVram(float systemVram) {
     ui->totalVramLabel->setText(tr("/") + QString::number(roundFloat(systemVram, 1)) + tr("GB"));
+}
+
+void DashboardUI::updateUpdateChartsColors() {
+    chartColors colors = colorBlindColors::getColors(userSettings::instance().getColorBlindness());
+    m_pBarSetFrameTimeConsistencyFast->setColor(colors.fast);
+    m_pBarSetFrameTimeConsistencyMedium->setColor(colors.medium);
+    m_pBarSetFrameTimeConsistencySlow->setColor(colors.slow);
+
+    m_pBarSetCpuFrameTimeFast->setColor(colors.fast);
+    m_pBarSetCpuFrameTimeMedium->setColor(colors.medium);
+    m_pBarSetCpuFrameTimeSlow->setColor(colors.slow);
+    m_pBarSetCpuFrameTimeDropped->setColor(colors.dropped);
+
+    m_pBarSetGpuFrameTimeFast->setColor(colors.fast);
+    m_pBarSetGpuFrameTimeMedium->setColor(colors.medium);
+    m_pBarSetGpuFrameTimeSlow->setColor(colors.slow);
+
+    m_pBarSetFrameRateFast->setColor(colors.fast);
+    m_pBarSetFrameRateMedium->setColor(colors.medium);
+    m_pBarSetFrameRateSlow->setColor(colors.slow);
 }
 
 void DashboardUI::setUpCharts(chartColors colors) {

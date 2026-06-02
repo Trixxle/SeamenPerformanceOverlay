@@ -226,11 +226,14 @@ int main(int argc, char *argv[])
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeStateChanged, pPanicDashboard, &panicDashboard::updateDistanceFadeState);
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeValueChanged, pDashboardUI, &DashboardUI::updateDistanceFadeValue);
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeStateChanged, pDashboardUI, &DashboardUI::updateDistanceFadeState);
+    QObject::connect(&userSettings::instance(), &userSettings::showTrackersChanged, pDashboardUI, &DashboardUI::updateTrackersShown);
+    QObject::connect(&userSettings::instance(), &userSettings::colorblindnessChanged, pDashboardUI, &DashboardUI::updateUpdateChartsColors);
 
     pDashboardUI->updateOpacity();
     pDashboardUI->updateOpacityValue();
     pDashboardUI->updateDistanceFadeValue();
     pDashboardUI->updateDistanceFadeState();
+    pDashboardUI->updateTrackersShown();
     pPanicDashboard->updateOpacityValue();
     pPanicDashboard->updateScaleValue();
     pPanicDashboard->updateDistanceFadeValue();
