@@ -192,8 +192,6 @@ int main(int argc, char *argv[])
     QObject::connect(vrLogic, &SteamVRLogic::addTrackerToUi, pDashboardUI, &DashboardUI::addTrackerToUi);
     QObject::connect(vrLogic, &SteamVRLogic::removeTrackerFromUi, pDashboardUI, &DashboardUI::removeTrackedFromUI);
 
-    // Connects for backend to frontend communication (backend to dashboard)
-
     // Connects for front end to backend communication (overlay to backend)
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, vrLogic, &SteamVRLogic::switchController);
     QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, vrLogic, &SteamVRLogic::startMove);
@@ -211,6 +209,7 @@ int main(int argc, char *argv[])
     QObject::connect(pPanicDashboard, &panicDashboard::requestDistanceFadeStartDown, &userSettings::instance(), &userSettings::decreaseDistanceFadeValue);
     QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked, vrLogic, &SteamVRLogic::resetOverlayToDefault);
     QObject::connect(pPanicDashboard, &panicDashboard::distanceCheckboxToggled, &userSettings::instance(), &userSettings::setDistanceFadeState);
+    QObject::connect(pPanicDashboard, &panicDashboard::showTrackersCheckboxToggled, &userSettings::instance(), &userSettings::setShowTrackers);
     QObject::connect(pPanicDashboard, &panicDashboard::requestRightControllerAttach, vrLogic, &SteamVRLogic::attachToRightController);
     QObject::connect(pPanicDashboard, &panicDashboard::requestLeftControllerAttach, vrLogic, &SteamVRLogic::attachToLeftController);
     QObject::connect(pPanicDashboard, &panicDashboard::requestResetPosition, vrLogic, &SteamVRLogic::resetPosition);
@@ -236,6 +235,8 @@ int main(int argc, char *argv[])
     pPanicDashboard->updateScaleValue();
     pPanicDashboard->updateDistanceFadeValue();
     pPanicDashboard->updateDistanceFadeState();
+    pPanicDashboard->updateColorblindness();
+    pPanicDashboard->updateShowTrackerState();
 
     frameThread->start();
     systemResourcesThread->start();

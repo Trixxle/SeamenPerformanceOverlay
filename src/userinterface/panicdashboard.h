@@ -48,6 +48,8 @@ public slots:
     void updateOpacityValue() const;
     void updateScaleValue() const;
     void updateDistanceFadeValue() const;
+    void updateColorblindness() const;
+    void updateShowTrackerState() const;
 
 private:
     Ui::panicDashboard *ui;
@@ -57,6 +59,7 @@ private:
 signals:
     void panicButtonClicked();
     void distanceCheckboxToggled(bool checked);
+    void showTrackersCheckboxToggled(bool checked);
 
     void requestDistanceFadeStartUp();
     void requestDistanceFadeStartDown();

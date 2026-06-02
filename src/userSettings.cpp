@@ -126,28 +126,6 @@ void userSettings::decreaseDistanceFadeValue() {
     if (m_userDistanceFadeValue <= 0.0) return;
     setDistanceFadeValue(qBound(0.0f, m_userDistanceFadeValue - 0.01f, 100.0f));
 }
-/*
-void userSettings::increaseSize(float amount){
-    setSize(m_userSize + amount);
-}
-
-void userSettings::decreaseSize(float amount) {
-    if (m_userSize <= 0.0) return;
-    m_userSize = qBound(0.0, m_userSize - 0.01, 100.0);
-    setDistanceFadeValue(m_userSize - amount);
-}
-
-
-void userSettings::increaseDistanceFadeValue(float amount) {
-    setDistanceFadeValue(m_userDistanceFadeValue + amount);
-}
-
-void userSettings::decreaseDistanceFadeValue(float amount) {
-    if (m_userDistanceFadeValue <= 0.0) return;
-    m_userDistanceFadeValue = qBound(0.0, m_userDistanceFadeValue - 0.01, 100.0);
-    setDistanceFadeValue(m_userDistanceFadeValue - amount);
-}
-*/
 
 // Setters
 void userSettings::setSize(const float newSize) {

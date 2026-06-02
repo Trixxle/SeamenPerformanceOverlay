@@ -368,6 +368,23 @@ void SteamVRLogic::resetPosition() {
 	}
 }
 
+void SteamVRLogic::resetOverlayToDefault() {
+	m_matrixForRole = vr::TrackedControllerRole_LeftHand;
+	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
+		AttachToDevice(m_leftController);
+		userSettings::instance().setSavedRole(vr::TrackedControllerRole_LeftHand);
+	}
+	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
+		AttachToDevice(m_rightController);
+		userSettings::instance().setSavedRole(vr::TrackedControllerRole_RightHand);
+		mirrorMatrix();
+	}
+	else {
+		AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
+		userSettings::instance().setSavedRole(vr::TrackedControllerRole_Invalid);
+	}
+}
+
 void SteamVRLogic::Shutdown() {
 	saveSession();
 	DisconnectFromVRRuntime();

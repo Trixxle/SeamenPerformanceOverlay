@@ -40,14 +40,7 @@ public:
 
     userSettings(const userSettings&) = delete;
     userSettings& operator=(const userSettings&) = delete;
-/*
-    void increaseSize(float amount);
-    void decreaseSize(float amount);
-    void increaseDistanceFadeValue(float amount);
-    void decreaseDistanceFadeValue(float amount);
 
-    */
-    // Overloads without specific values
     void increaseDistanceFadeValue();
     void decreaseDistanceFadeValue();
     void increaseSize();
@@ -64,19 +57,19 @@ public:
     void setMatrix(const vr::HmdMatrix34_t& newMatrix);
 
     // Getters
-    float getSize() const;
-    float getOpacity() const;
-    float getDistanceFadeValue() const;
-    bool getDistanceFadeState() const;
-    bool getShowTrackers() const;
-    vr::ETrackedControllerRole getSavedRole() const;
-    vr::HmdMatrix34_t getMatrix() const;
-    colorBlindType getColorBlindness() const;
+    [[nodiscard]] float getSize() const;
+    [[nodiscard]] float getOpacity() const;
+    [[nodiscard]] float getDistanceFadeValue() const;
+    [[nodiscard]] bool getDistanceFadeState() const;
+    [[nodiscard]] bool getShowTrackers() const;
+    [[nodiscard]] vr::ETrackedControllerRole getSavedRole() const;
+    [[nodiscard]] vr::HmdMatrix34_t getMatrix() const;
+    [[nodiscard]] colorBlindType getColorBlindness() const;
 
 private:
 
     userSettings();
-    ~userSettings() = default;
+    ~userSettings() override = default;
 
     void loadSettings();
     void saveSettings();
@@ -84,7 +77,7 @@ private:
     QSettings m_settings{"Seamen", "PerformanceOverlay"};
 
     float m_userOpacity = 1.0f;
-    float m_userSize = 2.0f;
+    float m_userSize = 0.2f;
     float m_userDistanceFadeValue = 0.4f;
 
     colorBlindType m_userColorblindness = colorBlindType::none;

@@ -29,6 +29,7 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::resetValues);
     connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
     connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &panicDashboard::distanceCheckboxToggled);
+    connect(ui->showTrackersCheckbox, &QCheckBox::toggled, this, &panicDashboard::showTrackersCheckboxToggled);
     connect(ui->PlusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleUp);
     connect(ui->MinusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleDown);
     connect(ui->PlusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityUp);
@@ -39,6 +40,26 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->LeftControllerButton, &QPushButton::clicked, this, &panicDashboard::requestLeftControllerAttach);
     connect(ui->HMDButton, &QPushButton::clicked, this, &panicDashboard::requestHmdAttach);
     connect(ui->resetPositionButton, &QPushButton::clicked, this, &panicDashboard::requestResetPosition);
+    connect(ui->noneColorblindOption, &QRadioButton::toggled, this, [](bool checked){
+        if(checked) {
+            userSettings::instance().setColorblindness(userSettings::colorBlindType::none);
+        }
+    });
+    connect(ui->protanopiaColorblindOption, &QRadioButton::toggled, this, [](bool checked){
+    if(checked) {
+        userSettings::instance().setColorblindness(userSettings::colorBlindType::protanopia);
+    }
+    });
+    connect(ui->deuteranopiaColorblindOption, &QRadioButton::toggled, this, [](bool checked){
+    if(checked) {
+        userSettings::instance().setColorblindness(userSettings::colorBlindType::deuteranopia);
+    }
+    });
+    connect(ui->tritanopiaColorblindOption, &QRadioButton::toggled, this, [](bool checked){
+    if(checked) {
+        userSettings::instance().setColorblindness(userSettings::colorBlindType::tritanopia);
+    }
+    });
 }
 
 void panicDashboard::resetValues() {
@@ -60,7 +81,6 @@ void panicDashboard::resetValues() {
     userSettings::instance().setSavedRole(vr::TrackedControllerRole_LeftHand);
 }
 
-
 void panicDashboard::updateOpacityValue() const {
     int opacityPercent = qRound( userSettings::instance().getOpacity() * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
@@ -71,12 +91,44 @@ void panicDashboard::updateScaleValue() const {
 }
 
 void panicDashboard::updateDistanceFadeValue() const {
-    float distanceInCms = userSettings::instance().getDistanceFadeValue() * 100.0;
+    float distanceInCms = userSettings::instance().getDistanceFadeValue() * 100.0f;
     ui->DistanceFadeVar->setText(QString::number(distanceInCms) + "cm");
 }
 
 void panicDashboard::updateDistanceFadeState() const {
     ui->distanceFadeCheck->setChecked(userSettings::instance().getDistanceFadeState());
+}
+
+void panicDashboard::updateShowTrackerState() const {
+    ui->showTrackersCheckbox->setChecked(userSettings::instance().getShowTrackers());
+}
+
+void panicDashboard::updateColorblindness() const {
+    // Block signals for all relevant radio buttons while updating
+    const QSignalBlocker blockerNone(ui->noneColorblindOption);
+    const QSignalBlocker blockerPro(ui->protanopiaColorblindOption);
+    const QSignalBlocker blockerDeu(ui->deuteranopiaColorblindOption);
+    const QSignalBlocker blockerTri(ui->tritanopiaColorblindOption);
+
+    switch(userSettings::instance().getColorBlindness()) {
+        case userSettings::colorBlindType::none: {
+            ui->noneColorblindOption->setChecked(true);
+        }
+            break;
+        case userSettings::colorBlindType::protanopia: {
+            ui->protanopiaColorblindOption->setChecked(true);
+        }
+            break;
+        case userSettings::colorBlindType::deuteranopia: {
+            ui->deuteranopiaColorblindOption->setChecked(true);
+        }
+            break;
+        case userSettings::colorBlindType::tritanopia: {
+            ui->tritanopiaColorblindOption->setChecked(true);
+        }
+            break;
+        default: {}
+    }
 }
 
 panicDashboard::~panicDashboard() {

@@ -126,8 +126,7 @@ public slots:
     void stopMove();
     void startScale();
     void stopScale();
-    // IMPORTANT: The alpha value changed here is NOT is overlay's main opacity.
-    // The overlay's main opacity is handled by Qt in the dashboard class.
+    void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
     void steamDashboardStateForUi();
     void attachToRightController();
@@ -155,7 +154,9 @@ private:
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
     vr::VRInputValueHandle_t m_leftHandHandle = vr::k_ulInvalidInputValueHandle;
     vr::VRInputValueHandle_t m_rightHandHandle = vr::k_ulInvalidInputValueHandle;
+
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
+
     vr::ETrackedControllerRole m_matrixForRole = vr::TrackedControllerRole_LeftHand;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
@@ -190,7 +191,6 @@ private:
 
     bool m_isMoving = false;
     bool m_isScaling = false;
-
     float m_baseAlpha = 1.0f;
     float m_lastAlpha = -1.0f;  // Cached alpha to avoid redundant SetOverlayAlpha calls
     bool m_mainSceneDirty = false;   // Dirty flags: set on scene change, cleared after FBO render
