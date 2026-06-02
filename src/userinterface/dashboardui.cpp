@@ -140,7 +140,7 @@ void DashboardUI::addTrackerToUi(uint32_t index) {
     batteryLabel->setStyleSheet("font-size: 15px;");
 
     // Retrieve the horizontal layout from the frame
-    QHBoxLayout* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout());
+    auto* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout());
     if (hLayout) {
         hLayout->addWidget(iconLabel.release());
         hLayout->addWidget(batteryLabel.release());

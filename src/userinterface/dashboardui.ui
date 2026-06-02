@@ -136,6 +136,11 @@ QPushButton:pressed {
     border-bottom-right-radius: 22px;
 }
 
+/*--- Playtime Layout---*/
+#playTimeTitle, #playtimeClock, #clock {
+	padding-bottom: 2px;
+}
+
 /*--- Scale Bar ---*/
 #scaleButton{
 	font-size: 10px;
@@ -698,6 +703,15 @@ QPushButton:pressed {
                <property name="text">
                 <string>Time since last incident:</string>
                </property>
+               <property name="textFormat">
+                <enum>Qt::TextFormat::AutoText</enum>
+               </property>
+               <property name="alignment">
+                <set>Qt::AlignmentFlag::AlignLeading|Qt::AlignmentFlag::AlignLeft|Qt::AlignmentFlag::AlignVCenter</set>
+               </property>
+               <property name="margin">
+                <number>0</number>
+               </property>
               </widget>
              </item>
              <item>
@@ -710,8 +724,8 @@ QPushButton:pressed {
                </property>
                <property name="sizeHint" stdset="0">
                 <size>
-                 <width>13</width>
-                 <height>17</height>
+                 <width>5</width>
+                 <height>20</height>
                 </size>
                </property>
               </spacer>
@@ -1057,6 +1071,9 @@ QPushButton:pressed {
          </item>
          <item row="1" column="0" alignment="Qt::AlignmentFlag::AlignHCenter">
           <widget class="QFrame" name="trackersFrame">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
            <property name="layoutDirection">
             <enum>Qt::LayoutDirection::LeftToRight</enum>
            </property>
