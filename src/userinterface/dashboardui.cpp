@@ -33,10 +33,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     m_pAxisXFrameRate(new QBarCategoryAxis(this)),
 
     m_targetFrameRate(targetFrameRate),
-    m_headsetRefreshRate(headsetRefreshRate),
-
-    m_opacity(this->windowOpacity()),
-    m_settings("Seamen", "PerformanceOverlay")
+    m_headsetRefreshRate(headsetRefreshRate)
 {
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
@@ -66,7 +63,7 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     ui->scaleFrame->setAttribute(Qt::WA_Hover, true);
     ui->scaleFrame->installEventFilter(this);
 
-    setUpCharts(colorBlindColors::getColors(m_userColorBlindType));
+    setUpCharts(colorBlindColors::getColors(userSettings::instance().getColorBlindness()));
 
     connect(ui->exitButton, &QPushButton::clicked, this, &DashboardUI::onExitButtonClicked);
     connect(ui->increaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::increaseOpacityButtonClicked);
@@ -81,9 +78,8 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
 
-    restoreOpacity();
-    restoreDistanceFadeState();
-    restoreDistanceFadeValue();
+    updateDistanceFadeState();
+    updateDistanceFadeValue();
 
     m_clocksTimer = new QTimer(this);
     m_clocksTimer->setTimerType(Qt::VeryCoarseTimer);
@@ -244,32 +240,18 @@ void DashboardUI::updateClocks() {
     ui->playtimeClock->setText(playTimeString);
 }
 
-void DashboardUI::restoreDistanceFadeValue() {
-    if (!m_settings.value("DistanceFadeStart").isNull()) {
-        setDistanceFadeValue(m_settings.value("DistanceFadeStart").toFloat());
-    }
-    else setDistanceFadeValue(0.4);
-}
-
-void DashboardUI::restoreDistanceFadeState() {
-    if (!m_settings.value("DistanceFadeOn").isNull()) {
-        setDistanceFadeState(m_settings.value("DistanceFadeOn").toBool());
-    }
-    else setDistanceFadeState(false);
-}
-
-void DashboardUI::setOpacityValue(float newOpacity) {
-    int opacityPercent = qRound(newOpacity * 100.0f);
+void DashboardUI::updateOpacityValue() {
+    int opacityPercent = qRound(userSettings::instance().getOpacity() * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
 }
 
-void DashboardUI::setDistanceFadeValue(float newDistanceFadeValue) {
-    float distanceInCms = newDistanceFadeValue * 100.0;
+void DashboardUI::updateDistanceFadeValue() {
+    float distanceInCms = userSettings::instance().getDistanceFadeValue() * 100.0;
     ui->DistanceFadeVar->setText(QString::number(distanceInCms) + "cm");
 }
 
-void DashboardUI::setDistanceFadeState(bool state) {
-    ui->distanceFadeCheck->setChecked(state);
+void DashboardUI::updateDistanceFadeState() {
+    ui->distanceFadeCheck->setChecked(userSettings::instance().getDistanceFadeState());
 }
 
 void DashboardUI::hideUi(bool hide) {
@@ -344,57 +326,33 @@ void DashboardUI::animateButtonZoom(bool zoomIn, QPushButton *button, int growWi
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 }
 
-void DashboardUI::resetOpacityToDefault() {
-    m_opacity = 1.0;
-    updateOpacity();
-}
-
-void DashboardUI::saveOpacity() {
-    m_settings.setValue("Opacity", m_opacity);
-}
-
-void DashboardUI::restoreOpacity() {
-    if (!m_settings.value("Opacity", m_opacity).isNull()) {
-        m_opacity = m_settings.value("Opacity", m_opacity).toFloat();
-        setOpacityValue(m_settings.value("Opacity").toFloat());
-        updateOpacity();
-    }
-    else setOpacityValue(1);
-    updateOpacity();
-}
-
 void DashboardUI::updateOpacity() {
-    this->setWindowOpacity(m_opacity);
-    // Workaround to properly save opacity.
-    setOpacityValue(m_opacity);
-    saveOpacity();
-    emit opacityChanged(m_opacity);
+    const float opacity = userSettings::instance().getOpacity();
+    this->setWindowOpacity(opacity);
+    updateOpacityValue();
+    emit opacityChanged(opacity);
 }
 
 void DashboardUI::increaseOpacityButtonClicked() {
-    if (m_opacity >= 1.0f) return;
-
-    m_opacity = qBound(0.0f, m_opacity + 0.05f, 1.0f);
+    float newOpacity = qBound(0.0f, userSettings::instance().getOpacity() + 0.05f, 1.0f);
 
     // Snap to exactly 1.0 to prevent floating-point drift
-    if (m_opacity > 0.99f) {
-        m_opacity = 1.0f;
+    if (newOpacity > 0.99f) {
+        newOpacity = 1.0f;
     }
 
-    updateOpacity();
+    userSettings::instance().setOpacity(newOpacity);
 }
 
 void DashboardUI::decreaseOpacityButtonClicked() {
-    if (m_opacity <= 0.0f) return;
-
-    m_opacity = qBound(0.0f, m_opacity - 0.05f, 1.0f);
+    float newOpacity = qBound(0.0f, userSettings::instance().getOpacity() - 0.05f, 1.0f);
 
     // Snap to zero to prevent floating-point drift
-    if (m_opacity < 0.01f) {
-        m_opacity = 0.0f;
+    if (newOpacity < 0.01f) {
+        newOpacity = 0.0f;
     }
 
-    updateOpacity();
+    userSettings::instance().setOpacity(newOpacity);
 }
 
 void DashboardUI::onExitButtonClicked() {

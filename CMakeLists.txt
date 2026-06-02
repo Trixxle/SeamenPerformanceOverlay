@@ -35,6 +35,8 @@ add_executable(SeamenPerformanceOverlay
         src/systemResourcesHandler.h
         src/systemResourcesHandler.h
         resources-nonbin/customIcons.qrc
+        src/userSettings.cpp
+        src/userSettings.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed

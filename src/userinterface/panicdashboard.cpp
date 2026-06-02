@@ -17,19 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "panicdashboard.h"
 #include "ui_panicDashboard.h"
-#include "steamvrcontrol/steamvrlogic.h"
-
 
 panicDashboard::panicDashboard(QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::panicDashboard),
-    m_settings("Seamen", "PerformanceOverlay")
+    ui(new Ui::panicDashboard)
 {
     ui->setupUi(this);
     this->setWindowFlags(Qt::FramelessWindowHint);
     this->setAttribute(Qt::WA_TranslucentBackground);
 
-    connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::panicButtonClicked);
+    connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::resetValues);
     connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
     connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &panicDashboard::distanceCheckboxToggled);
     connect(ui->PlusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleUp);
@@ -42,61 +39,44 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->LeftControllerButton, &QPushButton::clicked, this, &panicDashboard::requestLeftControllerAttach);
     connect(ui->HMDButton, &QPushButton::clicked, this, &panicDashboard::requestHmdAttach);
     connect(ui->resetPositionButton, &QPushButton::clicked, this, &panicDashboard::requestResetPosition);
-
-    restoreDistanceFadeState();
-    restoreScale();
-    restoreOpacity();
-    restoreDistanceFadeValue();
 }
 
-void panicDashboard::restoreScale() {
-    if (!m_settings.value("Size").isNull()) {
-        setScaleValue(m_settings.value("Size").toFloat());
-    }
-    else setScaleValue(0.2);
+void panicDashboard::resetValues() {
+    userSettings::instance().setMatrix({
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 0.866f, 0.5f, 0.1f,
+    0.0f, -0.5f, 0.866f, -0.08f
+    });
+    userSettings::instance().setOpacity(1.0f);
+    userSettings::instance().setSize(0.2f);
+    userSettings::instance().setDistanceFadeValue(0.4f);
+
+    userSettings::instance().setColorblindness(userSettings::colorBlindType::none);
+
+    userSettings::instance().setDistanceFadeState(false);
+
+    userSettings::instance().setShowTrackers(true);
+
+    userSettings::instance().setSavedRole(vr::TrackedControllerRole_LeftHand);
 }
 
-void panicDashboard::restoreOpacity() {
-    if (!m_settings.value("Opacity").isNull()) {
-        setOpacityValue(m_settings.value("Opacity").toFloat());
-    }
-    else setOpacityValue(1);
-}
 
-void panicDashboard::restoreDistanceFadeValue() {
-    if (!m_settings.value("DistanceFadeStart").isNull()) {
-        setDistanceFadeValue(m_settings.value("DistanceFadeStart").toFloat());
-    }
-    else setDistanceFadeValue(0.4);
-}
-
-void panicDashboard::restoreDistanceFadeState() {
-    if (!m_settings.value("DistanceFadeOn").isNull()) {
-        ui->distanceFadeCheck->setChecked(m_settings.value("DistanceFadeOn").toBool());
-    }
-    else setDistanceFadeState(false);
-}
-
-void panicDashboard::setOpacityValue(float newOpacity) {
-    int opacityPercent = qRound( newOpacity * 100.0f);
+void panicDashboard::updateOpacityValue() const {
+    int opacityPercent = qRound( userSettings::instance().getOpacity() * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
 }
 
-void panicDashboard::setScaleValue(float newScale) {
-    ui->ScaleVar->setText(QString::number(newScale, 'f', 2));
+void panicDashboard::updateScaleValue() const {
+    ui->ScaleVar->setText(QString::number(userSettings::instance().getSize(), 'f', 2));
 }
 
-void panicDashboard::setDistanceFadeValue(float newDistanceFadeValue) {
-    float distanceInCms = newDistanceFadeValue * 100.0;
+void panicDashboard::updateDistanceFadeValue() const {
+    float distanceInCms = userSettings::instance().getDistanceFadeValue() * 100.0;
     ui->DistanceFadeVar->setText(QString::number(distanceInCms) + "cm");
 }
 
-void panicDashboard::saveDistanceFadeState(bool state) {
-    m_settings.setValue("DistanceFadeOn", state);
-}
-
-void panicDashboard::setDistanceFadeState(bool checked) {
-    ui->distanceFadeCheck->setChecked(checked);
+void panicDashboard::updateDistanceFadeState() const {
+    ui->distanceFadeCheck->setChecked(userSettings::instance().getDistanceFadeState());
 }
 
 panicDashboard::~panicDashboard() {

@@ -22,6 +22,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QWidget>
 #include <QApplication>
 #include <QPushButton>
+#include <userSettings.h>
+#include "steamvrcontrol/steamvrlogic.h"
+#include "dashboardui.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -40,21 +43,16 @@ public:
     ~panicDashboard() override;
 
 public slots:
-    void setDistanceFadeState(bool checked);
-    void restoreDistanceFadeState();
-    void saveDistanceFadeState(bool state);
+    void updateDistanceFadeState() const;
 
-    void setOpacityValue(float newOpacity);
-    void setScaleValue(float newScale);
-    void setDistanceFadeValue(float newDistanceFadeValue);
-
-    void restoreScale();
-    void restoreDistanceFadeValue();
-    void restoreOpacity();
+    void updateOpacityValue() const;
+    void updateScaleValue() const;
+    void updateDistanceFadeValue() const;
 
 private:
     Ui::panicDashboard *ui;
-    QSettings m_settings;
+
+    void resetValues();
 
 signals:
     void panicButtonClicked();

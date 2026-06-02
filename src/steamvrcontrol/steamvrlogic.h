@@ -80,7 +80,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QMap>
 #include <iostream>
 #include <qdialogbuttonbox.h>
-#include <memory>
+#include "userSettings.h"
 #include "openvr.h"
 
 class SteamVRLogic: public QObject {
@@ -126,13 +126,8 @@ public slots:
     void stopMove();
     void startScale();
     void stopScale();
-    void increaseOverlayScale();
-    void decreaseOverlayScale();
-    void increaseFadeDistanceStart();
-    void decreaseFadeDistanceStart();
     // IMPORTANT: The alpha value changed here is NOT is overlay's main opacity.
     // The overlay's main opacity is handled by Qt in the dashboard class.
-    void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
     void steamDashboardStateForUi();
     void attachToRightController();
@@ -144,6 +139,7 @@ public slots:
     void setTrackersBattery();
     void searchForTrackers();
     void resetPosition();
+    void updateOverlayWidthInMeters();
 
 private:
     struct AppCacheData {
@@ -159,10 +155,7 @@ private:
     vr::TrackedDeviceIndex_t m_rightController = vr::k_unTrackedDeviceIndexInvalid;
     vr::VRInputValueHandle_t m_leftHandHandle = vr::k_ulInvalidInputValueHandle;
     vr::VRInputValueHandle_t m_rightHandHandle = vr::k_ulInvalidInputValueHandle;
-
     vr::TrackedDeviceIndex_t m_deviceOverlayIsAttachedTo = vr::k_unTrackedDeviceIndexInvalid;
-    vr::ETrackedControllerRole m_savedRole = vr::TrackedControllerRole_LeftHand;
-
     vr::ETrackedControllerRole m_matrixForRole = vr::TrackedControllerRole_LeftHand;
     vr::EVRInitError m_eLastHmdError;
     vr::EVRInitError m_eCompositorError;
@@ -182,7 +175,6 @@ private:
     vr::ETrackedControllerRole getRoleForController(vr::TrackedDeviceIndex_t device);
     vr::HmdMatrix34_t calculateRelativeTransform(vr::TrackedDeviceIndex_t device);
     void mirrorMatrix();
-    void updateOverlayWidthInMeters();
     void saveSize();
     void savePosition();
     void saveController();
@@ -198,18 +190,15 @@ private:
 
     bool m_isMoving = false;
     bool m_isScaling = false;
-    float m_distanceFadeStart = 0.4f;
-    float m_overlayWidthInMeters;
+
     float m_baseAlpha = 1.0f;
     float m_lastAlpha = -1.0f;  // Cached alpha to avoid redundant SetOverlayAlpha calls
     bool m_mainSceneDirty = false;   // Dirty flags: set on scene change, cleared after FBO render
     bool m_panicSceneDirty = false;
-    bool m_distanceFadeOn = false;
 
     QRect m_mainSceneDirtyRect;
     QRect m_panicSceneDirtyRect;
 
-    vr::HmdMatrix34_t m_overlayPositionMatrix;
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
     // The widget created with Qt
@@ -238,7 +227,6 @@ private:
 
     QPointF m_tLastMouse;
     Qt::MouseButtons m_lastMouseButtons;
-    QSettings m_settings;
 
     int m_bindToControllerAttempts = 0;
     int m_proximityCheckCounter = 0;
@@ -246,13 +234,6 @@ private:
     int m_batteryCheckCounter = 0;
 
 signals:
-    void saveOpacity();
-    void saveDistanceFade(bool enabled);
-    void restoreOpacity();
-    void restoreDistanceFade(bool enabled);
-    void overlayScaleChanged(float newScale);
-    void distanceFadeValueChanged(float newValue);
-    void distanceFadeCheckChanged(bool enabled);
     void hideUi(bool hide);
     void appLaunched(const QString& appName);
     void appQuit(const QString& appName);

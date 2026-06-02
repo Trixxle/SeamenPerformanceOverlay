@@ -40,6 +40,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <cmath>
 #include "frameHandler.h"
 #include "systemResourcesHandler.h"
+#include "userSettings.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -79,14 +80,10 @@ public slots:
     void updateLabels(const FrameHandler::frameStats& information);
     void updateSystemResources(const SystemResourcesHandler::systemResources& systemResources);
     void updateSystemResourceUsage(const SystemResourcesHandler::systemResourceUsage& systemResourceUsage);
-    void saveOpacity();
-    void restoreOpacity();
-    void restoreDistanceFadeValue();
-    void restoreDistanceFadeState();
-    void setOpacityValue(float newValue);
-    void setDistanceFadeValue(float newValue);
-    void setDistanceFadeState(bool state);
-    void resetOpacityToDefault();
+    void updateOpacityValue();
+    void updateOpacity();
+    void updateDistanceFadeValue();
+    void updateDistanceFadeState();
     void increaseOpacityButtonClicked();
     void decreaseOpacityButtonClicked();
     void hideUi(bool hide);
@@ -115,35 +112,25 @@ private:
         QColor dropped;
     };
 
-    enum class colorBlindType {
-        none = 0,
-        protanopia = 1,
-        deuteranopia = 2,
-        tritanopia = 3
-    };
-
     struct colorBlindColors {
-        static chartColors getColors(colorBlindType type) {
+        static chartColors getColors(userSettings::colorBlindType type) {
             switch (type) {
-                case colorBlindType::protanopia:
+                case userSettings::colorBlindType::protanopia:
                     return {QColor(16,146,191), QColor(255,165,0), QColor(186, 0,0), QColor(34, 13, 46)};
-                case colorBlindType::deuteranopia:
+                case userSettings::colorBlindType::deuteranopia:
                     return {QColor(16,146,191), QColor(255,165,0), QColor(108, 0,0), QColor(3, 0, 46)};
-                case colorBlindType::tritanopia:
+                case userSettings::colorBlindType::tritanopia:
                     return {QColor(16,146,191), QColor(255,223,0), QColor(255, 0,0), QColor(11, 0, 78)};
-                case colorBlindType::none:
+                case userSettings::colorBlindType::none:
                 default:
                     return {QColor(16,146,191), QColor(255,165,0), QColor(255, 0,0), QColor(59, 0, 59)};
             }
         }
     };
 
-    colorBlindType m_userColorBlindType = colorBlindType::protanopia;
-
     void setUpCharts(chartColors colors);
     void paintEvent(QPaintEvent *event) override;
     float roundFloat(float number, int decimalCases);
-    void updateOpacity();
     void animateButtonZoom(bool zoomIn, QPushButton *button, int growWidth, int growHeight);
 
     Ui::DashboardUI *ui;
@@ -159,9 +146,6 @@ private:
 
     float m_headsetRefreshRate;
     float m_targetFrameRate;
-
-    float m_opacity;
-    QSettings m_settings;
 
     QChart *m_pChartFrameTimeConsistency;
     QBarSet *m_pBarSetFrameTimeConsistencyFast;
