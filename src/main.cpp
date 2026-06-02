@@ -74,6 +74,53 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
 
+    QSharedMemory shared("62d60669-bb94-4a94-88bb-b964890a7e04");
+    if( !shared.create( 512, QSharedMemory::ReadWrite) )
+    {
+        QString errorMessage = "Another instance of Seamen Performance Overlay is already running.";
+        QString errorTitle = "Seamen Performance Overlay";
+        QMessageBox msgBox;
+        msgBox.setWindowTitle(errorTitle);
+        msgBox.setText("<b>Oh no! :( An oopsie was encountered!</b>");
+        msgBox.setInformativeText(errorMessage);
+        msgBox.setIcon(QMessageBox::Critical);
+
+        msgBox.setStyleSheet(
+            "QMessageBox { "
+            "    background-color: #232424; "
+            "    qproperty-alignment: AlignCenter; "
+            "    color: #ffffff; "
+            "} "
+            "QLabel { "
+            "    color: #ffffff; "
+            "} "
+            "QPushButton { "
+            "    qproperty-alignment: AlignCenter; "
+            "    background-color: transparent; "
+            "    color: white; "
+            "    border-radius: 10px; "
+            "    padding: 6px 12px; "
+            "    min-width: 80px; "
+            "    border: 2px solid rgb(16, 146, 191);"
+            "} "
+            "QPushButton:hover { "
+            "    background-color: #262626; "
+            "} "
+            "QPushButton:pressed { "
+            "   background-color: #1EAEED; "
+            "   border-color: #1EAEED; "
+            "   color: black; "
+            "} "
+        );
+
+        msgBox.setWindowFlags(msgBox.windowFlags() | Qt::WindowStaysOnTopHint);
+        msgBox.show();
+        msgBox.raise();
+        msgBox.activateWindow();
+        msgBox.exec();
+        return -1;
+    }
+
     qRegisterMetaType<FrameHandler::frameStats>("frameStats");
     qRegisterMetaType<FrameHandler::FrameStatsList>("FrameStatsList");
 
@@ -90,7 +137,7 @@ int main(int argc, char *argv[])
 
         switch (result) {
             case SteamVRLogic::initializationError::eNone:
-                // This is caught by the outer if-statement but kept for completeness so my dumb IDE doesn't complain
+                // This is caught by the outer if statement but kept for completeness so my dumb IDE doesn't complain
                 break;
             case SteamVRLogic::initializationError::eSteamVrNotInstalled:
                 errorMessage = "SteamVR is not installed on this system. Please install SteamVR and try again.";
@@ -196,41 +243,31 @@ int main(int argc, char *argv[])
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, vrLogic, &SteamVRLogic::switchController);
     QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, vrLogic, &SteamVRLogic::startMove);
     QObject::connect(pDashboardUI, &DashboardUI::requestScaleBegin, vrLogic, &SteamVRLogic::startScale);
-    QObject::connect(pDashboardUI, &DashboardUI::requestDistanceFadeStartUp, &userSettings::instance(), &userSettings::increaseDistanceFadeValue);
-    QObject::connect(pDashboardUI, &DashboardUI::requestDistanceFadeStartDown, &userSettings::instance(), &userSettings::decreaseDistanceFadeValue);
-    QObject::connect(pDashboardUI, &DashboardUI::distanceCheckboxToggled, &userSettings::instance(), &userSettings::setDistanceFadeState);
 
     // Connects for front end to backend communication (dashboard to backend)
-    QObject::connect(pPanicDashboard, &panicDashboard::requestScaleUp, &userSettings::instance(), &userSettings::increaseSize);
-    QObject::connect(pPanicDashboard, &panicDashboard::requestScaleDown, &userSettings::instance(), &userSettings::decreaseSize);
-    QObject::connect(pPanicDashboard, &panicDashboard::requestOpacityUp, pDashboardUI, &DashboardUI::increaseOpacityButtonClicked);
-    QObject::connect(pPanicDashboard, &panicDashboard::requestOpacityDown, pDashboardUI, &DashboardUI::decreaseOpacityButtonClicked);
-    QObject::connect(pPanicDashboard, &panicDashboard::requestDistanceFadeStartUp, &userSettings::instance(), &userSettings::increaseDistanceFadeValue);
-    QObject::connect(pPanicDashboard, &panicDashboard::requestDistanceFadeStartDown, &userSettings::instance(), &userSettings::decreaseDistanceFadeValue);
-    QObject::connect(pPanicDashboard, &panicDashboard::panicButtonClicked, vrLogic, &SteamVRLogic::resetOverlayToDefault);
-    QObject::connect(pPanicDashboard, &panicDashboard::distanceCheckboxToggled, &userSettings::instance(), &userSettings::setDistanceFadeState);
-    QObject::connect(pPanicDashboard, &panicDashboard::showTrackersCheckboxToggled, &userSettings::instance(), &userSettings::setShowTrackers);
     QObject::connect(pPanicDashboard, &panicDashboard::requestRightControllerAttach, vrLogic, &SteamVRLogic::attachToRightController);
     QObject::connect(pPanicDashboard, &panicDashboard::requestLeftControllerAttach, vrLogic, &SteamVRLogic::attachToLeftController);
     QObject::connect(pPanicDashboard, &panicDashboard::requestResetPosition, vrLogic, &SteamVRLogic::resetPosition);
 
-    // Connects for the overlay to dashboard communication and vice versa
-    QObject::connect(&userSettings::instance(), &userSettings::opacityChanged, pDashboardUI, &DashboardUI::updateOpacity);
-    QObject::connect(&userSettings::instance(), &userSettings::opacityChanged, pDashboardUI, &DashboardUI::updateOpacityValue);
+    // Connects for user settings to dashboard
     QObject::connect(&userSettings::instance(), &userSettings::opacityChanged, pPanicDashboard, &panicDashboard::updateOpacityValue);
-
-    // Connects user settings to rest of the code
-    QObject::connect(&userSettings::instance(), &userSettings::sizeChanged, vrLogic, &SteamVRLogic::updateOverlayWidthInMeters);
     QObject::connect(&userSettings::instance(), &userSettings::sizeChanged, pPanicDashboard, &panicDashboard::updateScaleValue);
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeValueChanged, pPanicDashboard, &panicDashboard::updateDistanceFadeValue);
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeStateChanged, pPanicDashboard, &panicDashboard::updateDistanceFadeState);
+    QObject::connect(&userSettings::instance(), &userSettings::colorblindnessChanged, pPanicDashboard, &panicDashboard::updateColorblindness);
+    QObject::connect(&userSettings::instance(), &userSettings::showTrackersChanged, pPanicDashboard, &panicDashboard::updateShowTrackerState);
+
+    // Connect for user settings to overlay
+    QObject::connect(&userSettings::instance(), &userSettings::opacityChanged, pDashboardUI, &DashboardUI::updateOpacity);
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeValueChanged, pDashboardUI, &DashboardUI::updateDistanceFadeValue);
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeStateChanged, pDashboardUI, &DashboardUI::updateDistanceFadeState);
     QObject::connect(&userSettings::instance(), &userSettings::showTrackersChanged, pDashboardUI, &DashboardUI::updateTrackersShown);
     QObject::connect(&userSettings::instance(), &userSettings::colorblindnessChanged, pDashboardUI, &DashboardUI::updateUpdateChartsColors);
 
+    // Connects user settings to rest of the code
+    QObject::connect(&userSettings::instance(), &userSettings::sizeChanged, vrLogic, &SteamVRLogic::updateOverlayWidthInMeters);
+
     pDashboardUI->updateOpacity();
-    pDashboardUI->updateOpacityValue();
     pDashboardUI->updateDistanceFadeValue();
     pDashboardUI->updateDistanceFadeState();
     pDashboardUI->updateTrackersShown();

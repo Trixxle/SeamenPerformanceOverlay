@@ -45,6 +45,8 @@ public:
     void decreaseDistanceFadeValue();
     void increaseSize();
     void decreaseSize();
+    void increaseOpacity();
+    void decreaseOpacity();
 
     // Setters
     void setSize(float newSize);

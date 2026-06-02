@@ -62,19 +62,22 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
 
     ui->trackersFrame->hide(); // Hide by default
 
+    // hide charging icons by default
+    ui->chargingLeftControllerIcon->hide();
+    ui->chargingRightControllerIcon->hide();
+    ui->chargingHeadsetIcon->hide();
+
     setUpCharts(colorBlindColors::getColors(userSettings::instance().getColorBlindness()));
 
-    connect(ui->exitButton, &QPushButton::clicked, this, &DashboardUI::onExitButtonClicked);
-    connect(ui->increaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::increaseOpacityButtonClicked);
-    connect(ui->decreaseOpacityButton, &QPushButton::clicked, this, &DashboardUI::decreaseOpacityButtonClicked);
+    connect(ui->increaseOpacityButton, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseOpacity);
+    connect(ui->decreaseOpacityButton, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseOpacity);
     connect(ui->switchControllerButton, &QPushButton::clicked, this, &DashboardUI::requestControllerSwitch);
     connect(ui->moveButton, &QPushButton::pressed, this, &DashboardUI::requestMoveBegin);
     connect(ui->scaleButton, &QPushButton::pressed, this, &DashboardUI::requestScaleBegin);
-    connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &DashboardUI::distanceCheckboxToggled);
-    connect(ui->plusFadeDistance, &QPushButton::clicked, this, &DashboardUI::requestDistanceFadeStartUp);
-    connect(ui->minusFadeDistance, &QPushButton::clicked, this, &DashboardUI::requestDistanceFadeStartDown);
+    connect(ui->distanceFadeCheck, &QCheckBox::toggled, &userSettings::instance(), &userSettings::setDistanceFadeState);
+    connect(ui->plusFadeDistance, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseDistanceFadeValue);
+    connect(ui->minusFadeDistance, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseDistanceFadeValue);
 
-    //ui->mainGridLayout->setSizeConstraint(QLayout::SetMinimumSize); // Forces the existing layout to stretch to the whole window size
     ui->mainGridLayout->setAlignment(Qt::AlignCenter);
 
     updateDistanceFadeState();
@@ -95,17 +98,20 @@ DashboardUI::~DashboardUI() {
 
 void DashboardUI::updateTrackersShown() {
     userSettings::instance().getShowTrackers() ? ui->trackersFrame->show() : ui->trackersFrame->hide();
+    // If the user enabled the show trackers options but has no trackers we must check if its empty ao we can hide it
+    // to stop it from extended the overlay UI by a little bit
+    if (ui->trackersFrame->layout() != nullptr && ui->trackersFrame->layout()->count() == 0) {
+        ui->trackersFrame->hide();
+    }
 }
 
 void DashboardUI::removeTrackedFromUI(uint32_t index) {
     QString iconName = QString("trackerIcon%1").arg(index);
-    auto iconLabel = ui->trackersFrame->findChild<QLabel*>(iconName);
-    if (iconLabel) { // If the icon exists, the battery label exists as they are created in pairs
+    if (auto iconLabel = ui->trackersFrame->findChild<QLabel*>(iconName)) { // If the icon exists, the battery label exists as they are created in pairs
         QString labelName = QString("trackerBatteryLabel%1").arg(index);
         auto batteryLabel = ui->trackersFrame->findChild<QLabel*>(labelName);
 
-        QHBoxLayout* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout());
-        if (hLayout) {
+        if (auto* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout())) {
             hLayout->removeWidget(iconLabel);
             hLayout->removeWidget(batteryLabel);
         }
@@ -113,6 +119,7 @@ void DashboardUI::removeTrackedFromUI(uint32_t index) {
 }
 
 void DashboardUI::addTrackerToUi(uint32_t index) {
+    if (!ui->trackersFrame->isVisible()) ui->trackersFrame->show();
     // Check if the widget already exists to prevent duplicate allocations
     QString iconName = QString("trackerIcon%1").arg(index);
     if (ui->trackersFrame->findChild<QLabel*>(iconName)) {
@@ -140,7 +147,7 @@ void DashboardUI::addTrackerToUi(uint32_t index) {
     }
 }
 
-void DashboardUI::setRightControllerBatteryLevel(float level) {
+void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {
     // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
     if (level == 2.0) {
         ui->rightControllerBatteryLabel->hide();
@@ -153,14 +160,11 @@ void DashboardUI::setRightControllerBatteryLevel(float level) {
         }
         int batteryLevel = qRound(level * 100.0f);
         ui->rightControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
-        if (batteryLevel < 21) ui->rightControllerBatteryLabel->setStyleSheet("#rightControllerBatteryLabel "
-                                                                              "{ "
-                                                                              "color: rgb(255, 125, 125); "
-                                                                              "}");
-    }
+        charging ?  ui->chargingRightControllerIcon->show() :  ui->chargingRightControllerIcon->hide();
+        if (batteryLevel < 21) ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");    }
 }
 
-void DashboardUI::setLeftControllerBatteryLevel(float level) {
+void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
     // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
     if (level == 2.0) {
         ui->leftControllerBatteryLabel->hide();
@@ -173,14 +177,12 @@ void DashboardUI::setLeftControllerBatteryLevel(float level) {
         }
         int batteryLevel = qRound(level * 100.0f);
         ui->leftControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
-        if (batteryLevel < 21) ui->leftControllerBatteryLabel->setStyleSheet("#leftControllerBatteryLabel "
-                                                                              "{ "
-                                                                              "color: rgb(255, 125, 125); "
-                                                                              "}");
+        charging ?  ui->chargingLeftControllerIcon->show() :  ui->chargingLeftControllerIcon->hide();
+        if (batteryLevel < 21 && !charging) ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
     }
 }
 
-void DashboardUI::setHeadseyBatteryLevel(float level) {
+void DashboardUI::setHeadseyBatteryLevel(float level, bool charging) {
     // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
     if (level == 2.0) {
         ui->headsetBatteryLevel->hide();
@@ -193,14 +195,12 @@ void DashboardUI::setHeadseyBatteryLevel(float level) {
         }
         int batteryLevel = qRound(level * 100.0f);
         ui->headsetBatteryLevel->setText(QString::number(batteryLevel) + "%");
-        if (batteryLevel < 21) ui->headsetBatteryLevel->setStyleSheet("#headsetBatteryLevel "
-                                                                              "{ "
-                                                                              "color: rgb(255, 125, 125); "
-                                                                              "}");
+        charging ?  ui->chargingHeadsetIcon->show() :  ui->chargingHeadsetIcon->hide();
+        if (batteryLevel < 21 && !charging) ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
     }
 }
 
-void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index) {
+void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index, bool charging) {
     QString batteryLevelName = QString("trackerBatteryLabel%1").arg(index);
     auto uiElement = ui->trackersFrame->findChild<QLabel*>(batteryLevelName);
     if (uiElement) {
@@ -211,8 +211,8 @@ void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index) {
             return;
         }
         uiElement->setText(QString::number(batteryLevel) + "%");
-        if (batteryLevel < 21) ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
-    }
+        charging ?  uiElement->setStyleSheet("color: rgb(125, 255, 125);") :  uiElement->setStyleSheet("color: rgb(255, 255, 255);");
+        if (batteryLevel < 21 && !charging) uiElement->setStyleSheet("color: rgb(255, 125, 125);");    }
 }
 
 void DashboardUI::setAppLaunch(const QString &appName) {
@@ -329,33 +329,6 @@ void DashboardUI::updateOpacity() {
     const float opacity = userSettings::instance().getOpacity();
     this->setWindowOpacity(opacity);
     updateOpacityValue();
-    emit opacityChanged(opacity);
-}
-
-void DashboardUI::increaseOpacityButtonClicked() {
-    float newOpacity = qBound(0.0f, userSettings::instance().getOpacity() + 0.05f, 1.0f);
-
-    // Snap to exactly 1.0 to prevent floating-point drift
-    if (newOpacity > 0.99f) {
-        newOpacity = 1.0f;
-    }
-
-    userSettings::instance().setOpacity(newOpacity);
-}
-
-void DashboardUI::decreaseOpacityButtonClicked() {
-    float newOpacity = qBound(0.0f, userSettings::instance().getOpacity() - 0.05f, 1.0f);
-
-    // Snap to zero to prevent floating-point drift
-    if (newOpacity < 0.01f) {
-        newOpacity = 0.0f;
-    }
-
-    userSettings::instance().setOpacity(newOpacity);
-}
-
-void DashboardUI::onExitButtonClicked() {
-    QApplication::exit();
 }
 
 void DashboardUI::updateGraphs(const FrameHandler::FrameStatsList& informationList) {

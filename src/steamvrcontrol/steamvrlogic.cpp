@@ -271,6 +271,8 @@ void SteamVRLogic::removeTracker(vr::TrackedDeviceIndex_t trackerToRemove) {
 	m_trackers.erase(std::remove(m_trackers.begin(), m_trackers.end(), trackerToRemove), m_trackers.end());
 }
 
+// This needs to be reworked. Currently it will fill the vector with trackers but only send tracked to the Ui that support
+// battery level. If none do, we have a useless filled vector
 void SteamVRLogic::searchForTrackers() {
 	if (!vr::VRInput() || !m_pVRSystem) return;
 	m_trackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
@@ -352,23 +354,6 @@ void SteamVRLogic::resetPosition() {
 		0.0f, 0.866f, 0.5f, 0.1f,
 		0.0f, -0.5f, 0.866f, -0.08f
 	});
-	m_matrixForRole = vr::TrackedControllerRole_LeftHand;
-	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
-		AttachToDevice(m_leftController);
-		userSettings::instance().setSavedRole(vr::TrackedControllerRole_LeftHand);
-	}
-	else if (m_rightController != vr::k_unTrackedDeviceIndexInvalid) {
-		AttachToDevice(m_rightController);
-		userSettings::instance().setSavedRole(vr::TrackedControllerRole_RightHand);
-		mirrorMatrix();
-	}
-	else {
-		AttachToDevice(vr::k_unTrackedDeviceIndexInvalid);
-		userSettings::instance().setSavedRole(vr::TrackedControllerRole_Invalid);
-	}
-}
-
-void SteamVRLogic::resetOverlayToDefault() {
 	m_matrixForRole = vr::TrackedControllerRole_LeftHand;
 	if (m_leftController != vr::k_unTrackedDeviceIndexInvalid) {
 		AttachToDevice(m_leftController);
@@ -717,22 +702,21 @@ void SteamVRLogic::setControllersBatteryLevel() {
 		float leftLevel = m_pVRSystem->GetFloatTrackedDeviceProperty(m_leftController, vr::Prop_DeviceBatteryPercentage_Float, &error);
 		if (error !=vr::TrackedProp_Success || leftLevel == 0) {
 			// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-			emit leftControllerBattery(2.0);
+			emit leftControllerBattery(2.0, false);
 		}
-		else emit leftControllerBattery(leftLevel);
+		else emit leftControllerBattery(leftLevel, m_pVRSystem->GetBoolTrackedDeviceProperty(m_leftController, vr::Prop_DeviceIsCharging_Bool, &error));
 	}
-	else emit leftControllerBattery(2.0);
+	else emit leftControllerBattery(2.0, false);
 
 	if (m_pVRSystem->GetBoolTrackedDeviceProperty(m_rightController, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error)) {
 		float rightLevel = m_pVRSystem->GetFloatTrackedDeviceProperty(m_rightController, vr::Prop_DeviceBatteryPercentage_Float, &error);
 		if (error !=vr::TrackedProp_Success || rightLevel == 0) {
 			// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-			emit rightControllerBattery(2.0);
+			emit rightControllerBattery(2.0, false);
 		}
-		else emit rightControllerBattery(rightLevel);
+		else emit leftControllerBattery(rightLevel, m_pVRSystem->GetBoolTrackedDeviceProperty(m_rightController, vr::Prop_DeviceIsCharging_Bool, &error));
 	}
-	else emit rightControllerBattery(2.0);
-
+	else emit rightControllerBattery(2.0, false);
 }
 
 void SteamVRLogic::setHeadsetBatteryLevel() {
@@ -743,11 +727,11 @@ void SteamVRLogic::setHeadsetBatteryLevel() {
 		float level = m_pVRSystem->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DeviceBatteryPercentage_Float, &error);
 		if (error !=vr::TrackedProp_Success || level == 0) {
 			// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-			emit headsetBattery(2.0);
+			emit headsetBattery(2.0, false);
 		}
-		else emit headsetBattery(level);
+		else emit headsetBattery(level, m_pVRSystem->GetBoolTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DeviceIsCharging_Bool, &error));
 	}
-	else emit headsetBattery(2.0);
+	else emit headsetBattery(2.0, false);
 }
 
 void SteamVRLogic::setTrackersBattery() {
@@ -758,13 +742,12 @@ void SteamVRLogic::setTrackersBattery() {
 			float level = m_pVRSystem->GetFloatTrackedDeviceProperty(tracker, vr::Prop_DevicePowerUsage_Float, &error);
 			if (error !=vr::TrackedProp_Success || level == 0) {
 				// battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-				emit trackersBattery(2.0, tracker);
+				emit trackersBattery(2.0, tracker, false);
 			}
-			else emit trackersBattery(level, tracker);
+			else emit trackersBattery(level, tracker, m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceIsCharging_Bool, &error));
 		}
-		else emit trackersBattery(2.0, tracker);
+		else emit trackersBattery(2.0, tracker, false);
 	}
-
 }
 
 void SteamVRLogic::OnTimeoutPumpEvents()

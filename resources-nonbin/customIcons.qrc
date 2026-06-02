@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/icons">
+    <file>chargingIcon.png</file>
     <file>vive3Icon.png</file>
     <file>hmdPNG.png</file>
     <file>leftControllerPNG.png</file>

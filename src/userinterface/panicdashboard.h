@@ -56,18 +56,8 @@ private:
 
     void resetValues();
 
-signals:
-    void panicButtonClicked();
-    void distanceCheckboxToggled(bool checked);
-    void showTrackersCheckboxToggled(bool checked);
-
-    void requestDistanceFadeStartUp();
-    void requestDistanceFadeStartDown();
-    void requestScaleUp();
-    void requestScaleDown();
-    void requestOpacityUp();
-    void requestOpacityDown();
-    void requestLeftControllerAttach();
+    signals:
+        void requestLeftControllerAttach();
     void requestRightControllerAttach();
     void requestHmdAttach();
     void requestResetPosition();

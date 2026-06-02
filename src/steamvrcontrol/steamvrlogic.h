@@ -126,7 +126,6 @@ public slots:
     void stopMove();
     void startScale();
     void stopScale();
-    void resetOverlayToDefault();
     void setDistanceFade(bool enabled);
     void steamDashboardStateForUi();
     void attachToRightController();
@@ -238,11 +237,11 @@ signals:
     void hideUi(bool hide);
     void appLaunched(const QString& appName);
     void appQuit(const QString& appName);
-    void leftControllerBattery(float level);
-    void rightControllerBattery(float level);
-    void headsetBattery(float level);
+    void leftControllerBattery(float level, bool charging);
+    void rightControllerBattery(float level, bool charging);
+    void headsetBattery(float level, bool charging);
     void addTrackerToUi(uint32_t index);
-    void trackersBattery(float level, uint32_t index);
+    void trackersBattery(float level, uint32_t index, bool charging);
     void removeTrackerFromUi(uint32_t index);
 };
 

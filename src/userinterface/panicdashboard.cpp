@@ -27,15 +27,16 @@ panicDashboard::panicDashboard(QWidget *parent) :
     this->setAttribute(Qt::WA_TranslucentBackground);
 
     connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::resetValues);
+    connect(ui->panicButton, &QPushButton::clicked, this, &panicDashboard::requestResetPosition);
     connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
-    connect(ui->distanceFadeCheck, &QCheckBox::toggled, this, &panicDashboard::distanceCheckboxToggled);
-    connect(ui->showTrackersCheckbox, &QCheckBox::toggled, this, &panicDashboard::showTrackersCheckboxToggled);
-    connect(ui->PlusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleUp);
-    connect(ui->MinusScale, &QPushButton::clicked, this, &panicDashboard::requestScaleDown);
-    connect(ui->PlusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityUp);
-    connect(ui->MinusOpacity, &QPushButton::clicked, this, &panicDashboard::requestOpacityDown);
-    connect(ui->PlusDistanceFade, &QPushButton::clicked, this, &panicDashboard::requestDistanceFadeStartUp);
-    connect(ui->MinusDistanceFade, &QPushButton::clicked, this, &panicDashboard::requestDistanceFadeStartDown);
+    connect(ui->distanceFadeCheck, &QCheckBox::toggled, &userSettings::instance(), &userSettings::setDistanceFadeState);
+    connect(ui->showTrackersCheckbox, &QCheckBox::toggled, &userSettings::instance(), &userSettings::setShowTrackers);
+    connect(ui->PlusScale, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseSize);
+    connect(ui->MinusScale, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseSize);
+    connect(ui->PlusOpacity, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseOpacity);
+    connect(ui->MinusOpacity, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseOpacity);
+    connect(ui->PlusDistanceFade, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseDistanceFadeValue);
+    connect(ui->MinusDistanceFade, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseDistanceFadeValue);
     connect(ui->RightControllerButton, &QPushButton::clicked, this, &panicDashboard::requestRightControllerAttach);
     connect(ui->LeftControllerButton, &QPushButton::clicked, this, &panicDashboard::requestLeftControllerAttach);
     connect(ui->HMDButton, &QPushButton::clicked, this, &panicDashboard::requestHmdAttach);

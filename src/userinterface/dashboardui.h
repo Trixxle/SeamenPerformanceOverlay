@@ -86,20 +86,17 @@ public slots:
     void updateDistanceFadeState();
     void updateTrackersShown();
     void updateUpdateChartsColors();
-    void increaseOpacityButtonClicked();
-    void decreaseOpacityButtonClicked();
     void hideUi(bool hide);
     void setAppLaunch(const QString &appName);
     void setAppQuit(const QString &appName);
-    void setLeftControllerBatteryLevel(float level);
-    void setRightControllerBatteryLevel(float level);
-    void setHeadseyBatteryLevel(float level);
-    void setTrackersBatteryLevel(float level, uint32_t index);
+    void setLeftControllerBatteryLevel(float level, bool charging);
+    void setRightControllerBatteryLevel(float level, bool charging);
+    void setHeadseyBatteryLevel(float level, bool charging);
+    void setTrackersBatteryLevel(float level, uint32_t index, bool charging);
     void addTrackerToUi(uint32_t index);
     void removeTrackedFromUI(uint32_t index);
 
 private slots:
-    void onExitButtonClicked();
     void updateClocks();
 
 protected:
@@ -190,12 +187,6 @@ signals:
     void requestControllerSwitch();
     void requestMoveBegin();
     void requestScaleBegin();
-
-    void opacityChanged(float newOpacity);
-
-    void distanceCheckboxToggled(bool checked);
-    void requestDistanceFadeStartUp();
-    void requestDistanceFadeStartDown();
 };
 
 

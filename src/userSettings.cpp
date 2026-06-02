@@ -118,6 +118,18 @@ void userSettings::decreaseSize() {
     setSize(qBound(0.0f, m_userSize - 0.01f, 100.0f));
 }
 
+void userSettings::increaseOpacity() {
+    float newOpacity = qBound(0.0f, m_userOpacity + 0.05f, 1.0f);
+    if (newOpacity > 0.99f) newOpacity = 1.0f;
+    setOpacity(newOpacity);
+}
+
+void userSettings::decreaseOpacity() {
+    float newOpacity = qBound(0.0f, m_userOpacity - 0.05f, 1.0f);
+    if (newOpacity < 0.01f) newOpacity = 0.0f;
+    setOpacity(newOpacity);
+}
+
 void userSettings::increaseDistanceFadeValue() {
     setDistanceFadeValue(m_userDistanceFadeValue + 0.01f);
 }
