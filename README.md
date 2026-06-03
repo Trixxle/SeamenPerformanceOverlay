@@ -1,70 +1,80 @@
+<sub>* *This repository serves as a way to show the README.md to people I wish to obtain feedback from without sharing the currently privated actual repository of the Seamen Performance Overlay*</sub>
+
+<img width="1000" height="323" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
+
 # Seamen Performance Overlay
-<img width="16001" height="5168" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
 
+Get in on Steam! [ADD STEAMSTORE LINK].
 
-Get in on Steam! [ADD STEAMSTORE LINK]
+Has my tool been useful to you? Consider donating to my [ko-fi!](https://ko-fi.com/jornjorn)
 
 ## What is it?
 The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics, battery levels, and system resource usages! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
 The frame time consistency graph it has is a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped PICO XR troubleshoot their VR streaming application PICO Connect.
 
 ## Compatability
-As long as you connect to SteamVR this overlay *should* work with any headset and controllers. Or even without controllers!
+As long as you connect to SteamVR, this overlay *should* work with any headset and controllers. Or even without controllers!
 For the time being the overlay only supports Windows. However, Linux support is planned.
 
 
-## Gallery:
+## Gallery
 UI                         |  Move it anywhere!
 :-------------------------:|:-------------------------:
-<img width="500" height="269" alt="Screenshot 2026-04-21 211733" src="https://github.com/user-attachments/assets/e253f596-63bd-469c-8941-3425f801629b" />  |  <img width="401" height="269" alt="MOVEMENT" src="https://github.com/user-attachments/assets/e84cf9d4-89f3-4aa9-bb62-5269260c6cf4" />
+<img width="400" height="220" alt="UI" src="https://github.com/user-attachments/assets/e253f596-63bd-469c-8941-3425f801629b" />  | <img width="401" height="269" alt="MOVEMENT" src="https://github.com/user-attachments/assets/e84cf9d4-89f3-4aa9-bb62-5269260c6cf4" />
+
 
 Switch Controllers!        |  Fades based on viewing angle!
 :-------------------------:|:-------------------------:
-<img width="440" height="288" alt="SWITCHCONTROLLER" src="https://github.com/user-attachments/assets/4e9630ba-a02f-493d-bca8-e6b042689aab" /> | <img width="440" height="288" alt="ANGLEFADE" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
+<img width="400" height="262" alt="SwitchControllers" src="https://github.com/user-attachments/assets/4e9630ba-a02f-493d-bca8-e6b042689aab" /> | <img width="400" height="262" alt="angleFade" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
 
 
-## Installation Instructions:
 
-Simply download the latest released .zip, extract it anywhere, run SteamVR, and run the .exe within the downloaded folder.
+## Installation Instructions
+> [!NOTE]
+> SteamVR must be installed for the overlay to work.
+
+Go to the [releases](https://github.com/Trixxle/SeamenPerformanceOverlay/releases) and simply download the latest released .zip. Extract it anywhere, run SteamVR, and run the .exe within the downloaded folder.
 Do not move files outside the folder, all files must remain in one folder.
-The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR the overlay will launch automatically. This can be changed inside the SteamVR settings under "Startup Overlay Apps". If you have the Steam version of this overlay installed it can interfere with the GitHub version and vice versa. It is recommended to keep one at a time.
+The overlay will install itself to SteamVR the first time it is ran. The next time you launch SteamVR, the overlay will launch automatically. This can be changed inside the SteamVR settings under "Startup Overlay Apps". 
+> [!IMPORTANT]
+> If you have the Steam version of this overlay installed, it can interfere with the GitHub version and vice versa. It is recommended to keep one at a time.
 
 
-## Features:
+## Features
 
-### Graphs:
+### Graphs
 The graphs are the main event on this overlay, but to properly read them it is important to understand them.
 The graphs display 4 colors: blue, orange, red, and purple.
-  - Blue means optimal
-  - Orange means almost optimal
-  - Red means nowhere near optimal
-  - Purple means a frame was dropped completely and never shown
+  - ${\color{lightblue}Blue}$ means optimal
+  - ${\color{orange}Orange}$ means almost optimal
+  - ${\color{red}Red}$ means nowhere near optimal
+  - ${\color{purple}Purple}$ means a frame was dropped completely and never shown
+
+<sub>* *Colorblindness options are available*</sub>
 
 Some graphs will also display a dotted line, this line represents the value the bars have to stay under or at to display a frame with perfection.
 
-### Statistics:
+### Statistics
   - GPU Frame time and respective graph
   - CPU Frame time and respective graph
   - Frame time consistency and respective graph
-  - Accurate and precise frame rate and respective graph
-  - Less accurate but more stable frame rate number for easy viewing
+  - Precise frame rate and respective graph
+  - Smoothened frame rate number for easy viewing
   - System RAM usage and total RAM count
   - System VRAM usage and total VRAM count
   - Headset battery level (if supported by headset)
   - Controllers battery level (if supported by controllers)
   - Trackers battery level (if supported by trackers)
 
-### Interactivity:
+### Accessibility
   - Can be moved anywhere around a controller
   - Can be attached to the left or right controller
   - Opacity controls
   - Size controls
   - Distance fade controls
-  - Color blindness option menu
-  - Exit button
+  - Color blindness options
 
-### Miscelaneous features:
-  - Colorblindness settings
+### Miscelaneous
   - Fades based on viewing angle
   - Will fall back to showing in front of view when no controllers are detected. Will attach to a controller if it appears mid-session with priority to the manually attached controller.
   - Saves everything about the overlay (opacity, scale, placement etc.) and restores it in future sessions
@@ -73,35 +83,34 @@ Some graphs will also display a dotted line, this line represents the value the 
   - A second dashboard overlay with additional settings such as a reset button and the colorblindness options.
   - Dynamic high power and low power rendering modes. - When the SteamVR Dashboard is open the overlay will render at a higher quality to allow for smooth interactivity. When the SteamVR Dashbaord is closed the overlay switches back to its default low power rendering mode to use as little performance as possible
 
-## Known bugs:
-  - Sometimes the icon on the Steam Dashboard will not load (could also be a SteamVR bug)
-  - When scaling the overlay to an impractical size the fading based on viewing angle stops working correctly
-
-## Planned features:
-  - Linux support (I need a PC running Linux to test with)
+## Known bugs
+All current known bugs can be found on the [Issues page.](https://github.com/Trixxle/SeamenPerformanceOverlay/issues)
 
 ## Building Instructions
 
-### Prerequisites:
+### Prerequisites
   Qt Framework: You need the community version of Qt installed on your computer. You can download the Qt installer from [qt.io](https://my.qt.io/download). You will have to create a Qt account to access the downloads on that page.
 This project is built using MINGW64 so you will need to install the MINGW64 version of Qt. Qt 6.11 is the version used to build this project but future or older versions can also work. Your mileage may vary. Make sure you install Qt in C:/Qt/6.11.0/mingw_64/. If you install it somewhere else, or a different version, change line 41 of CMakeLists.txt to the directory/version you installed it in.
 
-### Instructions:
+### Instructions
 Clone the repository. Either download the source code or run:
-```
+```bash
 git clone https://github.com/Trixxle/SeamenPerformanceOverlay.git --recursive
 ```
 
 You can either build using your IDE of choice or by opening a terminal, navigating to the root folder of the code and running:
-```
-[UNFINISHED]
+```bash
+UNFINSIHED
 ```
 
-# Contact
-For **feedback, bug reports**, and/or **feature requests**, join the Discord: https://discord.gg/j2skervRuZ
+## Contact
+For **feedback, bug reports**, and/or **feature requests**, join the Discord: https://discord.gg/j2skervRuZ 
 
 Website: https://seamen.gay
+
 Corporate website: https://corporate.seamen.gay
+
 Direct email: jorn@seamen.gay
+
 Learn our language! Why would you want to? No idea - https://seamenese.com
 
