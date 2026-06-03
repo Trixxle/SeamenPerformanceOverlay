@@ -287,7 +287,6 @@ int main(int argc, char *argv[])
     QTimer::singleShot(0, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setCurrentGame();
     });
-
     QTimer::singleShot(0, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setControllersBatteryLevel();
     });

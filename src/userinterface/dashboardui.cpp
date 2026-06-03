@@ -119,7 +119,7 @@ void DashboardUI::removeTrackedFromUI(uint32_t index) {
 }
 
 void DashboardUI::addTrackerToUi(uint32_t index) {
-    if (!ui->trackersFrame->isVisible()) ui->trackersFrame->show();
+    if (!ui->trackersFrame->isVisible() && userSettings::instance().getShowTrackers()) ui->trackersFrame->show();
     // Check if the widget already exists to prevent duplicate allocations
     QString iconName = QString("trackerIcon%1").arg(index);
     if (ui->trackersFrame->findChild<QLabel*>(iconName)) {
@@ -148,8 +148,8 @@ void DashboardUI::addTrackerToUi(uint32_t index) {
 }
 
 void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {
-    // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-    if (level == 2.0) {
+    // battery level is given from 0.0 to 1.0. The value -1.0 has been chosen as an "error flag"
+    if (level == -1.0) {
         ui->rightControllerBatteryLabel->hide();
         ui->rightControllerIcon->hide();
     }
@@ -165,8 +165,8 @@ void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {
 }
 
 void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
-    // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-    if (level == 2.0) {
+    // battery level is given from 0.0 to 1.0. The value -1.0 has been chosen as an "error flag"
+    if (level == -1.0) {
         ui->leftControllerBatteryLabel->hide();
         ui->leftControllerIcon->hide();
     }
@@ -183,8 +183,8 @@ void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
 }
 
 void DashboardUI::setHeadseyBatteryLevel(float level, bool charging) {
-    // battery level is given from 0.0 to 1.0. The value 2.0 has been chosen as an "error flag"
-    if (level == 2.0) {
+    // battery level is given from 0.0 to 1.0. The value -1.0 has been chosen as an "error flag"
+    if (level == -1.0) {
         ui->headsetBatteryLevel->hide();
         ui->headsetIcon->hide();
     }
@@ -204,12 +204,13 @@ void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index, bool char
     QString batteryLevelName = QString("trackerBatteryLabel%1").arg(index);
     auto uiElement = ui->trackersFrame->findChild<QLabel*>(batteryLevelName);
     if (uiElement) {
-        int batteryLevel = qRound(level * 100.0f);
-
-        if (level == 2.0) {
+        if (level == -1.0) {
             uiElement->setText(QString("-%"));
             return;
         }
+
+        int batteryLevel = qRound(level * 100.0f);
+
         uiElement->setText(QString::number(batteryLevel) + "%");
         charging ?  uiElement->setStyleSheet("color: rgb(125, 255, 125);") :  uiElement->setStyleSheet("color: rgb(255, 255, 255);");
         if (batteryLevel < 21 && !charging) uiElement->setStyleSheet("color: rgb(255, 125, 125);");    }

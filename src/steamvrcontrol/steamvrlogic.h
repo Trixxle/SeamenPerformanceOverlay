@@ -187,6 +187,7 @@ private:
     std::vector<vr::TrackedDeviceIndex_t> getDevicesForClass(vr::ETrackedDeviceClass classToLookFor);
     void addTracker(vr::TrackedDeviceIndex_t trackerToAdd);
     void removeTracker(vr::TrackedDeviceIndex_t);
+    float getDeviceBatteryLevel(vr::TrackedDeviceIndex_t device);
 
     bool m_isMoving = false;
     bool m_isScaling = false;
