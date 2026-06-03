@@ -96,6 +96,44 @@ DashboardUI::~DashboardUI() {
     delete ui;
 }
 
+void DashboardUI::rebalanceTrackerLayout() {
+    auto* gridLayout = qobject_cast<QGridLayout*>(ui->trackersFrame->layout());
+    if (!gridLayout) return;
+
+    QList<QPair<uint32_t, QPair<QLabel*, QLabel*>>> trackers;
+
+    for (auto* obj : ui->trackersFrame->children()) {
+        auto* iconLabel = qobject_cast<QLabel*>(obj);
+        if (iconLabel && iconLabel->objectName().startsWith("trackerIcon")) {
+            uint32_t idx = iconLabel->objectName().mid(11).toUInt();
+            QString labelName = QString("trackerBatteryLabel%1").arg(idx);
+            auto* batteryLabel = ui->trackersFrame->findChild<QLabel*>(labelName);
+
+            if (batteryLabel) {
+                trackers.append({idx, {iconLabel, batteryLabel}});
+            }
+        }
+    }
+
+    std::sort(trackers.begin(), trackers.end(), [](const auto& a, const auto& b) {
+        return a.first < b.first;
+    });
+
+    for (const auto& item : trackers) {
+        gridLayout->removeWidget(item.second.first);
+        gridLayout->removeWidget(item.second.second);
+    }
+
+    const int MAX_TRACKERS_PER_ROW = 9;
+    for (int i = 0; i < trackers.size(); ++i) {
+        int row = i / MAX_TRACKERS_PER_ROW;
+        int col = (i % MAX_TRACKERS_PER_ROW) * 2; // 2 columns per tracker pair
+
+        gridLayout->addWidget(trackers[i].second.first, row, col);
+        gridLayout->addWidget(trackers[i].second.second, row, col + 1);
+    }
+}
+
 void DashboardUI::updateTrackersShown() {
     userSettings::instance().getShowTrackers() ? ui->trackersFrame->show() : ui->trackersFrame->hide();
     // If the user enabled the show trackers options but has no trackers we must check if its empty ao we can hide it
@@ -107,46 +145,53 @@ void DashboardUI::updateTrackersShown() {
 
 void DashboardUI::removeTrackedFromUI(uint32_t index) {
     QString iconName = QString("trackerIcon%1").arg(index);
-    if (auto iconLabel = ui->trackersFrame->findChild<QLabel*>(iconName)) { // If the icon exists, the battery label exists as they are created in pairs
-        QString labelName = QString("trackerBatteryLabel%1").arg(index);
-        auto batteryLabel = ui->trackersFrame->findChild<QLabel*>(labelName);
 
-        if (auto* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout())) {
-            hLayout->removeWidget(iconLabel);
-            hLayout->removeWidget(batteryLabel);
+    if (auto* iconLabel = ui->trackersFrame->findChild<QLabel*>(iconName)) {
+        QString labelName = QString("trackerBatteryLabel%1").arg(index);
+        auto* batteryLabel = ui->trackersFrame->findChild<QLabel*>(labelName);
+
+        if (auto* gridLayout = qobject_cast<QGridLayout*>(ui->trackersFrame->layout())) {
+            gridLayout->removeWidget(iconLabel);
+            if (batteryLabel) {
+                gridLayout->removeWidget(batteryLabel);
+            }
         }
         delete iconLabel;
-        delete batteryLabel;
+        if (batteryLabel) {
+            delete batteryLabel;
+        }
+        rebalanceTrackerLayout();
     }
 }
 
 void DashboardUI::addTrackerToUi(uint32_t index) {
-    if (!ui->trackersFrame->isVisible() && userSettings::instance().getShowTrackers()) ui->trackersFrame->show();
-    // Check if the widget already exists to prevent duplicate allocations
+    if (!ui->trackersFrame->isVisible() && userSettings::instance().getShowTrackers()) {
+        ui->trackersFrame->show();
+    }
+
     QString iconName = QString("trackerIcon%1").arg(index);
     if (ui->trackersFrame->findChild<QLabel*>(iconName)) {
         return; // Tracker already exists, exit early
     }
 
-    auto iconLabel = std::make_unique<QLabel>();
-    iconLabel->setObjectName(iconName);
+    auto* gridLayout = qobject_cast<QGridLayout*>(ui->trackersFrame->layout());
+    if (!gridLayout) return;
 
+    // Instantiate with the frame as the parent immediately
+    auto* iconLabel = new QLabel(ui->trackersFrame);
+    iconLabel->setObjectName(iconName);
     QPixmap pixmap(":icons/vive3Icon.png");
     iconLabel->setPixmap(pixmap);
     iconLabel->setScaledContents(true);
     iconLabel->setFixedSize(25, 25);
 
-    auto batteryLabel = std::make_unique<QLabel>();
+    auto* batteryLabel = new QLabel(ui->trackersFrame);
     batteryLabel->setObjectName(QString("trackerBatteryLabel%1").arg(index));
     batteryLabel->setText("-%");
     batteryLabel->setStyleSheet("font-size: 15px;");
 
-    // Retrieve the horizontal layout from the frame
-    auto* hLayout = qobject_cast<QHBoxLayout*>(ui->trackersFrame->layout());
-    if (hLayout) {
-        hLayout->addWidget(iconLabel.release());
-        hLayout->addWidget(batteryLabel.release());
-    }
+    // used to push icons to the second row or back to the first if there are enough or not enough
+    rebalanceTrackerLayout();
 }
 
 void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {

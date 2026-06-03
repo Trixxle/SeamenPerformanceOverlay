@@ -131,6 +131,7 @@ private:
     void paintEvent(QPaintEvent *event) override;
     float roundFloat(float number, int decimalCases);
     void animateButtonZoom(bool zoomIn, QPushButton *button, int growWidth, int growHeight);
+    void rebalanceTrackerLayout();
 
     Ui::DashboardUI *ui;
     const int MAX_GRAPH_POINTS = 250;
