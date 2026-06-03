@@ -1,5 +1,3 @@
-<sub>* *This repository serves as a way to show the README.md to people I wish to obtain feedback from without sharing the currently privated actual repository of the Seamen Performance Overlay*</sub>
-
 <img width="1000" height="323" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
 
 # Seamen Performance Overlay
