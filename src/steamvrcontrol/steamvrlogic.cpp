@@ -273,15 +273,20 @@ void SteamVRLogic::removeTracker(vr::TrackedDeviceIndex_t trackerToRemove) {
 	m_trackers.erase(std::remove(m_trackers.begin(), m_trackers.end(), trackerToRemove), m_trackers.end());
 }
 
-// Blindly add all trackers to the list and then purge the ones that dont support battery percentage
+// Blindly add all trackers to the list and then purge the ones that dont support battery percentage or are disconnected
 void SteamVRLogic::searchForTrackers() {
 	if (!vr::VRInput() || !m_pVRSystem) return;
+
 	m_trackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
 
-	// Purge trackers that dont support battery percentage, else update UI
 	std::erase_if(m_trackers, [this](auto tracker) {
-		vr::ETrackedPropertyError error = vr::TrackedProp_ValueNotProvidedByDevice;
-		if (!m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error))
+		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker))
+			return true;
+
+		vr::ETrackedPropertyError error = vr::TrackedProp_Success;
+		bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
+
+		if (!providesBattery || error != vr::TrackedProp_Success)
 			return true;
 
 		emit addTrackerToUi(tracker);

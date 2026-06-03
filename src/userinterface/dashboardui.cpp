@@ -115,6 +115,8 @@ void DashboardUI::removeTrackedFromUI(uint32_t index) {
             hLayout->removeWidget(iconLabel);
             hLayout->removeWidget(batteryLabel);
         }
+        delete iconLabel;
+        delete batteryLabel;
     }
 }
 
