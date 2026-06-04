@@ -275,7 +275,7 @@ QPushButton:pressed {
          <item>
           <widget class="QLabel" name="versionNumber">
            <property name="text">
-            <string>v2026.6.1p8</string>
+            <string>v2026.6.2</string>
            </property>
           </widget>
          </item>
@@ -652,7 +652,7 @@ QPushButton:pressed {
                 <property name="frameShadow">
                  <enum>QFrame::Shadow::Raised</enum>
                 </property>
-                <layout class="QVBoxLayout" name="verticalLayout_12" stretch="0,0">
+                <layout class="QVBoxLayout" name="verticalLayout_12" stretch="0,0,0">
                  <property name="spacing">
                   <number>0</number>
                  </property>
@@ -690,7 +690,7 @@ QPushButton:pressed {
                      <number>35</number>
                     </property>
                     <property name="bottomMargin">
-                     <number>0</number>
+                     <number>20</number>
                     </property>
                     <item>
                      <widget class="QCheckBox" name="distanceFadeCheck">
@@ -706,6 +706,37 @@ QPushButton:pressed {
                      </widget>
                     </item>
                    </layout>
+                  </widget>
+                 </item>
+                 <item alignment="Qt::AlignmentFlag::AlignHCenter">
+                  <widget class="Line" name="line">
+                   <property name="sizePolicy">
+                    <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <horstretch>0</horstretch>
+                     <verstretch>0</verstretch>
+                    </sizepolicy>
+                   </property>
+                   <property name="minimumSize">
+                    <size>
+                     <width>240</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="maximumSize">
+                    <size>
+                     <width>240</width>
+                     <height>16777215</height>
+                    </size>
+                   </property>
+                   <property name="lineWidth">
+                    <number>2</number>
+                   </property>
+                   <property name="midLineWidth">
+                    <number>0</number>
+                   </property>
+                   <property name="orientation">
+                    <enum>Qt::Orientation::Horizontal</enum>
+                   </property>
                   </widget>
                  </item>
                  <item>

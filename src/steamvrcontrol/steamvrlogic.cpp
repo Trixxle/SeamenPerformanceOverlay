@@ -241,7 +241,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 		m_pRenderTimer->setTimerType(Qt::CoarseTimer);
 		connect(m_pPumpEventsTimer, SIGNAL( timeout() ), this, SLOT( OnTimeoutPumpEvents() ) );
 		connect(m_pRenderTimer, &QTimer::timeout, this, &SteamVRLogic::RenderDirtyOverlayScenes);
-		m_pPumpEventsTimer->setInterval( 20 );
+		m_pPumpEventsTimer->setInterval( 40 );
 		m_pPumpEventsTimer->start();
 
 		// The quickest updating UI element is the text, which happens at 250ms intervals.
@@ -760,23 +760,23 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 	vr::VREvent_t vrEvent;
 
 	// Every ~5 seconds, check if a closer controller with the same role exists
-	if (++m_proximityCheckCounter >= 250) {
+	if (++m_proximityCheckCounter >= 125) {
 		m_proximityCheckCounter = 0;
 		checkClosestControllerForRole();
 	}
 
 	// Every ~30 seconds set battery life of devices
-	if (++m_batteryCheckCounter >= 1500) {
+	if (++m_batteryCheckCounter >= 750) {
 		m_batteryCheckCounter = 0;
 		setControllersBatteryLevel();
 		setHeadsetBatteryLevel();
 		if (userSettings::instance().getShowTrackers()) setTrackersBattery(); // Skip querying tracker batteries if the UI element isnt shown
 	}
 
-	// Every ~500ms, check if the attached device has a valid pose and if the preferred
+	// Every ~2 seconds, check if the attached device has a valid pose and if the preferred
 	// device is available. Hand tracking devices stay "active" but lose their pose when
 	// the hand leaves the camera's view, so VREvent_TrackedDeviceDeactivated never fires.
-	if (++m_poseCheckCounter >= 25) {
+	if (++m_poseCheckCounter >= 50) {
 		m_poseCheckCounter = 0;
 
 		if (m_pVRSystem && vr::VROverlay() && !m_isMoving) {
@@ -978,6 +978,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_DashboardActivated:
 				{
 					emit hideUi(false);
+					// Render the UI at a high refresh rate for smooth UI interaction
 					m_pRenderTimer->setInterval(33);
 				}
 				break;
@@ -985,6 +986,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_DashboardDeactivated:
 				{
 					emit hideUi(true);
+					// Stop rendering the UI at a high refresh rate to save GPU performance
 					m_pRenderTimer->setInterval(250);
 				}
 				break;
