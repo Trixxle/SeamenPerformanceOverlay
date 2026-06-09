@@ -188,6 +188,7 @@ private:
     void addTracker(vr::TrackedDeviceIndex_t trackerToAdd);
     void removeTracker(vr::TrackedDeviceIndex_t);
     float getDeviceBatteryLevel(vr::TrackedDeviceIndex_t device);
+    void checkForCloserController();
 
     bool m_isMoving = false;
     bool m_isScaling = false;

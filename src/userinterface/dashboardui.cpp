@@ -208,7 +208,9 @@ void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {
         int batteryLevel = qRound(level * 100.0f);
         ui->rightControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingRightControllerIcon->show() :  ui->chargingRightControllerIcon->hide();
-        if (batteryLevel < 21) ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");    }
+        if (batteryLevel < 21) ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
+        else ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 255, 255);");
+    }
 }
 
 void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
@@ -225,7 +227,8 @@ void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
         int batteryLevel = qRound(level * 100.0f);
         ui->leftControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingLeftControllerIcon->show() :  ui->chargingLeftControllerIcon->hide();
-        if (batteryLevel < 21 && !charging) ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
+        if (batteryLevel < 21) ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
+        else ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 255, 255);");
     }
 }
 
@@ -243,7 +246,8 @@ void DashboardUI::setHeadseyBatteryLevel(float level, bool charging) {
         int batteryLevel = qRound(level * 100.0f);
         ui->headsetBatteryLevel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingHeadsetIcon->show() :  ui->chargingHeadsetIcon->hide();
-        if (batteryLevel < 21 && !charging) ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
+        if (batteryLevel < 21) ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
+        else ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 255, 255);");
     }
 }
 
@@ -260,7 +264,9 @@ void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index, bool char
 
         uiElement->setText(QString::number(batteryLevel) + "%");
         charging ?  uiElement->setStyleSheet("color: rgb(125, 255, 125);") :  uiElement->setStyleSheet("color: rgb(255, 255, 255);");
-        if (batteryLevel < 21 && !charging) uiElement->setStyleSheet("color: rgb(255, 125, 125);");    }
+        if (batteryLevel < 21) uiElement->setStyleSheet("color: rgb(255, 125, 125);");
+        else uiElement->setStyleSheet("color: rgb(255, 255, 255);");
+    }
 }
 
 void DashboardUI::setAppLaunch(const QString &appName) {

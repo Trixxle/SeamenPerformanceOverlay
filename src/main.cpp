@@ -287,16 +287,16 @@ int main(int argc, char *argv[])
     QTimer::singleShot(0, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setCurrentGame();
     });
-    QTimer::singleShot(0, vrLogic, []() {
+    QTimer::singleShot(500, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setControllersBatteryLevel();
     });
-    QTimer::singleShot(0, vrLogic, []() {
+    QTimer::singleShot(500, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setHeadsetBatteryLevel();
     });
-    QTimer::singleShot(0, vrLogic, []() {
+    QTimer::singleShot(500, vrLogic, []() {
         SteamVRLogic::SharedInstance()->searchForTrackers();
     });
-    QTimer::singleShot(1, vrLogic, []() {
+    QTimer::singleShot(1000, vrLogic, []() {
         SteamVRLogic::SharedInstance()->setTrackersBattery();
     });
 
