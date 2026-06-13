@@ -146,6 +146,7 @@ private:
     };
 
     std::vector<vr::TrackedDeviceIndex_t> m_trackers;
+    std::vector<vr::TrackedDeviceIndex_t> m_pendingTrackers;
 
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 20;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;

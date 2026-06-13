@@ -267,20 +267,35 @@ void SteamVRLogic::addTracker(vr::TrackedDeviceIndex_t trackerToAdd) {
 
 	// Vive / Tundra trackers report Prop_DeviceProvidesBatteryStatus_Bool=true once their
 	// property bundle is fully loaded, but the bundle is not necessarily populated by the
-	// time VREvent_TrackedDeviceActivated fires or by the time the start-up sweep runs.
-	// During that window the property read returns a transient error (e.g.
-	// TrackedProp_NotYetAvailable). Only reject the tracker when the runtime confidently
-	// confirms the device has no battery; treat any error as "maybe later" so the
-	// periodic sweep can correct course if needed.
+	// time VREvent_TrackedDeviceActivated fires. During that window the property read
+	// returns an error (typically TrackedProp_NotYetAvailable). A non-Success result is
+	// not a definitive answer, so defer the tracker to m_pendingTrackers and let the
+	// event pump retry it once the bundle is ready. Only a Success result is treated
+	// as the runtime's final word on whether the device has a battery.
 	vr::ETrackedPropertyError error = vr::TrackedProp_Success;
 	bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(trackerToAdd, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
-	if (error == vr::TrackedProp_Success && !providesBattery) return;
+
+	if (error != vr::TrackedProp_Success) {
+		if (std::find(m_pendingTrackers.begin(), m_pendingTrackers.end(), trackerToAdd) == m_pendingTrackers.end()) {
+			m_pendingTrackers.push_back(trackerToAdd);
+		}
+		return;
+	}
+
+	// Definitive answer – drop from the retry list either way.
+	auto pendingIt = std::find(m_pendingTrackers.begin(), m_pendingTrackers.end(), trackerToAdd);
+	if (pendingIt != m_pendingTrackers.end()) m_pendingTrackers.erase(pendingIt);
+
+	if (!providesBattery) return;
 
 	m_trackers.push_back(trackerToAdd);
 	emit addTrackerToUi(trackerToAdd);
 }
 
 void SteamVRLogic::removeTracker(vr::TrackedDeviceIndex_t trackerToRemove) {
+	auto pendingIt = std::find(m_pendingTrackers.begin(), m_pendingTrackers.end(), trackerToRemove);
+	if (pendingIt != m_pendingTrackers.end()) m_pendingTrackers.erase(pendingIt);
+
 	auto it = std::find(m_trackers.begin(), m_trackers.end(), trackerToRemove);
 	if (it == m_trackers.end()) return;
 	m_trackers.erase(it);
@@ -288,23 +303,14 @@ void SteamVRLogic::removeTracker(vr::TrackedDeviceIndex_t trackerToRemove) {
 }
 
 void SteamVRLogic::searchForTrackers() {
+	// One-shot start-up sweep: VREvent_TrackedDeviceActivated is not replayed for
+	// trackers that connected before the overlay started, so enumerate them now.
 	if (!m_pVRSystem) return;
 
 	std::vector<vr::TrackedDeviceIndex_t> currentTrackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
-
 	for (vr::TrackedDeviceIndex_t tracker : currentTrackers) {
 		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker)) continue;
 		addTracker(tracker);
-	}
-
-	std::vector<vr::TrackedDeviceIndex_t> toRemove;
-	for (vr::TrackedDeviceIndex_t tracker : m_trackers) {
-		bool stillPresent = m_pVRSystem->IsTrackedDeviceConnected(tracker)
-			&& m_pVRSystem->GetTrackedDeviceClass(tracker) == vr::TrackedDeviceClass_GenericTracker;
-		if (!stillPresent) toRemove.push_back(tracker);
-	}
-	for (vr::TrackedDeviceIndex_t tracker : toRemove) {
-		removeTracker(tracker);
 	}
 }
 
@@ -861,14 +867,10 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 	vr::VREvent_t vrEvent;
 
-	// Every ~5 seconds, check if a closer controller with the same role exists and
-	// reconcile the tracker list. The sweep is a back-stop for VREvent_TrackedDeviceActivated
-	// events the overlay missed during start-up and for Vive / Tundra trackers whose
-	// property bundle wasn't ready when they first activated.
+	// Every ~5 seconds, check if a closer controller with the same role exists.
 	if (++m_proximityCheckCounter >= 125) {
 		m_proximityCheckCounter = 0;
 		checkClosestControllerForRole();
-		searchForTrackers();
 	}
 
 	// Every ~30 seconds set battery life of devices
@@ -1199,7 +1201,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				{
 					vr::TrackedDeviceIndex_t deactivatedDevice = vrEvent.trackedDeviceIndex;
 
-					if (std::find(m_trackers.begin(), m_trackers.end(), deactivatedDevice) != m_trackers.end()) {
+					if (std::find(m_trackers.begin(), m_trackers.end(), deactivatedDevice) != m_trackers.end()
+						|| std::find(m_pendingTrackers.begin(), m_pendingTrackers.end(), deactivatedDevice) != m_pendingTrackers.end()) {
 						removeTracker(deactivatedDevice);
 						break;
 					}
