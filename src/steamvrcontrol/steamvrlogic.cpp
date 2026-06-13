@@ -260,38 +260,52 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 }
 
 void SteamVRLogic::addTracker(vr::TrackedDeviceIndex_t trackerToAdd) {
-	vr::ETrackedPropertyError error = vr::TrackedProp_InvalidOperation;
+	if (!m_pVRSystem || trackerToAdd == vr::k_unTrackedDeviceIndexInvalid) return;
 
-	if (!m_pVRSystem->GetBoolTrackedDeviceProperty(trackerToAdd, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error)) return;
+	// Already known – skip to avoid duplicate signals / list entries.
+	if (std::find(m_trackers.begin(), m_trackers.end(), trackerToAdd) != m_trackers.end()) return;
+
+	// Vive / Tundra trackers report Prop_DeviceProvidesBatteryStatus_Bool=true once their
+	// property bundle is fully loaded, but the bundle is not necessarily populated by the
+	// time VREvent_TrackedDeviceActivated fires or by the time the start-up sweep runs.
+	// During that window the property read returns a transient error (e.g.
+	// TrackedProp_NotYetAvailable). Only reject the tracker when the runtime confidently
+	// confirms the device has no battery; treat any error as "maybe later" so the
+	// periodic sweep can correct course if needed.
+	vr::ETrackedPropertyError error = vr::TrackedProp_Success;
+	bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(trackerToAdd, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
+	if (error == vr::TrackedProp_Success && !providesBattery) return;
 
 	m_trackers.push_back(trackerToAdd);
 	emit addTrackerToUi(trackerToAdd);
 }
 
 void SteamVRLogic::removeTracker(vr::TrackedDeviceIndex_t trackerToRemove) {
+	auto it = std::find(m_trackers.begin(), m_trackers.end(), trackerToRemove);
+	if (it == m_trackers.end()) return;
+	m_trackers.erase(it);
 	emit removeTrackerFromUi(trackerToRemove);
-	m_trackers.erase(std::remove(m_trackers.begin(), m_trackers.end(), trackerToRemove), m_trackers.end());
 }
 
-// Blindly add all trackers to the list and then purge the ones that dont support battery percentage or are disconnected
 void SteamVRLogic::searchForTrackers() {
-	if (!vr::VRInput() || !m_pVRSystem) return;
+	if (!m_pVRSystem) return;
 
-	m_trackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
+	std::vector<vr::TrackedDeviceIndex_t> currentTrackers = getDevicesForClass(vr::TrackedDeviceClass_GenericTracker);
 
-	std::erase_if(m_trackers, [this](auto tracker) {
-		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker))
-			return true;
+	for (vr::TrackedDeviceIndex_t tracker : currentTrackers) {
+		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker)) continue;
+		addTracker(tracker);
+	}
 
-		vr::ETrackedPropertyError error = vr::TrackedProp_Success;
-		bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
-
-		if (!providesBattery || error != vr::TrackedProp_Success)
-			return true;
-
-		emit addTrackerToUi(tracker);
-		return false;
-	});
+	std::vector<vr::TrackedDeviceIndex_t> toRemove;
+	for (vr::TrackedDeviceIndex_t tracker : m_trackers) {
+		bool stillPresent = m_pVRSystem->IsTrackedDeviceConnected(tracker)
+			&& m_pVRSystem->GetTrackedDeviceClass(tracker) == vr::TrackedDeviceClass_GenericTracker;
+		if (!stillPresent) toRemove.push_back(tracker);
+	}
+	for (vr::TrackedDeviceIndex_t tracker : toRemove) {
+		removeTracker(tracker);
+	}
 }
 
 void SteamVRLogic::setCurrentGame() {
@@ -847,10 +861,14 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 
 	vr::VREvent_t vrEvent;
 
-	// Every ~5 seconds, check if a closer controller with the same role exists
+	// Every ~5 seconds, check if a closer controller with the same role exists and
+	// reconcile the tracker list. The sweep is a back-stop for VREvent_TrackedDeviceActivated
+	// events the overlay missed during start-up and for Vive / Tundra trackers whose
+	// property bundle wasn't ready when they first activated.
 	if (++m_proximityCheckCounter >= 125) {
 		m_proximityCheckCounter = 0;
 		checkClosestControllerForRole();
+		searchForTrackers();
 	}
 
 	// Every ~30 seconds set battery life of devices
@@ -1180,9 +1198,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 			case vr::VREvent_TrackedDeviceDeactivated:
 				{
 					vr::TrackedDeviceIndex_t deactivatedDevice = vrEvent.trackedDeviceIndex;
-					vr::ETrackedDeviceClass deviceClass = m_pVRSystem->GetTrackedDeviceClass(deactivatedDevice);
 
-					if (deviceClass == vr::TrackedDeviceClass_GenericTracker) {
+					if (std::find(m_trackers.begin(), m_trackers.end(), deactivatedDevice) != m_trackers.end()) {
 						removeTracker(deactivatedDevice);
 						break;
 					}
