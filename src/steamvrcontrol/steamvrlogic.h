@@ -146,7 +146,10 @@ private:
     };
 
     std::vector<vr::TrackedDeviceIndex_t> m_trackers;
+    // Vive and Tundra trackers may connect without yet being available. When this happens they do in this vector until
+    // they are available. Then they are passed to m_trackers.
     std::vector<vr::TrackedDeviceIndex_t> m_pendingTrackers;
+
 
     int MAX_VRRUNTIME_CONNECTION_ATTEMPTS = 20;
     vr::TrackedDeviceIndex_t m_unLastInteractingDevice = vr::k_unTrackedDeviceIndexInvalid;
@@ -190,6 +193,7 @@ private:
     void removeTracker(vr::TrackedDeviceIndex_t);
     float getDeviceBatteryLevel(vr::TrackedDeviceIndex_t device);
     void checkForCloserController();
+    void handlePendingTrackers();
 
     bool m_isMoving = false;
     bool m_isScaling = false;
