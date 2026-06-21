@@ -261,31 +261,50 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 
 void SteamVRLogic::handlePendingTrackers() {
 	std::erase_if(m_pendingTrackers, [this](auto tracker) {
-		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker))
+		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker)) {
+			qDebug() << "Tracker " << tracker << " not connected. Removed from pending buffer.";
 			return true;
+		}
 
 		vr::ETrackedPropertyError error = vr::TrackedProp_Success;
 		bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
+		qDebug() << "Returned error from tracker " << tracker << " in pending buffer: " << error;
 
 		if (providesBattery && error == vr::TrackedProp_Success) {
+			qDebug() << "Added tracker " << tracker << " to the UI. Removed from pending buffer and added to main vector.";
 			m_trackers.push_back(tracker);
 			emit addTrackerToUi(tracker);
 			return true;
 		}
+
+		qDebug() << "Tracker " << tracker << " remains in pending buffer.";
 		return false;
 	});
 }
 
 void SteamVRLogic::addTracker(vr::TrackedDeviceIndex_t trackerToAdd) {
+	// OpenVR mirrors VREvent_TrackedDeviceActivated into every overlay's queue, so this can be invoked
+	// more than once for the same tracker per pump cycle. Skip if already known.
+	if (std::find(m_trackers.begin(), m_trackers.end(), trackerToAdd) != m_trackers.end()) return;
+	if (std::find(m_pendingTrackers.begin(), m_pendingTrackers.end(), trackerToAdd) != m_pendingTrackers.end()) return;
+
 	vr::ETrackedPropertyError error = vr::TrackedProp_Success;
 
-	if (!m_pVRSystem->GetBoolTrackedDeviceProperty(trackerToAdd, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error)) return;
+	bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(trackerToAdd, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
 
-	if (error == vr::TrackedProp_NotYetAvailable) {
+	qDebug() << "Returned error from tracker " << trackerToAdd << ": " << error;
+	if (error == vr::TrackedProp_NotYetAvailable || (!providesBattery && error != vr::TrackedProp_Success)) {
+		qDebug() << "Tracker " << trackerToAdd << " is not yet available or unknown. Added to pending buffer.";
 		m_pendingTrackers.push_back(trackerToAdd);
 		return;
 	}
 
+	if (!providesBattery && error == vr::TrackedProp_Success) {
+		qDebug() << "Tracker " << trackerToAdd << " does not support battery data.";
+		return;
+	}
+
+	qDebug() << "Added tracker " << trackerToAdd << " to the UI.";
 	m_trackers.push_back(trackerToAdd);
 	emit addTrackerToUi(trackerToAdd);
 }
@@ -314,21 +333,28 @@ void SteamVRLogic::searchForTrackers() {
 	if (m_trackers.empty()) return;
 
 	std::erase_if(m_trackers, [this](auto tracker) {
-		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker))
+		if (!m_pVRSystem->IsTrackedDeviceConnected(tracker)){
+			qDebug() << "Tracker " << tracker << " not connected.";
 			return true;
+		}
 
 		vr::ETrackedPropertyError error = vr::TrackedProp_Success;
 		bool providesBattery = m_pVRSystem->GetBoolTrackedDeviceProperty(tracker, vr::Prop_DeviceProvidesBatteryStatus_Bool, &error);
 
 		// Add tracker to buffer vector until it's available
-		if (error == vr::TrackedProp_NotYetAvailable) {
+		qDebug() << "Returned error from tracker " << tracker << ": " << error;
+		if (error == vr::TrackedProp_NotYetAvailable || (!providesBattery && error != vr::TrackedProp_Success)) {
+			qDebug() << "Tracker " << tracker << " is not yet available or unkown. Added to pending buffer.";
 			m_pendingTrackers.push_back(tracker);
 			return true;
 		}
 
-		if (!providesBattery)
+		if (!providesBattery && error == vr::TrackedProp_Success) {
+			qDebug() << "Tracker " << tracker << " does not support battery data.";
 			return true;
+		}
 
+		qDebug() << "Added tracker " << tracker << " to the UI.";
 		emit addTrackerToUi(tracker);
 		return false;
 	});
@@ -905,8 +931,9 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		checkForCloserController();
 	}
 
-	// Process events for one overlay, dispatching mouse events to the given scene and widget
-	auto processOverlayEvents = [&](vr::VROverlayHandle_t handle, QGraphicsScene* scene, QWidget* widget) {
+	// Process events for one overlay, dispatching mouse events to the given scene and widget.
+	// `isPrimaryOverlay` gates system-wide events so they aren't handled once per overlay.
+	auto processOverlayEvents = [&](vr::VROverlayHandle_t handle, QGraphicsScene* scene, QWidget* widget, bool isPrimaryOverlay) {
 
 		float scaleBaseWidth = 0.0f;
 		if (m_isScaling && vr::VROverlay()) {
@@ -917,6 +944,22 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		{
 			if (vrEvent.trackedDeviceIndex != vr::k_unTrackedDeviceIndexInvalid) {
 				m_unLastInteractingDevice = vrEvent.trackedDeviceIndex;
+			}
+
+			// OpenVR copies global events into every overlay's queue; handle them only once.
+			if (!isPrimaryOverlay) {
+				switch (vrEvent.eventType) {
+					case vr::VREvent_TrackedDeviceActivated:
+					case vr::VREvent_TrackedDeviceDeactivated:
+					case vr::VREvent_DashboardActivated:
+					case vr::VREvent_DashboardDeactivated:
+					case vr::VREvent_SceneApplicationChanged:
+					case vr::VREvent_ProcessQuit:
+					case vr::VREvent_Quit:
+						continue;
+					default:
+						break;
+				}
 			}
 
 			switch( vrEvent.eventType )
@@ -1281,8 +1324,8 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 		}
 	};
 
-	processOverlayEvents( m_ulOverlayHandle, m_pScene.get(), m_pWidget );
-	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene.get(), m_pPanicWidget );
+	processOverlayEvents( m_ulOverlayHandle, m_pScene.get(), m_pWidget, /*isPrimaryOverlay=*/true );
+	processOverlayEvents( m_ulPanicOverlayHandle, m_pPanicScene.get(), m_pPanicWidget, /*isPrimaryOverlay=*/false );
 
 	// Update overlay alpha based on the viewing angle so the overlay fades when seen edge-on
 	if (vr::VROverlay()

@@ -64,6 +64,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "frameHandler.h"
 #include "userSettings.h"
 
+void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg)
+{
+    QFile logFile("SeamenPerformanceOverlay.log");
+    if (logFile.open(QIODevice::WriteOnly | QIODevice::Append))
+    {
+        logFile.write(qUtf8Printable(qFormatLogMessage(type, context, msg) + "\n"));
+    }
+}
+
 int main(int argc, char *argv[])
 {
     QSurfaceFormat format;
@@ -73,6 +82,9 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat( format );
 
     QApplication a(argc, argv);
+
+    qInstallMessageHandler(myLogMessageHandler);
+    qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] %{category}: %{message}");
 
     QSharedMemory shared("62d60669-bb94-4a94-88bb-b964890a7e04");
     if( !shared.create( 512, QSharedMemory::ReadWrite) )
@@ -300,6 +312,8 @@ int main(int argc, char *argv[])
         SteamVRLogic::SharedInstance()->setTrackersBattery();
     });
 
+    qDebug() << "Seamen Performance Overlay started.";
+
     int exitCode = a.exec();
 
     frameThread->quit();
@@ -311,5 +325,6 @@ int main(int argc, char *argv[])
 
     SteamVRLogic::DestroyInstance();
 
+    qDebug() << "Seamen Performance Overlay exited.";
     return exitCode;
 }

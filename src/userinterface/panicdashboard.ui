@@ -256,7 +256,7 @@ QPushButton:pressed {
         <property name="frameShadow">
          <enum>QFrame::Shadow::Raised</enum>
         </property>
-        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,30,0,27,0">
+        <layout class="QHBoxLayout" name="horizontalLayout" stretch="0,30,0,30,0">
          <property name="spacing">
           <number>0</number>
          </property>
@@ -275,7 +275,7 @@ QPushButton:pressed {
          <item>
           <widget class="QLabel" name="versionNumber">
            <property name="text">
-            <string>v2026.6.2p3</string>
+            <string>v2026.6.2p4</string>
            </property>
           </widget>
          </item>
