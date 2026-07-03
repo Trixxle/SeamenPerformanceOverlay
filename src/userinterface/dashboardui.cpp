@@ -264,7 +264,7 @@ void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index, bool char
 
         uiElement->setText(QString::number(batteryLevel) + "%");
         charging ?  uiElement->setStyleSheet("color: rgb(125, 255, 125);") :  uiElement->setStyleSheet("color: rgb(255, 255, 255);");
-        if (batteryLevel < 21) uiElement->setStyleSheet("color: rgb(255, 125, 125);");
+        if (batteryLevel < 21 && !charging) uiElement->setStyleSheet("color: rgb(255, 125, 125);");
         else uiElement->setStyleSheet("color: rgb(255, 255, 255);");
     }
 }

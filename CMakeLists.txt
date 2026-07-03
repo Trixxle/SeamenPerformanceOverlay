@@ -111,7 +111,6 @@ target_compile_options(SeamenPerformanceOverlay PRIVATE
         $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wextra -Wpedantic -Werror>
 )
 
-# Adds the definition only for Release builds
 target_compile_definitions(SeamenPerformanceOverlay PRIVATE
         $<$<CONFIG:Release>:QT_NO_DEBUG_OUTPUT>
 )

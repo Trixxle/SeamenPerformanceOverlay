@@ -75,16 +75,24 @@ void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context
 
 int main(int argc, char *argv[])
 {
-    QSurfaceFormat format;
-    format.setMajorVersion( 4 );
-    format.setMinorVersion( 1 );
-    format.setProfile( QSurfaceFormat::CoreProfile );
-    QSurfaceFormat::setDefaultFormat( format );
-
     QApplication a(argc, argv);
 
     qInstallMessageHandler(myLogMessageHandler);
     qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] %{category}: %{message}");
+
+    QSurfaceFormat format;
+    format.setMajorVersion( 4 );
+    format.setMinorVersion( 1 );
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setProfile( QSurfaceFormat::CoreProfile );
+    QSurfaceFormat::setDefaultFormat( format );
+    if (a.arguments().contains("--safe-mode")) {
+        // This will force the software renderer.
+        qputenv("QT_QPA_PLATFORM_PLUGIN", "windows:softwarerenderer");
+        qDebug() << "System does not support OpenGL calls. Software render fallback enabled.";
+    }
+
+    qDebug() << "System supports OpenGL calls. Hardware accelerated render enabled.";
 
     QSharedMemory shared("62d60669-bb94-4a94-88bb-b964890a7e04");
     if( !shared.create( 512, QSharedMemory::ReadWrite) )
@@ -313,6 +321,25 @@ int main(int argc, char *argv[])
     });
 
     qDebug() << "Seamen Performance Overlay started.";
+
+    // Mirror the main overlay on the desktop as a window - Used for debugging
+    /*
+    QLabel* desktopMirror = new QLabel();
+    desktopMirror->setWindowTitle("Seamen Dashboard - Desktop Mirror");
+    desktopMirror->resize(800, 600);
+    desktopMirror->setStyleSheet("background-color: #00FF00;");
+    desktopMirror->setAlignment(Qt::AlignCenter);
+    desktopMirror->show();
+
+    QTimer* mirrorTimer = new QTimer();
+    QObject::connect(mirrorTimer, &QTimer::timeout, [pDashboardUI, desktopMirror]() {
+        QPixmap frame = pDashboardUI->grab();
+        if (!frame.isNull()) {
+            desktopMirror->setPixmap(frame.scaled(desktopMirror->size(), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        }
+    });
+    mirrorTimer->start(33);
+    */
 
     int exitCode = a.exec();
 
