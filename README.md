@@ -96,7 +96,7 @@ Clone the repository. Either download the source code or run:
 git clone https://github.com/Trixxle/SeamenPerformanceOverlay.git --recursive
 ```
 
-Build using your IDE of choice. This version is made to work with MingW. For other compilers you will need to replace the respective DLL's for OpenVR.
+Build using your IDE of choice. This version is made to work with MinGW. For other compilers you will need to replace the respective DLL's for OpenVR.
 
 ## Contact
 For **feedback, bug reports**, and/or **feature requests**, join the Discord: https://discord.gg/j2skervRuZ 
