@@ -54,9 +54,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QMessageBox>
 #include <QApplication>
 #include <QString>
+#include <QFont>
 #include <QTimer>
 #include <QSurfaceFormat>
 #include <memory>
+#include <steam_api.h>
 #include "userinterface/dashboardui.h"
 #include "userinterface/panicdashboard.h"
 #include "steamvrcontrol/steamvrlogic.h"
@@ -76,6 +78,23 @@ void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    bool isSteamInitialized = SteamAPI_Init();
+    bool hasDlc = false;
+    bool hasFirstTimeAchievement = false;
+
+    if (isSteamInitialized) {
+        hasDlc = SteamApps()->BIsSubscribedApp(4934850);
+        SteamUserStats()->GetAchievement("firstTimePlaying", &hasFirstTimeAchievement);
+        if (!hasFirstTimeAchievement) SteamUserStats()->SetAchievement("firstTimePlaying");
+    } else {
+        qDebug() << "Steamworks not found. Running open-source standalone mode.";
+    }
+
+    if (hasDlc) {
+        QFont comicSans("Comic Sans MS");
+        QApplication::setFont(comicSans);
+    }
 
     qInstallMessageHandler(myLogMessageHandler);
     qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] %{category}: %{message}");

@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include <QObject>
 #include <QSettings>
+#include "steam_api.h"
 #include "openvr.h"
 
 class userSettings : public QObject {

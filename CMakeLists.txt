@@ -88,6 +88,10 @@ find_package(Qt6 COMPONENTS
 set(OpenVR_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/openvr)
 find_package(OpenVR REQUIRED)
 
+# Configuring Steamworks API location
+set(Steamworks_ROOT ${CMAKE_SOURCE_DIR}/thirdparty/steamworks)
+find_package(SteamworksSDK REQUIRED)
+
 target_include_directories(SeamenPerformanceOverlay PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_compile_features(SeamenPerformanceOverlay PUBLIC cxx_std_23)
 
@@ -101,6 +105,7 @@ target_link_libraries(SeamenPerformanceOverlay
         Qt::OpenGLWidgets
         OpenVR::API
         dxgi
+        SteamworksSDK::API
         pdh
 )
 
@@ -122,6 +127,7 @@ set_target_properties(SeamenPerformanceOverlay PROPERTIES
 )
 
 file(COPY ${OpenVR_BINARY} DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY ${SteamworksSDK_BINARY} DESTINATION ${CMAKE_BINARY_DIR})
 
 add_custom_command(
         TARGET SeamenPerformanceOverlay POST_BUILD

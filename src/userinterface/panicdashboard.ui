@@ -275,7 +275,7 @@ QPushButton:pressed {
          <item>
           <widget class="QLabel" name="versionNumber">
            <property name="text">
-            <string>v2026.6.2p5</string>
+            <string>v2026.6.3</string>
            </property>
           </widget>
          </item>
@@ -392,7 +392,6 @@ QPushButton:pressed {
                 <widget class="QLabel" name="ScaleTitle">
                  <property name="font">
                   <font>
-                   <family>Segoe UI</family>
                    <pointsize>-1</pointsize>
                    <bold>true</bold>
                   </font>
@@ -506,7 +505,6 @@ QPushButton:pressed {
                 <widget class="QLabel" name="OpacityTitle">
                  <property name="font">
                   <font>
-                   <family>Segoe UI</family>
                    <pointsize>-1</pointsize>
                    <bold>true</bold>
                   </font>
@@ -628,7 +626,6 @@ QPushButton:pressed {
                   <widget class="QLabel" name="DistanceFadeTitle">
                    <property name="font">
                     <font>
-                     <family>Segoe UI</family>
                      <pointsize>-1</pointsize>
                      <bold>true</bold>
                     </font>
@@ -855,7 +852,6 @@ QPushButton:pressed {
                   <widget class="QLabel" name="colorBlindnessTitle">
                    <property name="font">
                     <font>
-                     <family>Segoe UI</family>
                      <pointsize>-1</pointsize>
                      <bold>true</bold>
                     </font>
@@ -1086,7 +1082,6 @@ QPushButton:pressed {
                   <widget class="QLabel" name="AttachedDeviceTitle">
                    <property name="font">
                     <font>
-                     <family>Segoe UI</family>
                      <pointsize>-1</pointsize>
                      <bold>true</bold>
                     </font>
@@ -1239,7 +1234,6 @@ QPushButton:pressed {
                   <widget class="QLabel" name="LostOrBrokeTitle">
                    <property name="font">
                     <font>
-                     <family>Segoe UI</family>
                      <pointsize>-1</pointsize>
                      <bold>true</bold>
                     </font>
