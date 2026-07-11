@@ -7,8 +7,8 @@ Get in on Steam! [ADD STEAMSTORE LINK].
 Has my tool been useful to you? Consider donating to my [ko-fi!](https://ko-fi.com/jornjorn)
 
 ## What is it?
-The Seamen Performance Overlay is a native C++ (no yucky webapp) SteamVR overlay that displays real-time frame time statistics, battery levels, and system resource usages! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
-The frame time consistency graph it has is a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped PICO XR troubleshoot their VR streaming application PICO Connect.
+The Seamen Performance Overlay is a native C++ SteamVR overlay that displays real-time frame time statistics, battery levels, and system resource usages! It automatically detects your headset's specifications to select the right frame time and frame rate to keep as reference.
+The frame time consistency graph is a first among VR Overlays and allows users to detect issues that would otherwise go unnoticed. This graph alone has helped PICO XR troubleshoot their VR streaming application PICO Connect.
 
 ## Compatability
 As long as you connect to SteamVR, this overlay *should* work with any headset and controllers. Or even without controllers!
@@ -76,7 +76,7 @@ Some graphs will also display a dotted line, this line represents the value the 
   - Fades based on viewing angle
   - Will fall back to showing in front of view when no controllers are detected. Will attach to a controller if it appears mid-session with priority to the manually attached controller.
   - Saves everything about the overlay (opacity, scale, placement etc.) and restores it in future sessions
-  - Works across AMD and Nvidia GPUs. (Probably Intel too but not tested)
+  - Works across AMD and Nvidia GPUs. (Intel Arc support is not 100% yet but should work)
   - Works across Intel and AMD CPUs
   - A second dashboard overlay with additional settings such as a reset button and the colorblindness options.
   - Dynamic high power and low power rendering modes. - When the SteamVR Dashboard is open the overlay will render at a higher quality to allow for smooth interactivity. When the SteamVR Dashbaord is closed the overlay switches back to its default low power rendering mode to use as little performance as possible
@@ -96,13 +96,11 @@ Clone the repository. Either download the source code or run:
 git clone https://github.com/Trixxle/SeamenPerformanceOverlay.git --recursive
 ```
 
-You can either build using your IDE of choice or by opening a terminal, navigating to the root folder of the code and running:
-```bash
-UNFINSIHED
-```
+Build using your IDE of choice. This version is made to work with MinGW. For other compilers you will need to replace the respective DLL's for OpenVR.
 
 ## Contact
 For **feedback, bug reports**, and/or **feature requests**, join the Discord: https://discord.gg/j2skervRuZ 
+You can also report issues on the [Issues page.](https://github.com/Trixxle/SeamenPerformanceOverlay/issues)
 
 Website: https://seamen.gay
 
