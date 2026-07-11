@@ -1,5 +1,3 @@
-<img width="1920" height="1180" alt="image" src="https://github.com/user-attachments/assets/ac6b9887-7c09-4640-be34-b73dca17a516" /><img width="1000" height="323" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
-
 # Seamen Performance Overlay
 
 Get in on Steam! [ADD STEAMSTORE LINK].
