@@ -99,7 +99,8 @@ git clone https://github.com/Trixxle/SeamenPerformanceOverlay.git --recursive
 > [!NOTE]
 > This project requires steamworks API integration to build, but not to run.
 As this overlay uses steam integration it requires the Steam SDK. This SDK is only accessible through Steam's partner program to which you can sign up for [here.](https://partner.steamgames.com/?ref=stebet.net).
-The SDk should be included in the directory of this project like this: 
+
+he SDK should be included in the directory of this project like this: 
 
 thirdparty
   steamworks
