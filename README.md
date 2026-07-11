@@ -1,4 +1,4 @@
-<img width="1000" height="323" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
+<img width="1920" height="1180" alt="image" src="https://github.com/user-attachments/assets/ac6b9887-7c09-4640-be34-b73dca17a516" /><img width="1000" height="323" alt="HeroSPO" src="https://github.com/user-attachments/assets/7b90c315-2965-48bd-864f-a3aaabc6b962" />
 
 # Seamen Performance Overlay
 
@@ -18,13 +18,11 @@ For the time being the overlay only supports Windows. However, Linux support is 
 ## Gallery
 UI                         |  Move it anywhere!
 :-------------------------:|:-------------------------:
-<img width="400" height="220" alt="UI" src="https://github.com/user-attachments/assets/e253f596-63bd-469c-8941-3425f801629b" />  | <img width="401" height="269" alt="MOVEMENT" src="https://github.com/user-attachments/assets/e84cf9d4-89f3-4aa9-bb62-5269260c6cf4" />
-
+<img width="400" height="246" alt="Screenshot 2026-07-11 164456" src="https://github.com/user-attachments/assets/c2d22748-db18-4dfb-972c-a101b836b589" />  | <img width="384" height="216" alt="MOVEMENT" src="https://github.com/user-attachments/assets/dfdd2157-b8cc-46a7-b33e-32f963233d74" />
 
 Switch Controllers!        |  Fades based on viewing angle!
 :-------------------------:|:-------------------------:
-<img width="400" height="262" alt="SwitchControllers" src="https://github.com/user-attachments/assets/4e9630ba-a02f-493d-bca8-e6b042689aab" /> | <img width="400" height="262" alt="angleFade" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
-
+<img width="384" height="216" alt="SWITCHCONTROLLER" src="https://github.com/user-attachments/assets/a1704bda-4af8-4024-afb9-6f95fb34bfa3" /> | <img width="400" height="262" alt="angleFade" src="https://github.com/user-attachments/assets/6af39476-3368-4f9f-9a57-fa0698ee89a3" />
 
 
 ## Installation Instructions
