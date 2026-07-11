@@ -296,7 +296,11 @@ void DashboardUI::updateClocks() {
 void DashboardUI::updateOpacityValue() {
     int opacityPercent = qRound(userSettings::instance().getOpacity() * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
-    if (opacityPercent == 0) SteamUserStats()->SetAchievement("invisibleOverlay");
+    if (opacityPercent == 0) {
+        bool hasAchievemnt = false;
+        SteamUserStats()->GetAchievement("invisibleOverlay", &hasAchievemnt);
+        if (!hasAchievemnt) SteamUserStats()->SetAchievement("invisibleOverlay");
+    }
 }
 
 void DashboardUI::updateDistanceFadeValue() {

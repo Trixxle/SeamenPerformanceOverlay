@@ -103,7 +103,7 @@ void SteamVRLogic::DestroyInstance()
 SteamVRLogic::initializationError SteamVRLogic::Init() {
 
 	if (!vr::VR_IsRuntimeInstalled()) {
-		std::cerr << "SteamVR is not installed." << std::endl;
+		qDebug() << "SteamVR is not installed.";
 		return eSteamVrNotInstalled;
 	}
 
@@ -151,7 +151,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 		}
 
 		if (!bSuccess) {
-			std::cerr << "Failed to connect to VR runtime." << std::endl;
+			qDebug() << "Failed to connect to VR runtime.";
 
 			return eFailedToConnectToSteamVr;
 		}
@@ -175,7 +175,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 			manifestPath = QDir::toNativeSeparators(manifestPath);
 
 			if (!QFile::exists(manifestPath)) {
-				std::cerr << "Manifest file not found: " << manifestPath.toStdString() << std::endl;
+				qDebug() << "Manifest file not found: " << manifestPath.toStdString();
 			} else {
 				std::cout << manifestPath.toStdString() << std::endl;
 
@@ -187,8 +187,8 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 					vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
 					std::cout << "Manifest successfully registered and set to auto-launch." << std::endl;
 				} else {
-					std::cerr << "Failed to add manifest. Error: "
-							  << vr::VRApplications()->GetApplicationsErrorNameFromEnum(err) << std::endl;
+					qDebug() << "Failed to add manifest. Error: "
+							  << vr::VRApplications()->GetApplicationsErrorNameFromEnum(err);
 				}
 			}
 		}
@@ -196,7 +196,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 
     bSuccess = vr::VRCompositor() != NULL;
 
-	if (!bSuccess) std::cerr << "Failed to initialize Compositor." << std::endl;
+	if (!bSuccess) qDebug() << "Failed to initialize Compositor.";
 
     if( vr::VROverlay() )
     {
@@ -212,14 +212,14 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
     	bSuccess = bSuccess && overlayError == vr::VROverlayError_None && overlayErrorPanic == vr::VROverlayError_None;
     	if (overlayError != vr::VROverlayError_None || overlayErrorPanic != vr::VROverlayError_None) {
     		// Overlays failed to create
-    		std::cerr << "Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayError);
-    		std::cerr << "Panic Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayErrorPanic);
+    		qDebug() << "Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayError);
+    		qDebug() << "Panic Overlay Error: " << vr::VROverlay()->GetOverlayErrorNameFromEnum(overlayErrorPanic);
     		return eFailedToCreateOverlays;
     	}
 		QString iconPath = QApplication::applicationDirPath() + "/icon.png";
     	vr::VROverlayError textureError = vr::VROverlay()->SetOverlayFromFile( m_ulOverlayThumbnailHandle, iconPath.toStdString().c_str() );
     	if (textureError != vr::VROverlayError_None) {
-    		std::cerr << "Failed to load thumbnail icon from: " << iconPath.toStdString() << std::endl;
+    		qDebug() << "Failed to load thumbnail icon from: " << iconPath.toStdString();
     	}
     }
 
@@ -250,7 +250,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 		m_pRenderTimer->start();
 	}
 	else {
-		std::cerr << "Failed to initialize VR overlay." << std::endl;
+		qDebug() << "Failed to initialize VR overlay.";
 		return eFailedToInitialize;
 	}
 
@@ -403,7 +403,7 @@ void SteamVRLogic::setCurrentGame() {
 					emit appLaunched(qAppName);
 				}
 			} else {
-				std::cerr << "Could not get application name for current scene key:" << appKey << std::endl;
+				qDebug() << "Could not get application name for current scene key:" << appKey;
 			}
 		}
 	}
@@ -1151,7 +1151,7 @@ void SteamVRLogic::OnTimeoutPumpEvents()
 				                emit appLaunched(qAppName);
 				            }
 				         } else {
-				            std::cerr << "Could not get application name for key:" << appKey << std::endl;
+				            qDebug() << "Could not get application name for key:" << appKey;
 				         }
 				      }
 				   }
@@ -1496,6 +1496,7 @@ void SteamVRLogic::AttachToDevice(const vr::TrackedDeviceIndex_t& device) {
 	m_deviceOverlayIsAttachedTo = device;
 }
 
+// This function gets called by Qt connects. These can be found in the main.cpp file
 void SteamVRLogic::switchController() {
 	// Ensure we actually have a valid device that clicked the button if by some miracle the user happens to somehow
 	// click the button with an invalid device
@@ -1512,9 +1513,10 @@ void SteamVRLogic::switchController() {
 
 		m_isMoving = false;
 	} else {
-		std::cerr << "Warning: You have somehow done something that should be impossible. You clicked the switch controller"
-		" button with an invalid device." << std::endl;
+		qDebug() << "You have somehow done something that should be impossible. You clicked the switch controller"
+		" button with an invalid device.";
 	}
+	qDebug() << "Switched controllers from a switchController call.";
 }
 
 void SteamVRLogic::startScale() {
@@ -1532,20 +1534,17 @@ void SteamVRLogic::startMove() {
 	// If widget is already moving, cannot start moving it again
 	if (m_isMoving) return;
 
-	// Re-query controller indices — they may have been invalid at init time during SteamVR autostart
 	// Re-query controller/hand indices — they may have been invalid at init time during SteamVR autostart
 	if (m_leftController == vr::k_unTrackedDeviceIndexInvalid) {
-		//m_leftController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_LeftHand);
 		m_leftController = getControllerForRole(vr::TrackedControllerRole_LeftHand);
 	}
 	if (m_rightController == vr::k_unTrackedDeviceIndexInvalid) {
-		//m_rightController = m_pVRSystem->GetTrackedDeviceIndexForControllerRole(vr::TrackedControllerRole_RightHand);
 		m_rightController = getControllerForRole(vr::TrackedControllerRole_RightHand);
 	}
 
 	if (m_deviceOverlayIsAttachedTo == m_leftController) {
 		if (m_rightController == vr::k_unTrackedDeviceIndexInvalid) {
-			std::cerr << "startMove: right controller not yet tracked, cannot start move." << std::endl;
+			qDebug() << "startMove: right controller not yet tracked, cannot start move.";
 			return;
 		}
 		userSettings::instance().setMatrix(calculateRelativeTransform(m_rightController));
@@ -1555,7 +1554,7 @@ void SteamVRLogic::startMove() {
 	}
 	else {
 		if (m_leftController == vr::k_unTrackedDeviceIndexInvalid) {
-			std::cerr << "startMove: left controller not yet tracked, cannot start move." << std::endl;
+			qDebug() << "startMove: left controller not yet tracked, cannot start move.";
 			return;
 		}
 		userSettings::instance().setMatrix(calculateRelativeTransform(m_leftController));
@@ -1576,8 +1575,6 @@ void SteamVRLogic::stopMove() {
 		m_matrixForRole = vr::TrackedControllerRole_RightHand;
 		AttachToDevice(m_rightController);
 	}
-	//savePosition();
-	//saveController();
 }
 
 void SteamVRLogic::mirrorMatrix() {
@@ -1593,8 +1590,9 @@ void SteamVRLogic::mirrorMatrix() {
 		m_matrixForRole = vr::TrackedControllerRole_RightHand;
 	else if (m_matrixForRole == vr::TrackedControllerRole_RightHand)
 		m_matrixForRole = vr::TrackedControllerRole_LeftHand;
-}
 
+	qDebug() << "Matrix has been mirrored.";
+}
 
 // -- NOTE: The below function is made almost entirely made by Claude. I was too lazy to refresh my math on matrices -- //
 
