@@ -102,11 +102,13 @@ As this overlay uses steam integration it requires the Steam SDK. This SDK is on
 
 he SDK should be included in the directory of this project like this: 
 
-thirdparty
-  steamworks
-    public
-      steam
-    redistributable_bin
+```bash
+├── thirdparty
+│   ├── steamworks
+│   │   ├── public
+│   │   │   ├── steam
+│   │   ├── redistributable_bin
+```
 
 Build using your IDE of choice. This version is made to work with MinGW. For other compilers you will need to replace the respective DLL's for OpenVR.
 
