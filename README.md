@@ -96,6 +96,15 @@ Clone the repository. Either download the source code or run:
 git clone https://github.com/Trixxle/SeamenPerformanceOverlay.git --recursive
 ```
 
+As this overlay uses steam integration it requires the Steam SDK. This SDK is only accessible through Steam's partner program to which you can sign up for [here.](https://partner.steamgames.com/?ref=stebet.net).
+The SDk should be included in the directory of this project like this: 
+
+thirdparty
+  steamworks
+    public
+      steam
+    redistributable_bin
+
 Build using your IDE of choice. This version is made to work with MinGW. For other compilers you will need to replace the respective DLL's for OpenVR.
 
 ## Contact
