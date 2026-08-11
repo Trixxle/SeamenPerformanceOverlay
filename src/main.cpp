@@ -123,7 +123,7 @@ int main(int argc, char *argv[])
         msgBox.setText("<b>Oh no! :( An oopsie was encountered!</b>");
         msgBox.setInformativeText(errorMessage);
         msgBox.setIcon(QMessageBox::Critical);
-
+        
         msgBox.setStyleSheet(
             "QMessageBox { "
             "    background-color: #232424; "
