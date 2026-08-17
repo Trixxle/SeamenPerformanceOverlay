@@ -69,13 +69,13 @@ public:
     [[nodiscard]] vr::HmdMatrix34_t getMatrix() const;
     [[nodiscard]] colorBlindType getColorBlindness() const;
 
-private:
+    void saveSettings();
 
+private:
     userSettings();
     ~userSettings() override = default;
 
     void loadSettings();
-    void saveSettings();
 
     QSettings m_settings{"Seamen", "PerformanceOverlay"};
 

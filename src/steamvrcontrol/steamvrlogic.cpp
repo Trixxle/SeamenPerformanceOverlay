@@ -101,6 +101,7 @@ void SteamVRLogic::DestroyInstance()
 }
 
 SteamVRLogic::initializationError SteamVRLogic::Init() {
+	qDebug() << "Attempting SteamVR connection...";
 
 	if (!vr::VR_IsRuntimeInstalled()) {
 		qDebug() << "SteamVR is not installed.";
@@ -123,7 +124,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 	bSuccess = m_pOpenGLContext->create();
 
 	if( !bSuccess ) {
-		std::cout << "Failed to initialize OpenGL context." << std::endl;
+		qDebug() << "Failed to initialize OpenGL context.";
 		return eOpenGLFailedToInitialize;
 	}
 
@@ -151,7 +152,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 		}
 
 		if (!bSuccess) {
-			qDebug() << "Failed to connect to VR runtime.";
+			qDebug() << "Failed to connect to SteamVR.";
 
 			return eFailedToConnectToSteamVr;
 		}
@@ -185,7 +186,7 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 
 				if (err == vr::VRApplicationError_None) {
 					vr::VRApplications()->SetApplicationAutoLaunch(sKey.c_str(), true);
-					std::cout << "Manifest successfully registered and set to auto-launch." << std::endl;
+					qDebug() << "Manifest successfully registered and set to auto-launch.";
 				} else {
 					qDebug() << "Failed to add manifest. Error: "
 							  << vr::VRApplications()->GetApplicationsErrorNameFromEnum(err);
@@ -255,8 +256,65 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 	}
 
 	restoreSession();
+	qDebug() << "Connected to SteamVR";
 
 	return eNone;
+}
+
+void SteamVRLogic::notifyUser(const QString& message) {
+    vr::IVRNotifications* notifications = vr::VRNotifications();
+    if (!notifications) {
+       qWarning() << "SteamVR Notification Failed: VRNotifications interface is null.";
+       return;
+    }
+
+    if (m_ulOverlayHandle == vr::k_ulOverlayHandleInvalid || m_ulOverlayHandle == 0) {
+       qWarning() << "SteamVR Notification Failed: Invalid Overlay Handle.";
+       return;
+    }
+
+    vr::NotificationBitmap_t notificationBitmap;
+    vr::NotificationBitmap_t* pBitmap = nullptr;
+    QImage iconImage;
+
+    QString iconPath = QDir(QCoreApplication::applicationDirPath()).filePath("icon.png");
+
+    if (QFileInfo::exists(iconPath)) {
+        if (iconImage.load(iconPath)) {
+            iconImage = iconImage.convertToFormat(QImage::Format_RGBA8888);
+
+            notificationBitmap.m_pImageData = (void*)iconImage.constBits();
+            notificationBitmap.m_nWidth = iconImage.width();
+            notificationBitmap.m_nHeight = iconImage.height();
+            notificationBitmap.m_nBytesPerPixel = 4;
+
+            pBitmap = &notificationBitmap;
+        } else {
+            qWarning() << "SteamVR Notification: Failed to load image at" << iconPath;
+        }
+    } else {
+        qWarning() << "SteamVR Notification: icon.png does not exist at" << iconPath;
+    }
+
+    vr::VRNotificationId notificationId;
+    QByteArray utf8Message = message.toUtf8();
+
+    const vr::EVRNotificationError notifError = notifications->CreateNotification(
+       m_ulOverlayHandle,
+       0,
+       vr::EVRNotificationType_Transient,
+       utf8Message.constData(),
+       vr::EVRNotificationStyle_Application,
+       pBitmap,
+       &notificationId
+    );
+
+    if (notifError != vr::VRNotificationError_OK) {
+       qWarning() << "SteamVR Notification Failed! Error code:" << notifError
+                << "| Overlay Handle:" << m_ulOverlayHandle;
+    } else {
+       qDebug() << "SteamVR accepted the notification. ID:" << notificationId;
+    }
 }
 
 void SteamVRLogic::handlePendingTrackers() {
@@ -360,6 +418,7 @@ void SteamVRLogic::searchForTrackers() {
 	});
 }
 
+// This is used during initialization of the overlay in case the user starts the overlay while already playing a game
 void SteamVRLogic::setCurrentGame() {
 	// Safety check to ensure the OpenVR interface is initialized
 	if (!vr::VRApplications()) {
@@ -400,6 +459,7 @@ void SteamVRLogic::setCurrentGame() {
 				if (!m_activeProcesses.contains(processId)) {
 					// Cache it so your VREvent_ProcessQuit logic can cleanly shut it down later
 					m_activeProcesses.insert(processId, {qAppName, qAppKey});
+					qDebug() << "Started game " << qAppName.trimmed() << ".";
 					emit appLaunched(qAppName);
 				}
 			} else {
@@ -408,6 +468,7 @@ void SteamVRLogic::setCurrentGame() {
 		}
 	}
 }
+
 void SteamVRLogic::steamDashboardStateForUi() {
 	if (!vr::VROverlay()) return;
 

@@ -138,6 +138,7 @@ public slots:
     void searchForTrackers();
     void resetPosition();
     void updateOverlayWidthInMeters();
+    void notifyUser(const QString& message);
 
 private:
     struct AppCacheData {

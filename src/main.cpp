@@ -52,9 +52,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QThread>
 #include <QMetaType>
 #include <QMessageBox>
+#include <QCoreApplication>
 #include <QApplication>
 #include <QString>
 #include <QFont>
+#include <QMutex>
+#include <QMutexLocker>
+#include <QTextStream>
 #include <QTimer>
 #include <QSurfaceFormat>
 #include <memory>
@@ -68,16 +72,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
-    QFile logFile("SeamenPerformanceOverlay.log");
-    if (logFile.open(QIODevice::WriteOnly | QIODevice::Append))
-    {
-        logFile.write(qUtf8Printable(qFormatLogMessage(type, context, msg) + "\n"));
+    static QMutex mutex;
+    QMutexLocker locker(&mutex);
+
+    QString logPath = QCoreApplication::applicationDirPath() + "/SeamenPerformanceOverlay.log";
+    static QFile logFile(logPath);
+
+    if (!logFile.isOpen() && !logFile.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
+        return;
     }
+
+    static QTextStream out(&logFile);
+    out << qFormatLogMessage(type, context, msg) << "\n";
+    out.flush();
 }
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+
+    qInstallMessageHandler(myLogMessageHandler);
+    qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] %{category}: %{message}");
+
+    qDebug() << "//------------------ START ------------------//";
+    qDebug() << "Initializing Seamen Performance Overlay...";
 
     bool isSteamInitialized = SteamAPI_Init();
     bool hasDlc = false;
@@ -96,8 +114,7 @@ int main(int argc, char *argv[])
         QApplication::setFont(comicSans);
     }
 
-    qInstallMessageHandler(myLogMessageHandler);
-    qSetMessagePattern("%{time yyyy-MM-dd hh:mm:ss,zzz} [%{type}] %{category}: %{message}");
+
 
     QSurfaceFormat format;
     format.setMajorVersion( 4 );
@@ -306,6 +323,9 @@ int main(int argc, char *argv[])
     // Connects user settings to rest of the code
     QObject::connect(&userSettings::instance(), &userSettings::sizeChanged, vrLogic, &SteamVRLogic::updateOverlayWidthInMeters);
 
+    // Connects for system resources to backend
+    QObject::connect(systemResourcesHandler, &SystemResourcesHandler::notifyUser, vrLogic, &SteamVRLogic::notifyUser);
+
     pDashboardUI->updateOpacity();
     pDashboardUI->updateDistanceFadeValue();
     pDashboardUI->updateDistanceFadeState();
@@ -339,7 +359,7 @@ int main(int argc, char *argv[])
         SteamVRLogic::SharedInstance()->setTrackersBattery();
     });
 
-    qDebug() << "Seamen Performance Overlay started.";
+    qDebug() << "Seamen Performance Overlay initialized.";
 
     // Mirror the main overlay on the desktop as a window - Used for debugging
     /*
@@ -370,6 +390,8 @@ int main(int argc, char *argv[])
     vrLogic->Shutdown();
 
     SteamVRLogic::DestroyInstance();
+
+    userSettings::instance().saveSettings();
 
     qDebug() << "Seamen Performance Overlay exited.";
     return exitCode;

@@ -64,9 +64,13 @@ private:
     PDH_HQUERY m_pdhQuery = nullptr;
     PDH_HCOUNTER m_vramCounter = nullptr;
 
+    bool m_vramWarningTriggered = false;
+    bool m_ramWarningTriggered = false;
+
 signals:
     void updateSystemResources(systemResources newSystemResources);
     void updateSystemResourceUsage(systemResourceUsage newSystemResourceUsage);
+    void notifyUser(const QString& message);
 };
 
 Q_DECLARE_METATYPE(SystemResourcesHandler::systemResourceUsage);

@@ -141,5 +141,19 @@ void SystemResourcesHandler::startSystemResourcesProcessing() {
 void SystemResourcesHandler::processSystemResources() {
     getSystemRamUsage();
     getSystemVramUsage();
+    if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage > 1.0 && !m_vramWarningTriggered) {
+        emit notifyUser("VRAM is almost full. - You may experience greatly reduced performance. Consider lowering "
+                            "render resolution, texture, or hiding avatars.");
+        m_vramWarningTriggered = true;
+    }
+    else if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage < 1.0 && m_vramWarningTriggered) m_vramWarningTriggered = false;
+
+    if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage > 1.0 && !m_ramWarningTriggered) {
+        emit notifyUser("RAM is almost full. - You may experience stuttery performance. Consider closing "
+                            "background apps such as browsers, Discord, etc.");
+        m_ramWarningTriggered = true;
+    }
+    else if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage < 1.0 && m_ramWarningTriggered) m_ramWarningTriggered = false;
+
     emit updateSystemResourceUsage(m_systemResourceUsage);
 }
