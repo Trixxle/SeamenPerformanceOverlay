@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 #include "systemResourcesHandler.h"
 
+#include "steamvrcontrol/steamvrlogic.h"
+
 SystemResourcesHandler::SystemResourcesHandler(QObject* parent):
     QObject(parent),
     m_pdhQuery(nullptr),
@@ -143,14 +145,14 @@ void SystemResourcesHandler::processSystemResources() {
     getSystemVramUsage();
     if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage < 1.0 && !m_vramWarningTriggered) {
         emit notifyUser("VRAM is almost full. - Prevent performance degradation, consider lowering "
-                            "render resolution, texture, or hiding avatars.");
+                            "render resolution, texture settings, or hiding avatars.", SteamVRLogic::notificationType::batteryLow);
         m_vramWarningTriggered = true;
     }
     else if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage > 1.0 && m_vramWarningTriggered) m_vramWarningTriggered = false;
 
     if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage < 1.0 && !m_ramWarningTriggered) {
         emit notifyUser("RAM is almost full. - Prevent performance degradation, consider closing "
-                            "background apps such as browsers, Discord, etc.");
+                            "background apps such as browsers, Discord, etc.", SteamVRLogic::notificationType::alert);
         m_ramWarningTriggered = true;
     }
     else if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage > 1.0 && m_ramWarningTriggered) m_ramWarningTriggered = false;

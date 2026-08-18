@@ -99,6 +99,12 @@ public:
         eFailedToInitialize = 5
     };
 
+    enum notificationType {
+        notify = 0,
+        alert = 1,
+        batteryLow = 2
+    };
+
     static SteamVRLogic *SharedInstance();
     static void DestroyInstance();
 
@@ -140,7 +146,7 @@ public slots:
     void searchForTrackers();
     void resetPosition();
     void updateOverlayWidthInMeters();
-    void notifyUser(const QString& message);
+    void notifyUser(const QString& message, notificationType type);
 
 private:
     struct AppCacheData {

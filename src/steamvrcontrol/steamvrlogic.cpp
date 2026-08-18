@@ -258,14 +258,13 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 	restoreSession();
 
 	m_effect = new QSoundEffect(this);
-	m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/notiSound.wav"));
 	m_effect->setVolume(1.0);
 
 	qDebug() << "Connected to SteamVR";
 	return eNone;
 }
 
-void SteamVRLogic::notifyUser(const QString& message) {
+void SteamVRLogic::notifyUser(const QString& message, notificationType type) {
     vr::IVRNotifications* notifications = vr::VRNotifications();
     if (!notifications) {
        qWarning() << "SteamVR Notification Failed: VRNotifications interface is null.";
@@ -318,9 +317,23 @@ void SteamVRLogic::notifyUser(const QString& message) {
                 << "| Overlay Handle:" << m_ulOverlayHandle;
     } else {
        qDebug() << "SteamVR accepted the notification. ID:" << notificationId;
+    	switch (type){
+    		case notify:
+    			m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/notiSound.wav"));
+    			break;
+    		case alert:
+    			m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/alertSound.wav"));
+    			break;
+    		case batteryLow:
+    			m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/batterySound.wav"));
+    			break;
+    		default:
+    			m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/notiSound.wav"));
+    	}
+    	m_effect->play();
+
     }
 
-	m_effect->play();
 }
 
 void SteamVRLogic::handlePendingTrackers() {

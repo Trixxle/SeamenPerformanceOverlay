@@ -28,6 +28,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QThread>
 #include <QTimer>
 #include <QElapsedTimer>
+#include "src/steamvrcontrol/steamvrlogic.h"
 
 class SystemResourcesHandler: public QObject{
     Q_OBJECT
@@ -70,7 +71,7 @@ private:
 signals:
     void updateSystemResources(systemResources newSystemResources);
     void updateSystemResourceUsage(systemResourceUsage newSystemResourceUsage);
-    void notifyUser(const QString& message);
+    void notifyUser(const QString& message, SteamVRLogic::notificationType type);
 };
 
 Q_DECLARE_METATYPE(SystemResourcesHandler::systemResourceUsage);
