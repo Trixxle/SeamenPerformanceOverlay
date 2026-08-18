@@ -312,6 +312,8 @@ int main(int argc, char *argv[])
     QObject::connect(&userSettings::instance(), &userSettings::distanceFadeStateChanged, pPanicDashboard, &panicDashboard::updateDistanceFadeState);
     QObject::connect(&userSettings::instance(), &userSettings::colorblindnessChanged, pPanicDashboard, &panicDashboard::updateColorblindness);
     QObject::connect(&userSettings::instance(), &userSettings::showTrackersChanged, pPanicDashboard, &panicDashboard::updateShowTrackerState);
+    QObject::connect(&userSettings::instance(), &userSettings::notificationStateChanged, pPanicDashboard, &panicDashboard::updateShowNotificationState);
+    QObject::connect(&userSettings::instance(), &userSettings::notificationVolumeChanged, pPanicDashboard, &panicDashboard::updateNotificationVolume);
 
     // Connect for user settings to overlay
     QObject::connect(&userSettings::instance(), &userSettings::opacityChanged, pDashboardUI, &DashboardUI::updateOpacity);
@@ -326,6 +328,7 @@ int main(int argc, char *argv[])
     // Connects for system resources to backend
     QObject::connect(systemResourcesHandler, &SystemResourcesHandler::notifyUser, vrLogic, &SteamVRLogic::notifyUser);
 
+    // Initialize the UI with the values loaded by userSettings
     pDashboardUI->updateOpacity();
     pDashboardUI->updateDistanceFadeValue();
     pDashboardUI->updateDistanceFadeState();
@@ -336,6 +339,8 @@ int main(int argc, char *argv[])
     pPanicDashboard->updateDistanceFadeState();
     pPanicDashboard->updateColorblindness();
     pPanicDashboard->updateShowTrackerState();
+    pPanicDashboard->updateNotificationVolume();
+    pPanicDashboard->updateShowNotificationState();
 
     frameThread->start();
     systemResourcesThread->start();

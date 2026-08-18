@@ -71,7 +71,7 @@ private:
 signals:
     void updateSystemResources(systemResources newSystemResources);
     void updateSystemResourceUsage(systemResourceUsage newSystemResourceUsage);
-    void notifyUser(const QString& message, SteamVRLogic::notificationType type);
+    void notifyUser(QString message, SteamVRLogic::notificationType type, vr::TrackedDeviceIndex_t device);
 };
 
 Q_DECLARE_METATYPE(SystemResourcesHandler::systemResourceUsage);

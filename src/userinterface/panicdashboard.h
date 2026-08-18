@@ -44,12 +44,13 @@ public:
 
 public slots:
     void updateDistanceFadeState() const;
-
     void updateOpacityValue() const;
     void updateScaleValue() const;
     void updateDistanceFadeValue() const;
     void updateColorblindness() const;
     void updateShowTrackerState() const;
+    void updateShowNotificationState() const;
+    void updateNotificationVolume() const;
 
 private:
     Ui::panicDashboard *ui;

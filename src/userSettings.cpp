@@ -34,7 +34,7 @@ void userSettings::loadSettings() {
                 }
             }
         }
-        qDebug() << "Loaded transform matrix.";
+        qDebug() << "Loaded transform matrix: " << matrixValues;
     }
     else qDebug() << "No transform matrix found.";
 
@@ -42,35 +42,35 @@ void userSettings::loadSettings() {
     if (!m_settings.value("AttachedRole").isNull()) {
         int savedRole = m_settings.value("AttachedRole").toInt();
         m_userSavedRole = static_cast<vr::ETrackedControllerRole>(savedRole);
-        qDebug() << "Loaded attached role.";
+        qDebug() << "Loaded attached role: " << m_userSavedRole;
     }
     else qDebug() << "No attached role found.";
 
     // Restore size
     if (!m_settings.value("Size").isNull()) {
         m_userSize = m_settings.value("Size").toFloat();
-        qDebug() << "Loaded size.";
+        qDebug() << "Loaded size: " << m_userSize;
     }
     else qDebug() << "No size found.";
 
     // Restore distance fade start
     if (!m_settings.value("DistanceFadeStart").isNull()) {
         m_userDistanceFadeValue = m_settings.value("DistanceFadeStart").toFloat();
-        qDebug() << "Loaded distance fade value.";
+        qDebug() << "Loaded distance fade value: " << m_userDistanceFadeValue;
     }
     else qDebug() << "No distance fade value found.";
 
     // Restore distance fade
     if (!m_settings.value("DistanceFadeOn").isNull()) {
         m_userDistanceFadeState = m_settings.value("DistanceFadeOn").toBool();
-        qDebug() << "Loaded distance fade state.";
+        qDebug() << "Loaded distance fade state: " << m_userDistanceFadeState;
     }
     else qDebug() << "No distance fade state found.";
 
     // Restore opacity
     if (!m_settings.value("Opacity").isNull()) {
         m_userOpacity = m_settings.value("Opacity").toFloat();
-        qDebug() << "Loaded opacity value.";
+        qDebug() << "Loaded opacity value: " << m_userOpacity;
     }
     else qDebug() << "No opacity value found.";
 
@@ -88,9 +88,23 @@ void userSettings::loadSettings() {
     // Restore showing tracker
     if (!m_settings.value("ShowTrackers").isNull()) {
         m_userShowTrackers = m_settings.value("ShowTrackers").toBool();
-        qDebug() << "Loaded showing tracker state.";
+        qDebug() << "Loaded showing tracker state: " << m_userShowTrackers;
     }
     else qDebug() << "No showing tracker state found.";
+
+    // Restore notification state
+    if (!m_settings.value("ShowNotifications").isNull()) {
+        m_userShowNotifications = m_settings.value("ShowNotifications").toBool();
+        qDebug() << "Loaded showing notification state: " << m_userShowNotifications    ;
+    }
+    else qDebug() << "No showing notification state found.";
+
+    // Restore notification volume
+    if (!m_settings.value("Volume").isNull()) {
+        m_userNotificationVolume = m_settings.value("Volume").toFloat();
+        qDebug() << "Loaded volume: " << m_userNotificationVolume;
+    }
+    else qDebug() << "No volume value found.";
 }
 
 void userSettings::saveSettings() {
@@ -132,6 +146,22 @@ void userSettings::saveSettings() {
     // Saving opacity
     m_settings.setValue("Opacity", m_userOpacity);
     qDebug() << "Saved opacity value: " << m_userOpacity;
+
+    // Saving notification state
+    m_settings.setValue("ShowNotifications", m_userShowNotifications);
+    qDebug() << "Saved showing notification state: " << m_userShowNotifications;
+
+    // Saving notification volume
+    m_settings.setValue("Volume", m_userNotificationVolume);
+    qDebug() << "Saved notification volume: " << m_userNotificationVolume;
+}
+
+void userSettings::increaseVolume() {
+    setNotificationVolume(m_userNotificationVolume + 0.1f);
+}
+
+void userSettings::decreaseVolume() {
+    setNotificationVolume(m_userNotificationVolume - 0.1f);
 }
 
 void userSettings::increaseSize(){
@@ -213,6 +243,16 @@ void userSettings::setMatrix(const vr::HmdMatrix34_t& newMatrix) {
     emit matrixChanged(newMatrix);
 }
 
+void userSettings::setNotificationVolume(float newVolume) {
+    m_userNotificationVolume = qBound(0.0f, newVolume, 1.0f);
+    emit notificationVolumeChanged(m_userNotificationVolume);
+}
+
+void userSettings::setNotificationState(bool newState) {
+    m_userShowNotifications = newState;
+    emit notificationStateChanged(m_userShowNotifications);
+}
+
 // Getters
 float userSettings::getSize() const {
     return m_userSize;
@@ -245,3 +285,13 @@ vr::HmdMatrix34_t userSettings::getMatrix() const {
 userSettings::colorBlindType userSettings::getColorBlindness() const {
     return m_userColorblindness;
 }
+
+float userSettings::getNotificationVolume() const {
+    return m_userNotificationVolume;
+}
+
+bool userSettings::getShowNotifications() const {
+    return m_userShowNotifications;
+}
+
+

@@ -264,7 +264,59 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 	return eNone;
 }
 
-void SteamVRLogic::notifyUser(const QString& message, notificationType type) {
+QString SteamVRLogic::getTrackerRole(vr::TrackedDeviceIndex_t device) {
+	// verify the device is a tracker
+	if (vr::VRSystem()->GetTrackedDeviceClass(device) != vr::TrackedDeviceClass_GenericTracker)
+	{
+		return "Not_A_Tracker";
+	}
+
+	vr::ETrackedPropertyError propError;
+	char registeredType[128];
+	uint32_t size = vr::VRSystem()->GetStringTrackedDeviceProperty(
+		device,
+		vr::Prop_RegisteredDeviceType_String,
+		registeredType,
+		sizeof(registeredType),
+		&propError
+	);
+
+	if (propError != vr::TrackedProp_Success || size == 0)
+	{
+		return "Unknown_Device_Type";
+	}
+
+	std::string settingsKey = std::string("/devices/") + registeredType;
+
+	vr::EVRSettingsError setError;
+	char roleBuf[128];
+
+	vr::VRSettings()->GetString(
+		vr::k_pch_Trackers_Section,
+		settingsKey.c_str(),
+		roleBuf,
+		sizeof(roleBuf),
+		&setError
+	);
+
+	if (setError == vr::VRSettingsError_None)
+	{
+		return tr(roleBuf);
+	}
+
+	return "Unassigned";
+}
+
+void SteamVRLogic::notifyUser(QString message, notificationType type, vr::TrackedDeviceIndex_t device) {
+	// if user has notifications disabled, return
+	if (!userSettings::instance().getShowNotifications()) return;
+
+	if(device != vr::k_unTrackedDeviceIndexInvalid) {
+		message = message + getTrackerRole(device) + tr(" has a low battery.");
+	}
+
+	m_effect->setVolume(userSettings::instance().getNotificationVolume());
+
     vr::IVRNotifications* notifications = vr::VRNotifications();
     if (!notifications) {
        qWarning() << "SteamVR Notification Failed: VRNotifications interface is null.";

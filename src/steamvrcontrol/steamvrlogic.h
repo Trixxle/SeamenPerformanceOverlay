@@ -146,7 +146,7 @@ public slots:
     void searchForTrackers();
     void resetPosition();
     void updateOverlayWidthInMeters();
-    void notifyUser(const QString& message, notificationType type);
+    void notifyUser(QString message, notificationType type, vr::TrackedDeviceIndex_t device = vr::k_unTrackedDeviceIndexInvalid );
 
 private:
     struct AppCacheData {
@@ -203,6 +203,7 @@ private:
     float getDeviceBatteryLevel(vr::TrackedDeviceIndex_t device);
     void checkForCloserController();
     void handlePendingTrackers();
+    QString getTrackerRole(vr::TrackedDeviceIndex_t device);
 
     bool m_isMoving = false;
     bool m_isScaling = false;

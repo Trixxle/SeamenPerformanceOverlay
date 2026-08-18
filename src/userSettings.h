@@ -48,6 +48,8 @@ public:
     void decreaseSize();
     void increaseOpacity();
     void decreaseOpacity();
+    void increaseVolume();
+    void decreaseVolume();
 
     // Setters
     void setSize(float newSize);
@@ -58,6 +60,8 @@ public:
     void setShowTrackers(bool newState);
     void setSavedRole(vr::ETrackedControllerRole newRole);
     void setMatrix(const vr::HmdMatrix34_t& newMatrix);
+    void setNotificationState(bool newState);
+    void setNotificationVolume(float newVolume);
 
     // Getters
     [[nodiscard]] float getSize() const;
@@ -68,6 +72,8 @@ public:
     [[nodiscard]] vr::ETrackedControllerRole getSavedRole() const;
     [[nodiscard]] vr::HmdMatrix34_t getMatrix() const;
     [[nodiscard]] colorBlindType getColorBlindness() const;
+    [[nodiscard]] bool getShowNotifications() const;
+    [[nodiscard]] float getNotificationVolume() const;
 
     void saveSettings();
 
@@ -82,11 +88,13 @@ private:
     float m_userOpacity = 1.0f;
     float m_userSize = 0.2f;
     float m_userDistanceFadeValue = 0.4f;
+    float m_userNotificationVolume = 1.0f;
 
     colorBlindType m_userColorblindness = colorBlindType::none;
 
     bool m_userDistanceFadeState = false;
     bool m_userShowTrackers = true;
+    bool m_userShowNotifications = true;
 
     vr::HmdMatrix34_t m_userMatrix = {
         1.0f, 0.0f, 0.0f, 0.0f,
@@ -105,6 +113,8 @@ signals:
     void matrixChanged(const vr::HmdMatrix34_t& newMatrix);
     void colorblindnessChanged(colorBlindType newType);
     void distanceFadeStateChanged(bool newState);
+    void notificationStateChanged(bool newState);
+    void notificationVolumeChanged(float newVolume);
 };
 
 #endif //SEAMENPERFORMANCEOVERLAY_USERSETTINGS_H

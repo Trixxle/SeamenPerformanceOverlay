@@ -31,6 +31,9 @@ panicDashboard::panicDashboard(QWidget *parent) :
     connect(ui->panicQuitButton, &QPushButton::clicked, this, &QCoreApplication::quit);
     connect(ui->distanceFadeCheck, &QCheckBox::toggled, &userSettings::instance(), &userSettings::setDistanceFadeState);
     connect(ui->showTrackersCheckbox, &QCheckBox::toggled, &userSettings::instance(), &userSettings::setShowTrackers);
+    connect(ui->NotificationCheckbox, &QCheckBox::toggled, &userSettings::instance(), &userSettings::setNotificationState);
+    connect(ui->PlusNotificationVolume, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseVolume);
+    connect(ui->MinusNotificationVolume, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseVolume);
     connect(ui->PlusScale, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseSize);
     connect(ui->MinusScale, &QPushButton::clicked, &userSettings::instance(), &userSettings::decreaseSize);
     connect(ui->PlusOpacity, &QPushButton::clicked, &userSettings::instance(), &userSettings::increaseOpacity);
@@ -102,6 +105,15 @@ void panicDashboard::updateDistanceFadeState() const {
 
 void panicDashboard::updateShowTrackerState() const {
     ui->showTrackersCheckbox->setChecked(userSettings::instance().getShowTrackers());
+}
+
+void panicDashboard::updateShowNotificationState() const {
+    ui->NotificationCheckbox->setChecked(userSettings::instance().getShowNotifications());
+}
+
+void panicDashboard::updateNotificationVolume() const {
+    int volumeInPercentage = qRound( userSettings::instance().getNotificationVolume() * 100.0f);
+    ui->NotificationVolumeVar->setText(QString::number(volumeInPercentage) + "%");
 }
 
 void panicDashboard::updateColorblindness() const {

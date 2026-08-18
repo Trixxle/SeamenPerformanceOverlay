@@ -41,6 +41,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "frameHandler.h"
 #include "systemResourcesHandler.h"
 #include "userSettings.h"
+#include "src/steamvrcontrol/steamvrlogic.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -188,6 +189,7 @@ signals:
     void requestControllerSwitch();
     void requestMoveBegin();
     void requestScaleBegin();
+    void notifyUser(QString message, SteamVRLogic::notificationType type, vr::TrackedDeviceIndex_t device);
 };
 
 

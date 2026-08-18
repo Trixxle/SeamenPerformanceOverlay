@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>725</width>
-    <height>786</height>
+    <width>729</width>
+    <height>790</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -649,10 +649,16 @@ QPushButton:pressed {
                 <item>
                  <widget class="QPushButton" name="LeftControllerButton">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>35</height>
+                   </size>
                   </property>
                   <property name="text">
                    <string/>
@@ -716,10 +722,16 @@ QPushButton:pressed {
                 <item>
                  <widget class="QPushButton" name="RightControllerButton">
                   <property name="sizePolicy">
-                   <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
+                   <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                     <horstretch>0</horstretch>
                     <verstretch>0</verstretch>
                    </sizepolicy>
+                  </property>
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>35</height>
+                   </size>
                   </property>
                   <property name="text">
                    <string/>
