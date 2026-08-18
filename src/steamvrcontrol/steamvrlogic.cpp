@@ -256,8 +256,12 @@ SteamVRLogic::initializationError SteamVRLogic::Init() {
 	}
 
 	restoreSession();
-	qDebug() << "Connected to SteamVR";
 
+	m_effect = new QSoundEffect(this);
+	m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/notiSound.wav"));
+	m_effect->setVolume(1.0);
+
+	qDebug() << "Connected to SteamVR";
 	return eNone;
 }
 
@@ -315,6 +319,8 @@ void SteamVRLogic::notifyUser(const QString& message) {
     } else {
        qDebug() << "SteamVR accepted the notification. ID:" << notificationId;
     }
+
+	m_effect->play();
 }
 
 void SteamVRLogic::handlePendingTrackers() {

@@ -82,6 +82,7 @@ find_package(Qt6 COMPONENTS
         Widgets
         OpenGL
         Charts
+        Multimedia
         REQUIRED)
 
 # Configuring OpenVR location
@@ -103,6 +104,7 @@ target_link_libraries(SeamenPerformanceOverlay
         Qt::OpenGL
         Qt::Charts
         Qt::OpenGLWidgets
+        Qt::Multimedia
         OpenVR::API
         dxgi
         SteamworksSDK::API

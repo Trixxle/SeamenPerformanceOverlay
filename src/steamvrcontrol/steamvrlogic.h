@@ -80,6 +80,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include <QMap>
 #include <iostream>
 #include <qdialogbuttonbox.h>
+#include <QSoundEffect>
+#include <QUrl>
 #include "userSettings.h"
 #include "openvr.h"
 
@@ -206,6 +208,9 @@ private:
 
     QRect m_mainSceneDirtyRect;
     QRect m_panicSceneDirtyRect;
+
+    // Used for alert sound when notifying the user
+    QSoundEffect *m_effect;
 
     vr::TrackedDevicePose_t m_rTrackedDevicePose[ vr::k_unMaxTrackedDeviceCount ];
 
