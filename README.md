@@ -2,7 +2,7 @@
 
 # Seamen Performance Overlay
 
-Get in on [Steam!](https://store.steampowered.com/app/4666560?snr=5000_5100__)
+Get in on [Steam!](https://store.steampowered.com/app/4666560/Seamen_Performance_Overlay/)
 
 Has my tool been useful to you? Consider donating to my [ko-fi!](https://ko-fi.com/jornjorn)
 
