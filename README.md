@@ -4,6 +4,8 @@
 
 Get in on [Steam!](https://store.steampowered.com/app/4666560/Seamen_Performance_Overlay/)
 
+[Trailer on YouTube.](https://youtu.be/4wRBG1F2ArU)
+
 Has my tool been useful to you? Consider donating to my [ko-fi!](https://ko-fi.com/jornjorn)
 
 ## What is it?
