@@ -1318,7 +1318,7 @@ QPushButton:pressed {
                  <item>
                   <widget class="QLabel" name="NotificationTitle">
                    <property name="text">
-                    <string>Notifications</string>
+                    <string>Notifications &amp; Volume</string>
                    </property>
                    <property name="alignment">
                     <set>Qt::AlignmentFlag::AlignCenter</set>
