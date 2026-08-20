@@ -9,8 +9,8 @@ SteamManager::SteamManager() {
 
 bool SteamManager::attemptSteamApiInit() {
     m_steamIsActive = SteamAPI_Init();
-    m_steamIsActive ? qDebug() << "Connected to Steam API." : qDebug() << "Failed to connect Steam API. Running open "
-                                                                          "source standalone mode.";
+    if (m_steamIsActive) qDebug() << "Connected to Steam API.";
+    else qDebug() << "Failed to connect Steam API. Running open source standalone mode.";
     return m_steamIsActive;
 }
 
