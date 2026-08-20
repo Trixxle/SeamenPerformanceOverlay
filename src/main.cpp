@@ -69,6 +69,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "systemResourcesHandler.h"
 #include "frameHandler.h"
 #include "userSettings.h"
+#include "steammanager/steamManager.h"
 
 void myLogMessageHandler(const QtMsgType type, const QMessageLogContext& context, const QString& msg)
 {
@@ -97,24 +98,16 @@ int main(int argc, char *argv[])
     qDebug() << "//------------------ START ------------------//";
     qDebug() << "Initializing Seamen Performance Overlay...";
 
-    bool isSteamInitialized = SteamAPI_Init();
-    bool hasDlc = false;
-    bool hasFirstTimeAchievement = false;
+    // Attempt to initialize Steam API
+    SteamManager::instance().attemptSteamApiInit();
 
-    if (isSteamInitialized) {
-        hasDlc = SteamApps()->BIsSubscribedApp(4934850);
-        SteamUserStats()->GetAchievement("firstTimePlaying", &hasFirstTimeAchievement);
-        if (!hasFirstTimeAchievement) SteamUserStats()->SetAchievement("firstTimePlaying");
-    } else {
-        qDebug() << "Steamworks not found. Running open-source standalone mode.";
-    }
+    // This will silently return if Steam API isn't connected
+    SteamManager::instance().setUserAchievement("firstTimePlaying");
 
-    if (hasDlc) {
+    if (SteamManager::instance().checkDlcActive(4934850)) {
         QFont comicSans("Comic Sans MS");
         QApplication::setFont(comicSans);
     }
-
-
 
     QSurfaceFormat format;
     format.setMajorVersion( 4 );

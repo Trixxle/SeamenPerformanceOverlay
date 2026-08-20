@@ -42,6 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #include "systemResourcesHandler.h"
 #include "userSettings.h"
 #include "src/steamvrcontrol/steamvrlogic.h"
+#include "steammanager/steamManager.h"
 
 QT_BEGIN_NAMESPACE
 

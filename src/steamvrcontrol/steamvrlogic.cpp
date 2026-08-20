@@ -383,9 +383,7 @@ void SteamVRLogic::notifyUser(QString message, notificationType type, vr::Tracke
     			m_effect->setSource(QUrl::fromLocalFile(QCoreApplication::applicationDirPath() + "/notiSound.wav"));
     	}
     	m_effect->play();
-
     }
-
 }
 
 void SteamVRLogic::handlePendingTrackers() {

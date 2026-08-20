@@ -294,24 +294,32 @@ void DashboardUI::setAppQuit(const QString &appName) {
 
 void DashboardUI::updateClocks() {
     QTime time = QTime::currentTime();
-    QString timeString = time.toString("hh:mm");
-    ui->clock->setText(timeString);
+    ui->clock->setText(time.toString("hh:mm"));
 
     if (!m_anAppIsActive) return;
 
     qint64 elapsedMs = m_playTimer.elapsed();
-    QTime playTime = QTime(0, 0).addMSecs(elapsedMs);
-    QString playTimeString = playTime.toString("hh:mm");
+
+    qint64 hours = elapsedMs / 3600000;
+    qint64 minutes = (elapsedMs / 60000) % 60;
+
+    QString playTimeString = QString("%1:%2")
+        .arg(hours, 2, 10, QChar('0'))
+        .arg(minutes, 2, 10, QChar('0'));
+
     ui->playtimeClock->setText(playTimeString);
+
+    // 86400000 ms = 24 hours. Limit the range to a 30 second window so we dont always spam the achievement API after 24 hours
+    if (elapsedMs >= 86400000 && elapsedMs <= 86700000) {
+        SteamManager::instance().setUserAchievement("goSleep");
+    }
 }
 
 void DashboardUI::updateOpacityValue() {
     int opacityPercent = qRound(userSettings::instance().getOpacity() * 100.0f);
     ui->OpacityVar->setText(QString::number(opacityPercent) + "%");
     if (opacityPercent == 0) {
-        bool hasAchievemnt = false;
-        SteamUserStats()->GetAchievement("invisibleOverlay", &hasAchievemnt);
-        if (!hasAchievemnt) SteamUserStats()->SetAchievement("invisibleOverlay");
+        SteamManager::instance().setUserAchievement("invisibleOverlay");
     }
 }
 

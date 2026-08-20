@@ -37,6 +37,8 @@ add_executable(SeamenPerformanceOverlay
         resources-nonbin/customIcons.qrc
         src/userSettings.cpp
         src/userSettings.h
+        src/steammanager/steamManager.cpp
+        src/steammanager/steamManager.h
 )
 
 # IMPORTANT: Change this path to where you have your Qt libraries installed
