@@ -94,7 +94,7 @@ private:
 
     bool m_userDistanceFadeState = false;
     bool m_userShowTrackers = true;
-    bool m_userShowNotifications = true;
+    bool m_userShowNotifications = false;
 
     vr::HmdMatrix34_t m_userMatrix = {
         1.0f, 0.0f, 0.0f, 0.0f,

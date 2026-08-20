@@ -143,19 +143,19 @@ void SystemResourcesHandler::startSystemResourcesProcessing() {
 void SystemResourcesHandler::processSystemResources() {
     getSystemRamUsage();
     getSystemVramUsage();
-    if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage < 1.0 && !m_vramWarningTriggered) {
+    if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage < 0.5 && !m_vramWarningTriggered) {
         emit notifyUser("VRAM is almost full. - Prevent performance degradation, lower "
                             "render resolution, texture settings, or hide avatars.", SteamVRLogic::notificationType::alert, vr::k_unTrackedDeviceIndexInvalid);
         m_vramWarningTriggered = true;
     }
-    else if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage > 1.0 && m_vramWarningTriggered) m_vramWarningTriggered = false;
+    else if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage > 0.5 && m_vramWarningTriggered) m_vramWarningTriggered = false;
 
-    if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage < 1.0 && !m_ramWarningTriggered) {
+    if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage < 0.5 && !m_ramWarningTriggered) {
         emit notifyUser("RAM is almost full. - Prevent performance degradation, close "
                             "background apps such as browsers, Discord, etc.", SteamVRLogic::notificationType::alert, vr::k_unTrackedDeviceIndexInvalid);
         m_ramWarningTriggered = true;
     }
-    else if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage > 1.0 && m_ramWarningTriggered) m_ramWarningTriggered = false;
+    else if (m_systemResources.systemRam - m_systemResourceUsage.ramUsage > 0.5 && m_ramWarningTriggered) m_ramWarningTriggered = false;
 
     emit updateSystemResourceUsage(m_systemResourceUsage);
 }
