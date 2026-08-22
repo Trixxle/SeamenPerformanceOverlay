@@ -546,6 +546,7 @@ void SteamVRLogic::steamDashboardStateForUi() {
 		m_pRenderTimer->setInterval(33);
 	}
 	else {
+		if (m_isMoving) stopMove();
 		emit hideUi(true);
 		m_pRenderTimer->setInterval(250);
 	}
