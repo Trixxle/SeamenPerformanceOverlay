@@ -292,6 +292,7 @@ int main(int argc, char *argv[])
     QObject::connect(pDashboardUI, &DashboardUI::requestControllerSwitch, vrLogic, &SteamVRLogic::switchController);
     QObject::connect(pDashboardUI, &DashboardUI::requestMoveBegin, vrLogic, &SteamVRLogic::startMove);
     QObject::connect(pDashboardUI, &DashboardUI::requestScaleBegin, vrLogic, &SteamVRLogic::startScale);
+    QObject::connect(pDashboardUI, &DashboardUI::notifyUser, vrLogic, &SteamVRLogic::notifyUser);
 
     // Connects for front end to backend communication (dashboard to backend)
     QObject::connect(pPanicDashboard, &panicDashboard::requestRightControllerAttach, vrLogic, &SteamVRLogic::attachToRightController);
