@@ -1746,7 +1746,7 @@ QPushButton:pressed {
              </font>
             </property>
             <property name="text">
-             <string>Target Frame Rate:</string>
+             <string>Render Resolution:</string>
             </property>
            </widget>
           </item>
@@ -1764,7 +1764,7 @@ QPushButton:pressed {
            </spacer>
           </item>
           <item>
-           <widget class="QLabel" name="targetFrameRateLabel">
+           <widget class="QLabel" name="renderResolutionLabel">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
               <horstretch>0</horstretch>
@@ -1808,7 +1808,7 @@ QPushButton:pressed {
              </font>
             </property>
             <property name="text">
-             <string>FPS</string>
+             <string>px</string>
             </property>
            </widget>
           </item>

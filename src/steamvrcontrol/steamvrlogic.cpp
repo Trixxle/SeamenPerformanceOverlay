@@ -307,6 +307,17 @@ QString SteamVRLogic::getTrackerRole(vr::TrackedDeviceIndex_t device) {
 	return "Unassigned";
 }
 
+void SteamVRLogic::GetRecommendedRenderResolution(uint32_t *width, uint32_t *height) {
+/*
+	vr::ETrackedPropertyError error = vr::TrackedProp_InvalidOperation;
+	*width = m_pVRSystem->GetInt32TrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayMCImageWidth_Int32, &error);
+	if (error != vr::TrackedProp_Success) return;
+	*height = m_pVRSystem->GetInt32TrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_DisplayMCImageHeight_Int32, &error);
+	if (error != vr::TrackedProp_Success) return;
+	*/
+	m_pVRSystem->GetRecommendedRenderTargetSize(width, height);
+}
+
 void SteamVRLogic::notifyUser(QString message, notificationType type, vr::TrackedDeviceIndex_t device) {
 	// if user has notifications disabled, return
 	if (!userSettings::instance().getShowNotifications()) return;

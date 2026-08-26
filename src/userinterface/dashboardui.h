@@ -65,7 +65,7 @@ public:
     void setDashboardCpuFrameTime(float cpuFrameTime);
     void setDashboardGpuFrameTime(float gpuFrameTime);
     void setDashboardHeadsetRefreshRate(float headsetRefreshRate);
-    void setDashboardTargetFrameRate(float targetFrameRate);
+    void setDashboardRenderResolution();
     void setSmoothFrameRate(float smoothFrameRate);
     void setSystemRam(float systemRam);
     void setSystemVram(float systemVram);

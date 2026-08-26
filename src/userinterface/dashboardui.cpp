@@ -462,7 +462,7 @@ void DashboardUI::updateLabels(const FrameHandler::frameStats &information) {
         setDashboardFrameTimeConsistency(roundFloat(information.frameDeliverySmoothness, 2));
         setDashboardCpuFrameTime(roundFloat(information.CpuFrametime, 2));
         setDashboardGpuFrameTime(roundFloat(information.GpuFrametime, 2));
-        setDashboardTargetFrameRate(roundFloat(information.MaxFramerate, 2));
+        setDashboardRenderResolution();
         setDashboardHeadsetRefreshRate(roundFloat(information.MaxFrametime, 2));
         setSmoothFrameRate(roundFloat(information.smoothFrameRate, 0));
 }
@@ -683,8 +683,14 @@ void DashboardUI::setDashboardHeadsetRefreshRate(float headsetRefreshRate) {
     ui->headsetRefreshRateLabel->setText("=< " + QString::number(headsetRefreshRate));
 }
 
-void DashboardUI::setDashboardTargetFrameRate(float targetFrameRate) {
-    ui->targetFrameRateLabel->setText(QString::number(targetFrameRate));
+void DashboardUI::setDashboardRenderResolution() {
+    uint32_t width = 0;
+    uint32_t height = 0;
+    SteamVRLogic::SharedInstance()->GetRecommendedRenderResolution(&width, &height);
+    if (width != 0 || height != 0) {
+        ui->renderResolutionLabel->setText(QString::number(width) + "x" + QString::number(height));
+    }
+    else ui->renderResolutionLabel->setText("No render");
 }
 
 void DashboardUI::setSystemRamUsage(float ramUsage) {
