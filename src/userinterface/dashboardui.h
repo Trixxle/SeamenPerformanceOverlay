@@ -93,7 +93,7 @@ public slots:
     void setAppQuit(const QString &appName);
     void setLeftControllerBatteryLevel(float level, bool charging);
     void setRightControllerBatteryLevel(float level, bool charging);
-    void setHeadseyBatteryLevel(float level, bool charging);
+    void setHeadsetBatteryLevel(float level, bool charging);
     void setTrackersBatteryLevel(float level, uint32_t index, bool charging);
     void addTrackerToUi(uint32_t index);
     void removeTrackedFromUI(uint32_t index);
@@ -134,6 +134,11 @@ private:
     float roundFloat(float number, int decimalCases);
     void animateButtonZoom(bool zoomIn, QPushButton *button, int growWidth, int growHeight);
     void rebalanceTrackerLayout();
+
+    QSet<uint32_t> m_BatteryNotified;
+    bool m_headsetBatteryNotified = false;
+    bool m_leftControllerBatteryNotified = false;
+    bool m_rightControllerBatteryNotified = false;
 
     Ui::DashboardUI *ui;
     const int MAX_GRAPH_POINTS = 250;

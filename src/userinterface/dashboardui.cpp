@@ -190,7 +190,7 @@ void DashboardUI::addTrackerToUi(uint32_t index) {
     batteryLabel->setText("-%");
     batteryLabel->setStyleSheet("font-size: 15px;");
 
-    // used to push icons to the second row or back to the first if there are enough or not enough
+    // used to push icons to the second row or back to the first if there are enough or not enough icons
     rebalanceTrackerLayout();
 }
 
@@ -206,13 +206,20 @@ void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {
             ui->rightControllerIcon->show();
         }
         int batteryLevel = qRound(level * 100.0f);
+        if (batteryLevel >= 21) m_rightControllerBatteryNotified = false;
         ui->rightControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingRightControllerIcon->show() :  ui->chargingRightControllerIcon->hide();
-        if (batteryLevel < 21) {
+        if (batteryLevel < 21 && !charging) {
             ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
-            emit notifyUser("Right controller battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
+            if (!m_rightControllerBatteryNotified) {
+                emit notifyUser("Right controller battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
+                m_rightControllerBatteryNotified = true;
+            }
         }
-        else ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 255, 255);");
+        else {
+            ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 255, 255);");
+            m_rightControllerBatteryNotified = false;
+        }
     }
 }
 
@@ -228,17 +235,24 @@ void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
             ui->leftControllerIcon->show();
         }
         int batteryLevel = qRound(level * 100.0f);
+        if (batteryLevel >= 21) m_leftControllerBatteryNotified = false;
         ui->leftControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingLeftControllerIcon->show() :  ui->chargingLeftControllerIcon->hide();
-        if (batteryLevel < 21) {
+        if (batteryLevel < 21 && !charging) {
             ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
-            emit notifyUser("Left controller battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
+            if (!m_leftControllerBatteryNotified) {
+                emit notifyUser("Left controller battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
+                m_leftControllerBatteryNotified = true;
+            }
         }
-        else ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 255, 255);");
+        else {
+            ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 255, 255);");
+            m_leftControllerBatteryNotified = false;
+        }
     }
 }
 
-void DashboardUI::setHeadseyBatteryLevel(float level, bool charging) {
+void DashboardUI::setHeadsetBatteryLevel(float level, bool charging) {
     // battery level is given from 0.0 to 1.0. The value -1.0 has been chosen as an "error flag"
     if (level == -1.0) {
         ui->headsetBatteryLevel->hide();
@@ -250,34 +264,52 @@ void DashboardUI::setHeadseyBatteryLevel(float level, bool charging) {
             ui->headsetIcon->show();
         }
         int batteryLevel = qRound(level * 100.0f);
+        if (batteryLevel >= 21) m_headsetBatteryNotified = false;
         ui->headsetBatteryLevel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingHeadsetIcon->show() :  ui->chargingHeadsetIcon->hide();
-        if (batteryLevel < 21) {
+        if (batteryLevel < 21 && !charging) {
             ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
-            emit notifyUser("Headset battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
+            if (!m_headsetBatteryNotified) {
+                emit notifyUser("Headset battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
+                m_headsetBatteryNotified = true;
+            }
         }
-        else ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 255, 255);");
+        else {
+            ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 255, 255);");
+            m_headsetBatteryNotified = false;
+        }
     }
 }
 
 void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index, bool charging) {
     QString batteryLevelName = QString("trackerBatteryLabel%1").arg(index);
     auto uiElement = ui->trackersFrame->findChild<QLabel*>(batteryLevelName);
-    if (uiElement) {
-        if (level == -1.0) {
-            uiElement->setText(QString("-%"));
-            return;
-        }
+    if (!uiElement) return;
+    if (level == -1.0) {
+        uiElement->setText(QString("-%"));
+        return;
+    }
 
-        int batteryLevel = qRound(level * 100.0f);
+    int batteryLevel = qRound(level * 100.0f);
 
-        uiElement->setText(QString::number(batteryLevel) + "%");
-        charging ?  uiElement->setStyleSheet("color: rgb(125, 255, 125);") :  uiElement->setStyleSheet("color: rgb(255, 255, 255);");
-        if (batteryLevel < 21 && !charging) {
-            uiElement->setStyleSheet("color: rgb(255, 125, 125);");
+    if (batteryLevel < 21 && !charging) {
+        uiElement->setStyleSheet("color: rgb(255, 125, 125);");
+
+        if (!m_BatteryNotified.contains(index)) {
             emit notifyUser("Tracker with role ", SteamVRLogic::notificationType::batteryLow, index);
+            m_BatteryNotified.insert(index);
         }
-        else uiElement->setStyleSheet("color: rgb(255, 255, 255);");
+    } else {
+        if (charging) {
+            uiElement->setStyleSheet("color: rgb(125, 255, 125);");
+        } else {
+            uiElement->setStyleSheet("color: rgb(255, 255, 255);");
+            m_BatteryNotified.remove(index);
+        }
+
+        if (batteryLevel >= 21) {
+            m_BatteryNotified.remove(index);
+        }
     }
 }
 

@@ -283,7 +283,7 @@ int main(int argc, char *argv[])
     QObject::connect(vrLogic, &SteamVRLogic::appQuit, pDashboardUI, &DashboardUI::setAppQuit);
     QObject::connect(vrLogic, &SteamVRLogic::leftControllerBattery, pDashboardUI, &DashboardUI::setLeftControllerBatteryLevel);
     QObject::connect(vrLogic, &SteamVRLogic::rightControllerBattery, pDashboardUI, &DashboardUI::setRightControllerBatteryLevel);
-    QObject::connect(vrLogic, &SteamVRLogic::headsetBattery, pDashboardUI, &DashboardUI::setHeadseyBatteryLevel);
+    QObject::connect(vrLogic, &SteamVRLogic::headsetBattery, pDashboardUI, &DashboardUI::setHeadsetBatteryLevel);
     QObject::connect(vrLogic, &SteamVRLogic::trackersBattery, pDashboardUI, &DashboardUI::setTrackersBatteryLevel);
     QObject::connect(vrLogic, &SteamVRLogic::addTrackerToUi, pDashboardUI, &DashboardUI::addTrackerToUi);
     QObject::connect(vrLogic, &SteamVRLogic::removeTrackerFromUi, pDashboardUI, &DashboardUI::removeTrackedFromUI);
