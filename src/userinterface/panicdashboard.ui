@@ -275,7 +275,7 @@ QPushButton:pressed {
          <item>
           <widget class="QLabel" name="versionNumber">
            <property name="text">
-            <string>v2026.8.3b</string>
+            <string>v2026.8.2p3d</string>
            </property>
           </widget>
          </item>

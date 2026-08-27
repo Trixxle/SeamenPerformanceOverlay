@@ -209,7 +209,7 @@ void DashboardUI::setRightControllerBatteryLevel(float level, bool charging) {
         if (batteryLevel >= 21) m_rightControllerBatteryNotified = false;
         ui->rightControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingRightControllerIcon->show() :  ui->chargingRightControllerIcon->hide();
-        if (batteryLevel < 21 && !charging) {
+        if (batteryLevel < 21) {
             ui->rightControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
             if (!m_rightControllerBatteryNotified) {
                 emit notifyUser("Right controller battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
@@ -238,7 +238,7 @@ void DashboardUI::setLeftControllerBatteryLevel(float level, bool charging) {
         if (batteryLevel >= 21) m_leftControllerBatteryNotified = false;
         ui->leftControllerBatteryLabel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingLeftControllerIcon->show() :  ui->chargingLeftControllerIcon->hide();
-        if (batteryLevel < 21 && !charging) {
+        if (batteryLevel < 21) {
             ui->leftControllerBatteryLabel->setStyleSheet("color: rgb(255, 125, 125);");
             if (!m_leftControllerBatteryNotified) {
                 emit notifyUser("Left controller battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
@@ -267,7 +267,7 @@ void DashboardUI::setHeadsetBatteryLevel(float level, bool charging) {
         if (batteryLevel >= 21) m_headsetBatteryNotified = false;
         ui->headsetBatteryLevel->setText(QString::number(batteryLevel) + "%");
         charging ?  ui->chargingHeadsetIcon->show() :  ui->chargingHeadsetIcon->hide();
-        if (batteryLevel < 21 && !charging) {
+        if (batteryLevel < 21) {
             ui->headsetBatteryLevel->setStyleSheet("color: rgb(255, 125, 125);");
             if (!m_headsetBatteryNotified) {
                 emit notifyUser("Headset battery low.", SteamVRLogic::notificationType::batteryLow, vr::k_unTrackedDeviceIndexInvalid);
