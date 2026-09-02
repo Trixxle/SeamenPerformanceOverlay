@@ -291,10 +291,10 @@ void DashboardUI::setTrackersBatteryLevel(float level, uint32_t index, bool char
     }
 
     int batteryLevel = qRound(level * 100.0f);
+    uiElement->setText(QString::number(batteryLevel) + "%");
 
     if (batteryLevel < 21 && !charging) {
         uiElement->setStyleSheet("color: rgb(255, 125, 125);");
-        uiElement->setText(QString::number(batteryLevel) + "%");
 
         if (!m_BatteryNotified.contains(index)) {
             emit notifyUser("Tracker with role ", SteamVRLogic::notificationType::batteryLow, index);
