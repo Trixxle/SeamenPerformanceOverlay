@@ -87,9 +87,13 @@ DashboardUI::DashboardUI(float headsetRefreshRate, float targetFrameRate, QWidge
     m_clocksTimer->setTimerType(Qt::VeryCoarseTimer);
     connect(m_clocksTimer, &QTimer::timeout, this, &DashboardUI::updateClocks);
 
+    // Reusing the clocks timer to set the render resolution
+    connect(m_clocksTimer, &QTimer::timeout, this, &DashboardUI::setDashboardRenderResolution);
+
     // Check for new time every 5 seconds. Who cares. (Don't use this overlay for new years)
     m_clocksTimer->start(5000);
     updateClocks();
+    setDashboardRenderResolution();
 }
 
 DashboardUI::~DashboardUI() {
@@ -495,7 +499,6 @@ void DashboardUI::updateLabels(const FrameHandler::frameStats &information) {
         setDashboardFrameTimeConsistency(roundFloat(information.frameDeliverySmoothness, 2));
         setDashboardCpuFrameTime(roundFloat(information.CpuFrametime, 2));
         setDashboardGpuFrameTime(roundFloat(information.GpuFrametime, 2));
-        setDashboardRenderResolution();
         setDashboardHeadsetRefreshRate(roundFloat(information.MaxFrametime, 2));
         setSmoothFrameRate(roundFloat(information.smoothFrameRate, 0));
 }
