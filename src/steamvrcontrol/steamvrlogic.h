@@ -122,6 +122,7 @@ public:
     QString GetVRDriverString();
     QString GetVRDisplayString();
     QString GetName() { return m_strOverlayName; }
+    void GetRecommendedRenderResolution(uint32_t *width, uint32_t *height);
 
     QString GetTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop);
 
