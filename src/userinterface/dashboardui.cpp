@@ -693,6 +693,9 @@ void DashboardUI::updateSystemResources(const SystemResourcesHandler::systemReso
 void DashboardUI::updateSystemResourceUsage(const SystemResourcesHandler::systemResourceUsage& systemResourceUsage) {
     setSystemRamUsage(systemResourceUsage.ramUsage);
     setSystemVramUsage(systemResourceUsage.vramUsage);
+    ui->gpuTemperatureLabel->setText(systemResourceUsage.gpuTemperature >= 0
+        ? QStringLiteral("Temp: %1\u00B0").arg(systemResourceUsage.gpuTemperature)
+        : QStringLiteral("Temp: --\u00B0"));
 }
 
 void DashboardUI::setSmoothFrameRate(float smoothFrameRate) {

@@ -1205,7 +1205,7 @@ QPushButton:pressed {
             <property name="frameShadow">
              <enum>QFrame::Shadow::Raised</enum>
             </property>
-            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,1,0,0,0,0">
+            <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,0,1,0,0,0,0,0">
              <property name="spacing">
               <number>0</number>
              </property>
@@ -1347,6 +1347,16 @@ QPushButton:pressed {
                 </size>
                </property>
               </spacer>
+             </item>
+             <item>
+              <widget class="QLabel" name="gpuTemperatureLabel">
+               <property name="text">
+                <string>Temp: --&#176;</string>
+               </property>
+               <property name="margin">
+                <number>2</number>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>

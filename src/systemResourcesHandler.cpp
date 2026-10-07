@@ -16,6 +16,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 #include "systemResourcesHandler.h"
+#include <QLibrary>
 
 #include "steamvrcontrol/steamvrlogic.h"
 
@@ -123,6 +124,78 @@ void SystemResourcesHandler::getSystemVramUsage() {
     }
 }
 
+void SystemResourcesHandler::getSystemGpuTemperature() {
+    m_systemResourceUsage.gpuTemperature = -1;
+
+    // WDDM exposes the same temperature query for every GPU.
+    struct OpenAdapterFromLuid {
+        LUID AdapterLuid;
+        UINT hAdapter;
+    };
+    struct CloseAdapter {
+        UINT hAdapter;
+    };
+    struct QueryAdapterInfo {
+        UINT hAdapter;
+        UINT Type;
+        void* pPrivateDriverData;
+        UINT PrivateDriverDataSize;
+    };
+    struct AdapterPerfData {
+        UINT PhysicalAdapterIndex;
+        alignas(8) ULONGLONG MemoryFrequency;
+        alignas(8) ULONGLONG MaxMemoryFrequency;
+        alignas(8) ULONGLONG MaxMemoryFrequencyOC;
+        alignas(8) ULONGLONG MemoryBandwidth;
+        alignas(8) ULONGLONG PCIEBandwidth;
+        ULONG FanRPM;
+        ULONG Power;
+        ULONG Temperature;
+        UCHAR PowerStateOverride;
+    };
+    static_assert(sizeof(AdapterPerfData) == 64);
+    constexpr UINT KMTQAITYPE_ADAPTERPERFDATA = 62;
+
+    static const auto openAdapter = reinterpret_cast<LONG (WINAPI*)(OpenAdapterFromLuid*)>(
+        QLibrary::resolve(QStringLiteral("gdi32"), "D3DKMTOpenAdapterFromLuid"));
+    static const auto queryAdapter = reinterpret_cast<LONG (WINAPI*)(const QueryAdapterInfo*)>(
+        QLibrary::resolve(QStringLiteral("gdi32"), "D3DKMTQueryAdapterInfo"));
+    static const auto closeAdapter = reinterpret_cast<LONG (WINAPI*)(const CloseAdapter*)>(
+        QLibrary::resolve(QStringLiteral("gdi32"), "D3DKMTCloseAdapter"));
+    if (!openAdapter || !queryAdapter || !closeAdapter) return;
+
+    // Match the GPU used by SteamVR, including systems with multiple GPUs.
+    int32_t adapterIndex = 0;
+    if (vr::VRSystem()) vr::VRSystem()->GetDXGIOutputInfo(&adapterIndex);
+    if (adapterIndex < 0) return;
+
+    IDXGIFactory* factory = nullptr;
+    if (FAILED(CreateDXGIFactory(__uuidof(IDXGIFactory), reinterpret_cast<void**>(&factory)))) return;
+
+    IDXGIAdapter* adapter = nullptr;
+    const HRESULT adapterResult = factory->EnumAdapters(static_cast<UINT>(adapterIndex), &adapter);
+    factory->Release();
+    if (FAILED(adapterResult)) return;
+
+    DXGI_ADAPTER_DESC desc{};
+    const HRESULT descResult = adapter->GetDesc(&desc);
+    adapter->Release();
+    if (FAILED(descResult)) return;
+
+    OpenAdapterFromLuid openInfo{desc.AdapterLuid, 0};
+    if (openAdapter(&openInfo) < 0) return;
+
+    AdapterPerfData perfData{};
+    QueryAdapterInfo queryInfo{openInfo.hAdapter, KMTQAITYPE_ADAPTERPERFDATA, &perfData, sizeof(perfData)};
+    const LONG status = queryAdapter(&queryInfo);
+    CloseAdapter closeInfo{openInfo.hAdapter};
+    closeAdapter(&closeInfo);
+
+    if (status >= 0 && perfData.Temperature > 0 && perfData.Temperature <= 2000) {
+        m_systemResourceUsage.gpuTemperature = static_cast<int>((perfData.Temperature + 5) / 10);
+    }
+}
+
 void SystemResourcesHandler::startSystemResourcesProcessing() {
     if (!m_pUpdateTimer) {
         m_pUpdateTimer = new QTimer(this);
@@ -143,6 +216,7 @@ void SystemResourcesHandler::startSystemResourcesProcessing() {
 void SystemResourcesHandler::processSystemResources() {
     getSystemRamUsage();
     getSystemVramUsage();
+    getSystemGpuTemperature();
     if (m_systemResources.systemVram - m_systemResourceUsage.vramUsage < 0.5 && !m_vramWarningTriggered) {
         emit notifyUser("VRAM is almost full. - Prevent performance degradation, lower "
                             "render resolution, texture settings, or hide avatars.", SteamVRLogic::notificationType::alert, vr::k_unTrackedDeviceIndexInvalid);

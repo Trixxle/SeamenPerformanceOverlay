@@ -40,6 +40,7 @@ public:
     struct systemResourceUsage {
         float vramUsage = 0.0;
         float ramUsage = 0.0;
+        int gpuTemperature = -1;
     };
 
     struct systemResources {
@@ -57,6 +58,7 @@ private:
 
     void getSystemRamUsage();
     void getSystemVramUsage();
+    void getSystemGpuTemperature();
 
     QTimer* m_pUpdateTimer = nullptr;
     const qint64 UI_UPDATE_INTERVAL_MS = 2000; // Interval for UI updating
